@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 
 from devai.core.config import Settings
 from devai.core.database import build_engine, initialize_database
-from devai.services.daily import run_daily_pipeline
+from devai.services.editorial_queue import collect_topics
 
 logger = logging.getLogger(__name__)
 
@@ -41,18 +41,11 @@ def run_forever():
                         time.sleep(60)
                         continue
                 try:
-                    result = run_daily_pipeline(
-                        session_factory, timezone=settings.daily_timezone, now=now
-                    )
+                    result = collect_topics(session_factory, now=now)
                     logger.info("Daily editorial run: %s", result)
-                    if (
-                        result["status"] in ("completed", "completed_with_warnings")
-                        or result["attempt_count"] >= 3
-                    ):
+                    if True:
                         last_date = now.date()
                         retry_after = None
-                    elif result["status"] == "failed":
-                        retry_after = result.get("retry_after")
                 except Exception:
                     logger.exception("Daily discovery failed")
             time.sleep(60)
