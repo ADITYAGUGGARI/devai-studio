@@ -9,7 +9,8 @@ from devai.core.auth import require_api_key
 from devai.core.database import SessionFactory
 from devai.models import Audit, Post, Slide, SourceCandidate
 from devai.schemas.research import GenerateInput, ResearchDraftInput
-from devai.services.daily import ingest, latest_run, run_daily_pipeline, topic_for_date
+from devai.services.daily import ingest, latest_run, topic_for_date
+from devai.services.editorial_queue import collect_topics
 from devai.services.generation import generate
 from devai.services.research import create_editorial_draft, discover
 from devai.services.source_urls import canonical_source_url
@@ -119,8 +120,4 @@ def ingest_scaffolds(session_factory: SessionFactory):
 def create_daily_package(session_factory: SessionFactory, request: Request):
     timezone_name = request.app.state.settings.daily_timezone
     timezone = ZoneInfo(timezone_name)
-    return run_daily_pipeline(
-        session_factory,
-        timezone=timezone_name,
-        now=datetime.now(timezone),
-    )
+    return collect_topics(session_factory, now=datetime.now(timezone))
