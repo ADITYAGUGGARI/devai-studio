@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: devai
+      POSTGRES_USER: devai
+      POSTGRES_PASSWORD: devai_local_only
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+  api:
+    build: ./api
+    environment:
+      DATABASE_URL: postgresql+psycopg://devai:devai_local_only@postgres:5432/devai
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-local-dev-only}
+      CORS_ORIGINS: http://localhost:5173
+    ports: ["8000:8000"]
+    depends_on: [postgres]
+  web:
+    build: ./web
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_ADMIN_API_KEY: ${ADMIN_API_KEY:-local-dev-only}
+    ports: ["5173:5173"]
+    depends_on: [api]
+  scheduler:
+    build: ./api
+    command: python scheduler.py
+    environment:
+      DATABASE_URL: postgresql+psycopg://devai:devai_local_only@postgres:5432/devai
+      DAILY_TIMEZONE: ${DAILY_TIMEZONE:-America/Chicago}
+      DAILY_HOUR: ${DAILY_HOUR:-8}
+    depends_on: [postgres]
+    restart: unless-stopped
+volumes:
+  pgdata:
