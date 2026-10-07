@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from devai.core.config import Settings
 from devai.core.database import build_engine, initialize_database
-from devai.routes import exports, posts, publishing, research
+from devai.routes import editorial, exports, posts, publishing, research
 
 
 def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
@@ -40,6 +40,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     app.include_router(posts.router, tags=["posts"])
     app.include_router(exports.router, tags=["exports"])
     app.include_router(research.router, tags=["research"])
+    app.include_router(editorial.router, tags=["editorial"])
     return app
 
 
