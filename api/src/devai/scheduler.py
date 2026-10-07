@@ -28,24 +28,14 @@ def run_forever():
     initialize_database(engine)
     session_factory = sessionmaker(bind=engine)
     last_date = None
-    retry_after = None
     try:
         while True:
             now = datetime.now(timezone)
             if should_run(now, last_date, settings.daily_hour):
-                if retry_after:
-                    retry_at = datetime.fromisoformat(retry_after)
-                    if retry_at.tzinfo is None:
-                        retry_at = retry_at.replace(tzinfo=timezone)
-                    if now < retry_at:
-                        time.sleep(60)
-                        continue
                 try:
                     result = collect_topics(session_factory, now=now)
                     logger.info("Daily editorial run: %s", result)
-                    if True:
-                        last_date = now.date()
-                        retry_after = None
+                    last_date = now.date()
                 except Exception:
                     logger.exception("Daily discovery failed")
             time.sleep(60)
