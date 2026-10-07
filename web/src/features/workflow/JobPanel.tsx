@@ -37,14 +37,18 @@ export function JobPanel({ jobs, config, busy, onAction, onOpen }: Props) {
         <div className="job-row" key={job.id}>
           <div className="sectiontitle">
             <strong>{job.kind.replaceAll('_', ' ')}</strong>
-            <span className="pill">{job.status.replaceAll('_', ' ')}</span>
+            <span className="pill">
+              {job.status === 'completed' && job.result?.warnings?.length
+                ? 'completed with warnings'
+                : job.status.replaceAll('_', ' ')}
+            </span>
           </div>
           <p className="hint" role="status">
             {job.step} · attempt {job.attempts}/{job.max_attempts}
           </p>
           <progress
             aria-label={`${job.kind} progress`}
-            value={job.status === 'completed' ? job.total : job.progress}
+            value={job.status.startsWith('completed') ? job.total : job.progress}
             max={job.total}
           />
           {job.error && (
@@ -55,8 +59,21 @@ export function JobPanel({ jobs, config, busy, onAction, onOpen }: Props) {
                 : ''}
             </p>
           )}
+          {job.result?.created_topic_ids && (
+            <p className="hint">
+              {job.result.created_topic_ids.length} new topics added ·{' '}
+              {job.result.skipped_urls?.length ?? 0} sources already queued or used
+            </p>
+          )}
           {job.result?.warnings?.length ? (
-            <p className="run-warning">Source warnings: {job.result.warnings.join('; ')}</p>
+            <details className="run-warning">
+              <summary>Source warnings ({new Set(job.result.warnings).size})</summary>
+              <ul>
+                {[...new Set(job.result.warnings)].map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </details>
           ) : null}
           <div className="actions">
             {job.result?.post_id && (

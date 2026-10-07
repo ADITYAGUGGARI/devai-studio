@@ -67,13 +67,29 @@ const blankJob = {
 
 async function mockApi(
   page: Page,
-  options: { draft?: boolean; publishing?: boolean; failed?: boolean } = {},
+  options: { draft?: boolean; publishing?: boolean; failed?: boolean; warnings?: boolean } = {},
 ) {
   let posts = options.draft ? [structuredClone(post)] : [];
   let topics = [structuredClone(topic)];
   let jobs: Record<string, unknown>[] = options.failed
     ? [{ ...blankJob, status: 'failed', error: 'Provider rate limit', kind: 'artwork' }]
-    : [];
+    : options.warnings
+      ? [
+          {
+            ...blankJob,
+            kind: 'research',
+            status: 'completed_with_warnings',
+            step: 'Completed with source warnings',
+            result: {
+              created_topic_ids: ['topic-1'],
+              skipped_urls: ['https://example.com/existing'],
+              warnings: [
+                'OpenAI News: article HTTP 403; insufficient readable source evidence (3 stories)',
+              ],
+            },
+          },
+        ]
+      : [];
   const mutations: { path: string; body: unknown }[] = [];
   await page.route('http://127.0.0.1:8123/**', async (route) => {
     const request = route.request();
@@ -227,4 +243,26 @@ test('failed jobs can be retried visibly', async ({ page }) => {
   await page.getByRole('button', { name: 'Retry job', exact: true }).click();
   expect(calls[0].path).toBe('/jobs/job-1/retry');
   await expect(page.getByText('queued', { exact: true })).toBeVisible();
+});
+
+test('partial research shows warning status, topic counts and expandable source diagnostics', async ({
+  page,
+}) => {
+  await mockApi(page, { warnings: true });
+  await page.goto('/');
+  await expect(page.getByText('completed with warnings', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('1 new topics added · 1 sources already queued or used'),
+  ).toBeVisible();
+  await expect(page.getByRole('progressbar', { name: 'research progress' })).toHaveAttribute(
+    'value',
+    '6',
+  );
+  await page.getByText('Source warnings (1)', { exact: true }).click();
+  await expect(
+    page.getByText(
+      'OpenAI News: article HTTP 403; insufficient readable source evidence (3 stories)',
+      { exact: true },
+    ),
+  ).toBeVisible();
 });

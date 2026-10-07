@@ -52,9 +52,16 @@ export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: P
                 ? 'Today’s topic queue is refreshed. Select a story below to generate its carousel.'
                 : `Today’s draft is ready for review${title ? `: ${title}` : '.'}`}
             </p>
+            {topicOnly && run.result?.created_topic_ids && (
+              <p className="hint">
+                {run.result.created_topic_ids.length} new topics added ·{' '}
+                {run.result.skipped_urls?.length ?? 0} sources already queued or used
+              </p>
+            )}
             {run.status === 'completed_with_warnings' && (
               <p className="run-warning">
-                Some sources were unavailable: {run.result?.warnings?.join('; ')}
+                Some sources could not supply enough readable evidence:{' '}
+                {[...new Set(run.result?.warnings)].join('; ')}
               </p>
             )}
           </>

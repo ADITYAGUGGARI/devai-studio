@@ -5,13 +5,13 @@ import xml.etree.ElementTree as ET
 from datetime import UTC, datetime, timedelta
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
-from urllib.parse import urlsplit
+from urllib.parse import SplitResult, urljoin, urlsplit
 
 import httpx
 
 FEEDS = {
     "GitHub Blog": "https://github.blog/feed/",
-    "Google Developers": "https://developers.googleblog.com/feeds/posts/default",
+    "Google Developers": "https://developers.googleblog.com/feeds/posts/default/",
     "OpenAI News": "https://openai.com/news/rss.xml",
     "Anthropic Claude Code": "https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml",
     "OpenAI Codex": "https://github.com/openai/codex/releases.atom",
@@ -89,13 +89,15 @@ def parse_published(value):
 
 
 def fetch_feed(url, timeout=8):
-    """Fetch one capped RSS/Atom document; requests never follow redirects."""
+    """Fetch a complete capped RSS/Atom document with publisher-only redirects."""
     with httpx.Client(
         timeout=timeout,
         follow_redirects=False,
         headers={"User-Agent": "DevAIStudio/1.0 (+source-attribution)"},
     ) as client:
-        data, content_type = _fetch_bounded(client, url, max_bytes=1_000_000)
+        data, content_type = _fetch_bounded(
+            client, url, max_bytes=5_000_000, allowed_hosts={urlsplit(url).hostname}
+        )
         content_type = content_type.lower()
         if not any(kind in content_type for kind in ("xml", "rss", "atom", "text/plain")):
             raise ValueError("Feed did not return an XML or plain-text document")
@@ -109,8 +111,12 @@ def fetch_feed(url, timeout=8):
                 {
                     "title": title.strip(),
                     "url": link.strip(),
-                    "published": item.findtext("pubDate") or "",
-                    "summary": item.findtext("description") or "",
+                    "published": item.findtext("pubDate")
+                    or item.findtext("{http://purl.org/dc/elements/1.1/}date")
+                    or "",
+                    "summary": item.findtext("{http://purl.org/rss/1.0/modules/content/}encoded")
+                    or item.findtext("description")
+                    or "",
                 }
             )
     ns = {"a": "http://www.w3.org/2005/Atom"}
@@ -127,9 +133,13 @@ def fetch_feed(url, timeout=8):
         published = entry.findtext("a:published", default="", namespaces=ns)
         updated = entry.findtext("a:updated", default="", namespaces=ns)
         content_element = entry.find("a:content", ns)
-        content = (
-            ET.tostring(content_element, encoding="unicode") if content_element is not None else ""
-        )
+        content = ""
+        if content_element is not None:
+            content = (
+                ET.tostring(content_element, encoding="unicode")
+                if list(content_element)
+                else content_element.text or ""
+            )
         summary = entry.findtext("a:summary", default="", namespaces=ns)
         if title.strip() and link.startswith("https://"):
             items.append(
@@ -153,26 +163,24 @@ def clean_excerpt(value, limit=6000):
 def fetch_article(article, timeout=8):
     """Fetch only canonical HTTPS pages on this feed's publisher allowlist.
 
-    Redirects are deliberately disabled so a trusted publisher cannot bounce the
-    worker to a private IP address or an unrelated host.
+    Each redirect is checked before a request; unrelated hosts, credentials and
+    non-HTTPS destinations are never followed.
     """
     allowed_hosts = ARTICLE_HOSTS.get(article.get("source"), set())
     parts = urlsplit(article.get("url", ""))
-    if parts.scheme != "https" or parts.hostname not in allowed_hosts or parts.username:
+    if not _allowed_url(parts, allowed_hosts):
         return ""
     with httpx.Client(
         timeout=timeout,
         follow_redirects=False,
         headers={"User-Agent": "DevAIStudio/1.0 (+source-attribution)"},
     ) as client:
-        with client.stream("GET", article["url"]) as response:
-            response.raise_for_status()
-            content_type = response.headers.get("content-type", "").lower()
-            if "html" not in content_type:
-                return ""
-            page = b"".join(_bounded_chunks(response, 2_000_000)).decode(
-                response.encoding or "utf-8", errors="replace"
-            )
+        data, content_type = _fetch_bounded(
+            client, article["url"], max_bytes=2_000_000, allowed_hosts=allowed_hosts
+        )
+        if "html" not in content_type.lower():
+            return ""
+        page = data.decode("utf-8", errors="replace")
     parser = ArticleText()
     parser.feed(page)
     parser.close()
@@ -182,22 +190,72 @@ def fetch_article(article, timeout=8):
 def _bounded_chunks(response, max_bytes):
     consumed = 0
     for chunk in response.iter_bytes(chunk_size=32_768):
-        remaining = max_bytes - consumed
-        if remaining <= 0:
-            break
-        piece = chunk[:remaining]
-        consumed += len(piece)
-        if piece:
-            yield piece
-        if len(chunk) > remaining:
-            break
+        consumed += len(chunk)
+        if consumed > max_bytes:
+            raise ValueError(f"Source document exceeds the {max_bytes:,}-byte download limit")
+        yield chunk
 
 
-def _fetch_bounded(client, url, max_bytes):
-    with client.stream("GET", url) as response:
-        response.raise_for_status()
-        data = b"".join(_bounded_chunks(response, max_bytes))
-        return data, response.headers.get("content-type", "")
+def _allowed_url(parts: SplitResult, allowed_hosts: set[str | None]) -> bool:
+    return (
+        parts.scheme == "https"
+        and parts.hostname is not None
+        and parts.hostname in allowed_hosts
+        and not parts.username
+        and not parts.password
+        and parts.port in {None, 443}
+    )
+
+
+def _fetch_bounded(
+    client: httpx.Client, url: str, max_bytes: int, allowed_hosts: set[str | None]
+) -> tuple[bytes, str]:
+    for _ in range(4):
+        if not _allowed_url(urlsplit(url), allowed_hosts):
+            raise ValueError("Source redirected outside the permitted HTTPS publisher hosts")
+        with client.stream("GET", url) as response:
+            if response.status_code in {301, 302, 303, 307, 308}:
+                location = response.headers.get("location")
+                if not location:
+                    raise ValueError("Source redirect did not provide a destination")
+                url = urljoin(url, location)
+                continue
+            response.raise_for_status()
+            data = b"".join(_bounded_chunks(response, max_bytes))
+            return data, response.headers.get("content-type", "")
+    raise ValueError("Source exceeded the three-redirect limit")
+
+
+def source_error(exc: Exception) -> str:
+    """Describe source failures without including URLs, credentials or response bodies."""
+    if isinstance(exc, httpx.HTTPStatusError):
+        return f"HTTP {exc.response.status_code}"
+    if isinstance(exc, httpx.TimeoutException):
+        return "request timed out"
+    if isinstance(exc, ET.ParseError):
+        return "invalid XML feed"
+    if isinstance(exc, ValueError):
+        return str(exc)
+    return type(exc).__name__
+
+
+def article_evidence(article: dict, warnings: list[str] | None = None) -> str:
+    """Use full feed copy first; fetch short summaries without weakening evidence rules."""
+    excerpt = article.get("summary", "").strip()
+    failure = None
+    if len(excerpt) < 240 and article.get("source") in ARTICLE_HOSTS:
+        try:
+            full_text = fetch_article(article)
+            if len(full_text) > len(excerpt):
+                excerpt = full_text
+        except Exception as exc:
+            failure = source_error(exc)
+    if len(excerpt) < 240 and warnings is not None:
+        reason = f"article {failure}; " if failure else ""
+        warnings.append(
+            f"{article.get('source', 'Source')}: {reason}insufficient readable source evidence"
+        )
+    return excerpt[:6000]
 
 
 def classify_topic(title, excerpt):
@@ -237,7 +295,7 @@ def discover(feeds=None, *, now=None, max_age=timedelta(days=14)):
                 if RELEVANT_TITLE.search(item["title"]):
                     articles.append(item)
         except Exception as exc:
-            errors.append(f"{name}: {type(exc).__name__}")
+            errors.append(f"{name}: {source_error(exc)}")
     articles.sort(key=lambda article: article["published_at"], reverse=True)
     return {"articles": articles[:50], "errors": errors}
 

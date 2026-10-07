@@ -13,11 +13,10 @@ from sqlalchemy.exc import IntegrityError
 from devai.models import ArticleEvidence, Audit, DailyRun, Post, Slide, SourceCandidate
 from devai.services.generation import generate
 from devai.services.research import (
-    ARTICLE_HOSTS,
+    article_evidence,
     classify_topic,
     create_editorial_draft,
     discover,
-    fetch_article,
 )
 from devai.services.source_urls import canonical_source_url
 
@@ -228,18 +227,7 @@ def _finish_run(session_factory, run_id, *, status, result=None, error=None, now
 
 
 def _safe_article_evidence(article):
-    excerpt = article.get("summary", "").strip()
-    source = article.get("source", "")
-    if source in ARTICLE_HOSTS:
-        try:
-            full_text = fetch_article(article)
-            if len(full_text) > len(excerpt):
-                excerpt = full_text
-        except Exception:
-            # An RSS summary can still support a draft; inaccessible pages remain
-            # visible as the cited primary source and trigger human fact-checking.
-            pass
-    return excerpt[:6000]
+    return article_evidence(article)
 
 
 def _recent_angles(session_factory, local_date, timezone):

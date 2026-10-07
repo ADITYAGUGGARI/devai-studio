@@ -53,6 +53,8 @@ export interface DailyRun {
     source_url?: string;
     editorial_angle?: string;
     slide_count?: number;
+    created_topic_ids?: string[];
+    skipped_urls?: string[];
     warnings?: string[];
   } | null;
   error: string | null;
@@ -81,7 +83,14 @@ export interface ImageValidation {
 export interface Job {
   id: string;
   kind: string;
-  status: 'queued' | 'running' | 'retry_wait' | 'completed' | 'failed' | 'needs_reconciliation';
+  status:
+    | 'queued'
+    | 'running'
+    | 'retry_wait'
+    | 'completed'
+    | 'completed_with_warnings'
+    | 'failed'
+    | 'needs_reconciliation';
   step: string;
   progress: number;
   total: number;
@@ -90,7 +99,13 @@ export interface Job {
   available_at: string;
   error: string | null;
   payload: { post_id?: string; topic_id?: string; slide_id?: string; version?: string };
-  result: { post_id?: string; warnings?: string[]; instagram_media_id?: string } | null;
+  result: {
+    post_id?: string;
+    warnings?: string[];
+    created_topic_ids?: string[];
+    skipped_urls?: string[];
+    instagram_media_id?: string;
+  } | null;
 }
 
 export interface Topic {

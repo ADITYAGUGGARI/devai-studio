@@ -4,11 +4,13 @@ The React dashboard retains its original shell, colors, navigation, library and 
 
 ## Research and topic selection
 
-1. **Refresh research** enqueues a research job. Official RSS/Atom feeds are checked for relevant, dated entries within 14 days. Source-page retrieval is allowlisted, bounded and redirect-free. Evidence must contain at least 240 readable characters. Queue rows preserve the source URL, publisher, publication/retrieval dates and excerpt.
+1. **Refresh research** enqueues a research job. Official RSS/Atom feeds are checked for relevant, dated entries within 14 days. Downloads are bounded (5 MB for feeds, 2 MB for articles); oversized responses fail explicitly instead of parsing truncated XML. Every redirect is checked against the publisher's HTTPS allowlist, with at most three redirects. Full RSS `content:encoded` or Atom content supplies evidence directly; short summaries trigger an article fetch. Evidence must contain at least 240 readable characters. Queue rows preserve the source URL, publisher, publication/retrieval dates and excerpt.
 2. The persistent queue ranks recency and engineering usefulness; priority can be changed from 0–100. Topic selection is persisted across reloads. The upstream `/editorial` API remains compatible and its existing shortlist is migrated into this unified queue. Category filtering, archival/restoration, evidence review and manual selection are available in the dashboard.
 3. **Add source to queue** saves a manually supplied excerpt as unverified. A reviewer must explicitly verify its evidence before generating. Manual sources are not automatically fetched, avoiding arbitrary URL requests.
 4. Choose 6, 7 or 8 slides and whether to generate images with the copy. Text generation is original developer analysis, with prior editorial angles and full-copy similarity checks. Canonical source URL and title checks prevent reuse. These checks cannot guarantee uniqueness across public Instagram content.
 5. An independent model audits factual claims against the saved excerpt; evidence quotes must occur in that excerpt. Failed grounding saves no fabricated draft. A primary-source check and an AI grounding audit are **not** independent proof of the publisher's claims. Human review remains required.
+
+Research results show how many new topics were saved and how many sources were already queued or used. Partial research completes with `completed_with_warnings`; repeated article failures are grouped by source/reason and count. Historical completed jobs with warnings also display a warning badge. Empty research without usable or already-known sources fails. OpenAI's article pages currently return HTTP 403 to the local server; short RSS summaries remain excluded, with the HTTP reason visible. Manually add and review primary-source evidence for an inaccessible story; the worker does not bypass publisher access restrictions.
 
 ## Complete image composition
 

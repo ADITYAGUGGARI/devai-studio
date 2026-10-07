@@ -6,6 +6,7 @@ import json
 from datetime import UTC, datetime, timedelta
 from io import BytesIO
 
+import httpx
 import pytest
 from PIL import Image
 
@@ -210,7 +211,7 @@ def test_research_queue_is_prioritized_persistent_and_idempotent(client, monkeyp
             "published_at": now,
         }
     ]
-    monkeypatch.setattr(topics, "_safe_article_evidence", lambda item: item["summary"])
+    monkeypatch.setattr(topics, "article_evidence", lambda item, **_: item["summary"])
     report = topics.research_queue(
         client.app.state.session_factory,
         discover_fn=lambda **_: {"articles": articles, "errors": ["One unavailable feed"]},
@@ -233,6 +234,59 @@ def test_research_queue_is_prioritized_persistent_and_idempotent(client, monkeyp
     assert (
         client.post(f"/topics/{queued['id']}/generate", headers=HEADERS, json={}).status_code == 409
     )
+
+
+def test_partial_research_groups_source_warnings_and_reports_counts(client, monkeypatch):
+    from devai.services import research
+
+    now = datetime.now(UTC)
+    articles = [
+        {
+            "title": "AI coding tools",
+            "url": "https://github.blog/ai-tools/",
+            "source": "GitHub Blog",
+            "summary": "Official evidence. " * 30,
+            "published_at": now,
+        },
+        *[
+            {
+                "title": f"GPT developer update {index}",
+                "url": f"https://openai.com/index/story-{index}/",
+                "source": "OpenAI News",
+                "summary": "Short summary",
+                "published_at": now,
+            }
+            for index in range(3)
+        ],
+    ]
+    monkeypatch.setattr(topics, "discover", lambda **_: {"articles": articles, "errors": []})
+
+    def blocked(article):
+        request = httpx.Request("GET", article["url"])
+        response = httpx.Response(403, request=request)
+        raise httpx.HTTPStatusError("blocked", request=request, response=response)
+
+    monkeypatch.setattr(research, "fetch_article", blocked)
+    job = client.post("/research/refresh", headers=HEADERS).json()
+    jobs.work_once(client.app.state.session_factory)
+    done = client.get(f"/jobs/{job['id']}", headers=HEADERS).json()
+    assert done["status"] == "completed_with_warnings"
+    assert len(done["result"]["created_topic_ids"]) == 1
+    assert done["result"]["skipped_urls"] == []
+    assert done["result"]["warnings"] == [
+        "OpenAI News: article HTTP 403; insufficient readable source evidence (3 stories)"
+    ]
+
+
+def test_research_without_usable_evidence_fails_instead_of_claiming_success(client, monkeypatch):
+    monkeypatch.setattr(
+        topics, "discover", lambda **_: {"articles": [], "errors": ["Feed HTTP 503"]}
+    )
+    job = client.post("/research/refresh", headers=HEADERS).json()
+    jobs.work_once(client.app.state.session_factory)
+    done = client.get(f"/jobs/{job['id']}", headers=HEADERS).json()
+    assert done["status"] == "failed"
+    assert "No dated primary source" in done["error"]
 
 
 def test_job_claim_and_expired_lease_recovery(client):
@@ -316,7 +370,7 @@ def test_daily_defaults_to_research_queue_without_generating_posts(client, monke
         "summary": "Primary announcement for developer tools. " * 20,
     }
     monkeypatch.setattr(topics, "discover", lambda **_: {"articles": [article], "errors": []})
-    monkeypatch.setattr(topics, "_safe_article_evidence", lambda item: item["summary"])
+    monkeypatch.setattr(topics, "article_evidence", lambda item, **_: item["summary"])
 
     def never_generate(*_, **__):
         raise AssertionError("Topic-first research must never call the copy or image provider")
@@ -422,7 +476,7 @@ def test_api_background_worker_executes_jobs_without_browser_waiting(tmp_path, m
             "errors": [],
         },
     )
-    monkeypatch.setattr(topics, "_safe_article_evidence", lambda item: item["summary"])
+    monkeypatch.setattr(topics, "article_evidence", lambda item, **_: item["summary"])
     app = create_app(
         Settings(admin_api_key="test-secret", background_worker_enabled=True, daily_enabled=False),
         engine=build_engine(f"sqlite:///{tmp_path / 'background.sqlite'}"),

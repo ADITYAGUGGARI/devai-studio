@@ -2,6 +2,7 @@
 
 import json
 import uuid
+from collections import Counter
 from datetime import UTC, datetime, timedelta
 from difflib import SequenceMatcher
 from urllib.parse import urlsplit
@@ -9,9 +10,8 @@ from urllib.parse import urlsplit
 from sqlalchemy.exc import IntegrityError
 
 from devai.models import ArticleEvidence, Audit, Post, Slide, SourceCandidate, Topic
-from devai.services.daily import _safe_article_evidence
 from devai.services.generation import generate
-from devai.services.research import ARTICLE_HOSTS, classify_topic, discover
+from devai.services.research import ARTICLE_HOSTS, article_evidence, classify_topic, discover
 from devai.services.source_urls import canonical_source_url
 from devai.services.verification import verify_copy
 
@@ -79,9 +79,8 @@ def research_queue(session_factory, *, progress=lambda *_: None, discover_fn=Non
             ):
                 skipped.append(url)
                 continue
-        excerpt = _safe_article_evidence(article)
+        excerpt = article_evidence(article, warnings=report["errors"])
         if len(excerpt) < 240:
-            report["errors"].append(f"{article['source']}: insufficient source evidence")
             continue
         category = classify_topic(article["title"], excerpt)
         freshness = max(0, 35 - max(0, (now - published).days) * 2)
@@ -114,7 +113,10 @@ def research_queue(session_factory, *, progress=lambda *_: None, discover_fn=Non
     return {
         "created_topic_ids": created,
         "skipped_urls": skipped,
-        "warnings": report.get("errors", []),
+        "warnings": [
+            f"{message} ({count} stories)" if count > 1 else message
+            for message, count in Counter(report["errors"]).items()
+        ],
     }
 
 

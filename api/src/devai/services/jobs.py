@@ -350,9 +350,9 @@ def work_once(session_factory, *, handler=None) -> bool:
         _update(
             session_factory,
             claim,
-            status="completed",
+            status="completed_with_warnings" if result.get("warnings") else "completed",
             result_json=json.dumps(result),
-            step="Completed",
+            step="Completed with source warnings" if result.get("warnings") else "Completed",
             active_key=None,
             finished_at=datetime.now(UTC),
         )
