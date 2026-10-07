@@ -8,7 +8,7 @@ from devai.models.editorial import EditorialTopic
 from devai.services.research import discover
 from devai.services.source_urls import canonical_source_url
 
-VALID_STATUSES = frozenset({"queued", "selected", "drafted", "approved", "published", "archived"})
+VALID_STATUSES = frozenset({"queued", "selected", "archived"})
 
 
 def collect_topics(session_factory, *, now=None, discover_fn=None):
