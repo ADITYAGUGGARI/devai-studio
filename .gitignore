@@ -9,3 +9,12 @@ dist/
 .expo/
 *.sqlite
 *.db
+.venv/
+.ruff_cache/
+*.egg-info/
+build/
+*.tsbuildinfo
+.DS_Store
+coverage/
+.coverage
+htmlcov/

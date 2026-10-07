@@ -1,0 +1,116 @@
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, View, Text, TextInput, Pressable, Alert } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { request } from '../services/api';
+import type { Post } from '../types/posts';
+export default function App() {
+  const [apiKey, setApiKey] = useState('');
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [selected, setSelected] = useState<Post | null>(null);
+  const [index, setIndex] = useState(0);
+  const [error, setError] = useState('');
+  async function refresh() {
+    try {
+      const data = await request<Post[]>('/posts', apiKey);
+      setPosts(data);
+      if (selected) setSelected(data.find((p: Post) => p.id === selected.id) || null);
+      setError('');
+    } catch (e) {
+      setError(String(e));
+    }
+  }
+  async function action(name: string) {
+    if (!selected) return;
+    try {
+      await request('/posts/' + selected.id + '/' + name, apiKey, 'POST');
+      await refresh();
+    } catch (e) {
+      setError(String(e));
+    }
+  }
+  const button = (title: string, fn: () => void) => (
+    <Pressable
+      accessibilityRole="button"
+      onPress={fn}
+      style={{ padding: 15, backgroundColor: '#6957e9', borderRadius: 12, marginVertical: 5 }}
+    >
+      <Text style={{ color: 'white', fontWeight: '700' }}>{title}</Text>
+    </Pressable>
+  );
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0d18' }}>
+      <StatusBar style="light" />
+      <ScrollView contentContainerStyle={{ padding: 24, gap: 12 }}>
+        <Text style={{ color: 'white', fontSize: 30, fontWeight: '800' }}>✳ DevAI Studio</Text>
+        <Text style={{ color: '#a7abc4' }}>Human-reviewed AI engineering content</Text>
+        <TextInput
+          placeholder="Development API key"
+          placeholderTextColor="#888"
+          secureTextEntry
+          value={apiKey}
+          onChangeText={setApiKey}
+          style={{ color: 'white', backgroundColor: '#191b30', padding: 15, borderRadius: 12 }}
+        />
+        {button('Refresh posts', refresh)}
+        {error ? <Text style={{ color: '#ff9292' }}>{error}</Text> : null}
+        {!selected ? (
+          posts.map((p) => (
+            <Pressable
+              key={p.id}
+              onPress={() => {
+                setSelected(p);
+                setIndex(0);
+              }}
+              style={{ padding: 20, backgroundColor: '#191b30', borderRadius: 15 }}
+            >
+              <Text style={{ color: '#b2aaff' }}>{p.status.toUpperCase()}</Text>
+              <Text style={{ color: 'white', fontSize: 20 }}>{p.title}</Text>
+            </Pressable>
+          ))
+        ) : (
+          <>
+            {button('Back to library', () => setSelected(null))}
+            <View
+              style={{
+                backgroundColor: '#191533',
+                padding: 24,
+                borderRadius: 20,
+                minHeight: 350,
+                justifyContent: 'space-between',
+              }}
+            >
+              <Text style={{ color: '#9b9dcb' }}>DEVAISTUDIO / ENGINEERING</Text>
+              <Text style={{ color: 'white', fontSize: 30, fontWeight: '800' }}>
+                {selected.slides[index]?.headline}
+              </Text>
+              <Text style={{ color: '#d6d4eb', fontSize: 18 }}>{selected.slides[index]?.body}</Text>
+              <Text style={{ color: '#9b9dcb' }}>
+                {index + 1} / {selected.slides.length}
+              </Text>
+            </View>
+            {button('Previous slide', () => setIndex(Math.max(0, index - 1)))}
+            {button('Next slide', () =>
+              setIndex(Math.max(0, Math.min(selected.slides.length - 1, index + 1))),
+            )}
+            <Text style={{ color: 'white' }}>{selected.caption}</Text>
+            {selected.status === 'draft'
+              ? button('Submit for review', () => action('submit'))
+              : null}
+            {selected.status === 'pending_review' ? (
+              <>
+                {button('Approve version', () =>
+                  Alert.alert('Confirm approval', 'Approve this exact post version?', [
+                    { text: 'Cancel' },
+                    { text: 'Approve', onPress: () => action('approve') },
+                  ]),
+                )}
+                {button('Reject', () => action('reject'))}
+              </>
+            ) : null}
+            {selected.status === 'rejected' ? button('Resubmit', () => action('submit')) : null}
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}

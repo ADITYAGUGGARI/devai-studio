@@ -1,3 +1,5 @@
+name: devai-studio
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -5,31 +7,62 @@ services:
       POSTGRES_DB: devai
       POSTGRES_USER: devai
       POSTGRES_PASSWORD: devai_local_only
-    ports: ["5432:5432"]
-    volumes: ["pgdata:/var/lib/postgresql/data"]
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-5433}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U devai -d devai']
+      interval: 5s
+      timeout: 5s
+      retries: 12
   api:
     build: ./api
-    environment:
+    environment: &api-environment
       DATABASE_URL: postgresql+psycopg://devai:devai_local_only@postgres:5432/devai
       ADMIN_API_KEY: ${ADMIN_API_KEY:-local-dev-only}
-      CORS_ORIGINS: http://localhost:5173
-    ports: ["8000:8000"]
-    depends_on: [postgres]
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      INSTAGRAM_ACCESS_TOKEN: ${INSTAGRAM_ACCESS_TOKEN:-}
+      INSTAGRAM_ACCOUNT_ID: ${INSTAGRAM_ACCOUNT_ID:-}
+      META_GRAPH_VERSION: ${META_GRAPH_VERSION:-v24.0}
+      DAILY_TIMEZONE: ${DAILY_TIMEZONE:-America/Chicago}
+      DAILY_HOUR: ${DAILY_HOUR:-8}
+    ports:
+      - '127.0.0.1:8000:8000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'python',
+          '-c',
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
   web:
     build: ./web
     environment:
       VITE_API_URL: http://localhost:8000
       VITE_ADMIN_API_KEY: ${ADMIN_API_KEY:-local-dev-only}
-    ports: ["5173:5173"]
-    depends_on: [api]
+    ports:
+      - '127.0.0.1:5173:5173'
+    depends_on:
+      api:
+        condition: service_healthy
   scheduler:
+    profiles: ['automation']
     build: ./api
-    command: python scheduler.py
-    environment:
-      DATABASE_URL: postgresql+psycopg://devai:devai_local_only@postgres:5432/devai
-      DAILY_TIMEZONE: ${DAILY_TIMEZONE:-America/Chicago}
-      DAILY_HOUR: ${DAILY_HOUR:-8}
-    depends_on: [postgres]
+    command: devai-scheduler
+    environment: *api-environment
+    depends_on:
+      api:
+        condition: service_healthy
     restart: unless-stopped
 volumes:
   pgdata:

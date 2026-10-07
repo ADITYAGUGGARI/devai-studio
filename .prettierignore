@@ -1,0 +1,9 @@
+node_modules
+.venv
+dist
+build
+*.egg-info
+package-lock.json
+web/package-lock.json
+mobile/package-lock.json
+api
