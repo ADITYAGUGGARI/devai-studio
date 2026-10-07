@@ -15,6 +15,7 @@ dist/
 build/
 *.tsbuildinfo
 .DS_Store
+.local-data/
 coverage/
 .coverage
 htmlcov/

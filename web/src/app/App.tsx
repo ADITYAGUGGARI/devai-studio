@@ -57,6 +57,12 @@ export function App() {
         setTab('Library');
       }
     });
+  const regenerateResearch = () =>
+    run(async () => {
+      const result = await request<{ id: string }>('/research/daily/regenerate', 'POST');
+      setId(result.id);
+      setTab('Library');
+    });
   const visibleError = error || queryError?.message;
 
   return (
@@ -116,7 +122,13 @@ export function App() {
             />
           ) : (
             <>
-              <DailyRunPanel summary={daily} loading={dailyLoading} busy={busy} onRun={runDaily} />
+              <DailyRunPanel
+                summary={daily}
+                loading={dailyLoading}
+                busy={busy}
+                onRun={runDaily}
+                onRegenerate={regenerateResearch}
+              />
               <GenerationForm busy={busy} onGenerate={generate} />
               <PostLibrary
                 posts={data}

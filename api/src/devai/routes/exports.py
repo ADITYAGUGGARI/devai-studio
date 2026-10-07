@@ -10,9 +10,9 @@ from devai.models import Post, Slide
 from devai.services.rendering import draw_slide as render_slide
 
 
-def draw_slide(*args):
+def draw_slide(*args, **kwargs):
     try:
-        return render_slide(*args)
+        return render_slide(*args, **kwargs)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
 
@@ -34,6 +34,7 @@ def slide_image(id: str, slide_id: str, session_factory: SessionFactory):
                 s.body or "",
                 next((i for i, v in enumerate(slides, 1) if v.id == slide_id)),
                 len(slides),
+                artwork_path=s.artwork_path,
             ),
             media_type="image/png",
         )
@@ -52,7 +53,14 @@ def export_post(id: str, session_factory: SessionFactory):
         with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as z:
             for i, s in enumerate(slides, 1):
                 z.writestr(
-                    f"slide_{i:02d}.png", draw_slide(s.headline or "", s.body or "", i, len(slides))
+                    f"slide_{i:02d}.png",
+                    draw_slide(
+                        s.headline or "",
+                        s.body or "",
+                        i,
+                        len(slides),
+                        artwork_path=s.artwork_path,
+                    ),
                 )
             z.writestr("caption.txt", p.caption or "")
         return Response(

@@ -6,6 +6,7 @@ interface Props {
   loading: boolean;
   busy: boolean;
   onRun: () => void;
+  onRegenerate: () => void;
 }
 
 const topicLabels: Record<string, string> = {
@@ -16,7 +17,7 @@ const topicLabels: Record<string, string> = {
   insight: 'An engineering insight',
 };
 
-export function DailyRunPanel({ summary, loading, busy, onRun }: Props) {
+export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: Props) {
   const [now, setNow] = useState(() => Date.now());
   const run = summary?.run;
   const title = run?.result?.source_title;
@@ -65,8 +66,8 @@ export function DailyRunPanel({ summary, loading, busy, onRun }: Props) {
             )}{' '}
             {run.attempt_count < 3
               ? retryIsWaiting
-                ? `The next retry is available after ${retryTime}.`
-                : 'You can retry this run.'
+                ? `Automatic retry is available after ${retryTime}. You can manually retry now.`
+                : 'You can retry this run now.'
               : 'The daily retry limit was reached.'}
           </p>
         ) : (
@@ -76,28 +77,31 @@ export function DailyRunPanel({ summary, loading, busy, onRun }: Props) {
           </p>
         )}
       </div>
-      <button
-        className="primary"
-        disabled={
-          busy ||
-          loading ||
-          run?.status === 'running' ||
-          run?.status === 'completed' ||
-          run?.status === 'completed_with_warnings' ||
-          (run?.status === 'failed' && (run.attempt_count >= 3 || retryIsWaiting))
-        }
-        onClick={onRun}
-      >
-        {run?.status === 'completed' || run?.status === 'completed_with_warnings'
-          ? 'Today’s draft is ready'
-          : run?.status === 'running'
+      {run?.status === 'completed' || run?.status === 'completed_with_warnings' ? (
+        <div className="daily-run-actions">
+          <button className="primary" disabled={busy || loading} onClick={onRegenerate}>
+            {busy ? 'Researching…' : 'Research another story'}
+          </button>
+          <p className="hint">Creates a separate draft from a recent source not used before.</p>
+        </div>
+      ) : (
+        <button
+          className="primary"
+          disabled={
+            busy ||
+            loading ||
+            run?.status === 'running' ||
+            (run?.status === 'failed' && run.attempt_count >= 3)
+          }
+          onClick={onRun}
+        >
+          {run?.status === 'running'
             ? 'Researching…'
             : run?.status === 'failed'
-              ? retryIsWaiting
-                ? `Retry after ${retryTime}`
-                : 'Retry today’s run'
+              ? 'Retry today’s run'
               : 'Prepare today’s carousel'}
-      </button>
+        </button>
+      )}
     </section>
   );
 }

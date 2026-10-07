@@ -7,6 +7,8 @@ export interface Slide {
   headline: string;
   body: string;
   position: number;
+  visual_direction?: string | null;
+  has_artwork?: boolean;
 }
 
 export interface Post {

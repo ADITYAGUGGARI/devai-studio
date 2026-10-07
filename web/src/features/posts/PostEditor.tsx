@@ -38,7 +38,7 @@ export function PostEditor({ post, busy, onBack, onAction }: Props) {
         <span className={`pill ${post.status}`}>{post.status.replace('_', ' ')}</span>
       </div>
       <div className="reviewgrid">
-        <SlidePreview slides={post.slides} index={index} onChange={changeSlide} />
+        <SlidePreview postId={post.id} slides={post.slides} index={index} onChange={changeSlide} />
         <section className="editor">
           <div className="panel">
             <h3>Post details · v{post.version}</h3>
@@ -86,6 +86,26 @@ export function PostEditor({ post, busy, onBack, onAction }: Props) {
             >
               Save post
             </button>
+          </div>
+          <div className="panel">
+            <h3>Slide artwork</h3>
+            <p className="hint">
+              Ask AI to invent a different original visual for each slide. The exact slide copy is
+              typeset over the art for readability. This makes eight image-generation API calls and
+              may incur usage charges.
+            </p>
+            <button
+              className="secondary"
+              disabled={locked || busy || !post.slides.length}
+              onClick={() => onAction(() => request(`/posts/${post.id}/artwork`, 'POST'))}
+            >
+              {busy
+                ? 'Creating slide artwork…'
+                : post.slides.every((item) => item.has_artwork)
+                  ? 'Regenerate AI artwork for all slides'
+                  : 'Create unique AI artwork for all slides'}
+            </button>
+            {slide?.has_artwork && <span className="hint">AI artwork saved for this slide.</span>}
           </div>
           <div className="panel">
             <h3>Selected slide</h3>

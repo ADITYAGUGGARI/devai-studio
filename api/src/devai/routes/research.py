@@ -9,7 +9,13 @@ from devai.core.auth import require_api_key
 from devai.core.database import SessionFactory
 from devai.models import Audit, Post, Slide, SourceCandidate
 from devai.schemas.research import GenerateInput, ResearchDraftInput
-from devai.services.daily import ingest, latest_run, run_daily_pipeline, topic_for_date
+from devai.services.daily import (
+    create_additional_post,
+    ingest,
+    latest_run,
+    run_daily_pipeline,
+    topic_for_date,
+)
 from devai.services.generation import generate
 from devai.services.research import create_editorial_draft, discover
 from devai.services.source_urls import canonical_source_url
@@ -40,6 +46,7 @@ def research_draft(data: ResearchDraftInput, session_factory: SessionFactory):
                     position=f"{i:03d}",
                     headline=s["headline"],
                     body=s["body"],
+                    visual_direction=s.get("visual_direction") or None,
                 )
             )
         db.add(
@@ -86,6 +93,7 @@ def generate_post(data: GenerateInput, session_factory: SessionFactory):
                     position=f"{i:03d}",
                     headline=s["headline"],
                     body=s["body"],
+                    visual_direction=s.get("visual_direction") or None,
                 )
             )
         db.add(
@@ -123,4 +131,22 @@ def create_daily_package(session_factory: SessionFactory, request: Request):
         session_factory,
         timezone=timezone_name,
         now=datetime.now(timezone),
+        allow_early_retry=True,
     )
+
+
+@router.post("/research/daily/regenerate")
+def regenerate_research(session_factory: SessionFactory, request: Request):
+    """Research a different recent source and save it as a separate draft."""
+    timezone_name = request.app.state.settings.daily_timezone
+    timezone = ZoneInfo(timezone_name)
+    try:
+        return create_additional_post(
+            session_factory,
+            timezone=timezone_name,
+            now=datetime.now(timezone),
+        )
+    except RuntimeError as exc:
+        raise HTTPException(422, str(exc))
+    except Exception:
+        raise HTTPException(502, "Research or AI generation failed; no draft was saved")

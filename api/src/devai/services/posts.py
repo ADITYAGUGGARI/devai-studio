@@ -11,7 +11,14 @@ def serialize(db, p):
         version=p.version,
         created=p.created.isoformat(),
         slides=[
-            dict(id=s.id, headline=s.headline, body=s.body, position=int(s.position))
+            dict(
+                id=s.id,
+                headline=s.headline,
+                body=s.body,
+                position=int(s.position),
+                visual_direction=s.visual_direction,
+                has_artwork=bool(s.artwork_path),
+            )
             for s in db.query(Slide).filter_by(post_id=p.id).order_by(Slide.position).all()
         ],
         evidence=(

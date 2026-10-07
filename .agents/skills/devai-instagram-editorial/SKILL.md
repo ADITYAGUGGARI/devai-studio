@@ -26,7 +26,8 @@ Create practical, trustworthy Instagram carousels that help software engineers u
 - Target eight portrait slides at 1080 × 1350. Move from a concrete hook to verified context, technical explanation, developer impact, caveats, and a useful action.
 - Give each slide one clear idea. Keep copy readable at phone size; use code only when it is correct, explained, and supported by evidence.
 - Include source credit and a concise caption with relevant hashtags. Keep every post a draft until a human checks the source, technical details, code, attribution, and exported images.
-- Use a consistent product visual system while making diagrams and examples specific to the topic. Do not mimic another account's layout or branding.
+- Let an image model invent a specific visual concept, composition, and materials for each slide; do not select from a fixed layout pack or repeat a stock motif. Keep enough calm negative space for exact, locally typeset copy. Preserve brand continuity through restrained palette and finish rather than repeated slide templates.
+- Keep text legible by typesetting the exact approved headline/body over generated artwork. Never rely on image-model lettering for factual copy. Do not mimic another account's layout or branding.
 
 ## Product implementation
 

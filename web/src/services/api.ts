@@ -32,3 +32,8 @@ export async function downloadPost(postId: string): Promise<void> {
   anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(href), 1000);
 }
+
+export async function loadSlidePreview(postId: string, slideId: string): Promise<string> {
+  const response = await fetchApi(`/posts/${postId}/slides/${slideId}/image`);
+  return URL.createObjectURL(await response.blob());
+}

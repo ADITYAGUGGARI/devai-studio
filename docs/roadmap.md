@@ -21,7 +21,7 @@
 1. Introduce versioned database migrations; daily runs and source metadata are already persisted in the current schema.
 2. Expand publisher coverage, expose feed-level diagnostics, and validate candidate ranking with real days of results.
 3. Store topic/angle history across all draft entry points and add stronger similarity checks against slide copy.
-4. Add visual diagrams or image layouts driven by verified technical concepts; currently the generated carousel is typography on the shared slide design.
+4. Validate AI-designed slide artwork for readability, visual continuity, and crop quality across generated carousels.
 5. Validate the weighted schedule and source matching against an editorial review set.
 6. Add dashboard controls for source comparison and originality findings.
 

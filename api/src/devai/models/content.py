@@ -34,6 +34,8 @@ class Slide(Base):
     position: Mapped[str | None] = mapped_column(String)
     headline: Mapped[str | None] = mapped_column(Text)
     body: Mapped[str | None] = mapped_column(Text)
+    visual_direction: Mapped[str | None] = mapped_column(Text)
+    artwork_path: Mapped[str | None] = mapped_column(Text)
 
 
 class PublishAttempt(Base):

@@ -2,14 +2,30 @@ import uuid
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
+from httpx import HTTPError
 
 from devai.core.auth import require_api_key
 from devai.core.database import SessionFactory
 from devai.models import Audit, Post, Slide
 from devai.schemas.posts import PostInput, SlideUpdate, UpdateInput
+from devai.services.artwork import generate_post_artwork
 from devai.services.posts import serialize
 
 router = APIRouter(dependencies=[Depends(require_api_key)])
+
+
+@router.post("/posts/{id}/artwork")
+def generate_artwork(id: str, session_factory: SessionFactory):
+    try:
+        return generate_post_artwork(session_factory, id)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(502, str(exc)) from exc
+    except HTTPError as exc:
+        raise HTTPException(502, f"AI artwork request failed ({type(exc).__name__})") from exc
 
 
 @router.get("/posts")

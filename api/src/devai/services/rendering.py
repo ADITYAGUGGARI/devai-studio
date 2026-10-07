@@ -2,8 +2,9 @@
 
 import os
 from io import BytesIO
+from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 WIDTH, HEIGHT = 1080, 1350
 
@@ -47,11 +48,33 @@ def wrap_text(draw, text: str, font, width: int) -> list[str]:
     return result
 
 
-def draw_slide(headline: str, body: str, index: int, total: int) -> bytes:
-    image = Image.new("RGB", (WIDTH, HEIGHT), (13, 17, 34))
+def _artwork_background(path):
+    if not path:
+        return None
+    try:
+        with Image.open(Path(path)) as artwork:
+            image = ImageOps.fit(
+                artwork.convert("RGB"), (WIDTH, HEIGHT), method=Image.Resampling.LANCZOS
+            ).convert("RGBA")
+    except (OSError, ValueError):
+        return None
+    overlay = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+    overlay_draw = ImageDraw.Draw(overlay)
+    for y in range(430, HEIGHT, 4):
+        alpha = min(190, 24 + int((y - 430) * 0.23))
+        overlay_draw.rectangle((0, y, WIDTH, y + 3), fill=(8, 12, 27, alpha))
+    return Image.alpha_composite(image, overlay).convert("RGB")
+
+
+def draw_slide(headline: str, body: str, index: int, total: int, artwork_path=None) -> bytes:
+    image = _artwork_background(artwork_path)
+    has_artwork = image is not None
+    if image is None:
+        image = Image.new("RGB", (WIDTH, HEIGHT), (13, 17, 34))
     draw = ImageDraw.Draw(image)
-    draw.ellipse((450, 100, 1450, 1100), fill=(35, 28, 82))
-    draw.rounded_rectangle((66, 70, 1014, 1280), radius=36, outline=(88, 82, 144), width=3)
+    if not has_artwork:
+        draw.ellipse((450, 100, 1450, 1100), fill=(35, 28, 82))
+        draw.rounded_rectangle((66, 70, 1014, 1280), radius=36, outline=(88, 82, 144), width=3)
     label_font = load_font(24, bold=True)
     draw.text(
         (115, 133), "DEVAISTUDIO  /  ENGINEERING NOTES", font=label_font, fill=(124, 216, 247)

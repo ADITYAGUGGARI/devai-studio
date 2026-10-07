@@ -18,6 +18,38 @@ def test_import_does_not_create_database(tmp_path):
     assert not database.exists()
 
 
+def test_startup_adds_article_evidence_created_at_to_existing_database():
+    from sqlalchemy import create_engine, inspect, text
+
+    from devai.core.database import initialize_database
+
+    engine = create_engine("sqlite://")
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "CREATE TABLE article_evidence ("
+                "id VARCHAR PRIMARY KEY, post_id VARCHAR NOT NULL, "
+                "source_url VARCHAR(2048) NOT NULL, source_title VARCHAR(500) NOT NULL, "
+                "source_name VARCHAR(200) NOT NULL, excerpt TEXT NOT NULL, "
+                "published_at DATETIME, retrieved_at DATETIME NOT NULL, "
+                "topic VARCHAR(40) NOT NULL, editorial_angle VARCHAR(300) NOT NULL)"
+            )
+        )
+        connection.execute(
+            text(
+                "CREATE TABLE slides (id VARCHAR PRIMARY KEY, post_id VARCHAR, "
+                "position VARCHAR, headline TEXT, body TEXT)"
+            )
+        )
+
+    initialize_database(engine)
+
+    columns = {column["name"] for column in inspect(engine).get_columns("article_evidence")}
+    assert "created_at" in columns
+    slide_columns = {column["name"] for column in inspect(engine).get_columns("slides")}
+    assert {"visual_direction", "artwork_path"} <= slide_columns
+
+
 def test_ingest_route_uses_application_database(client, monkeypatch):
     from devai.services import daily
 

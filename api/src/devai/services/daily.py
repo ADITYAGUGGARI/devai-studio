@@ -90,6 +90,7 @@ def ingest(session_factory, candidate_model, post_model, slide_model, audit_mode
                         position=f"{position:03d}",
                         headline=slide["headline"],
                         body=slide["body"],
+                        visual_direction=slide.get("visual_direction") or None,
                     )
                 )
             db.add(
@@ -151,7 +152,7 @@ def latest_run(session_factory, timezone=None):
         return _serialise_run(run) if run else None
 
 
-def _reserve_run(session_factory, local_date, timezone, now):
+def _reserve_run(session_factory, local_date, timezone, now, *, allow_early_retry=False):
     """Claim the local-day slot before network/model calls; recover stale attempts."""
     cutoff = now - timedelta(minutes=20)
     try:
@@ -180,8 +181,10 @@ def _reserve_run(session_factory, local_date, timezone, now):
                     finished = run.finished_at
                     if finished.tzinfo is None:
                         finished = finished.replace(tzinfo=UTC)
-                    if now - finished < timedelta(minutes=30) and not (
-                        configuration_error and configuration_ready
+                    if (
+                        now - finished < timedelta(minutes=30)
+                        and not (configuration_error and configuration_ready)
+                        and not allow_early_retry
                     ):
                         return run.id, False, _serialise_run(run)
             if run is None:
@@ -265,6 +268,7 @@ def run_daily_pipeline(
     now=None,
     discover_fn: Callable | None = None,
     generate_fn: Callable | None = None,
+    allow_early_retry=False,
 ):
     """Research, draft, renderable-post persistence, and idempotent daily history."""
     local_zone = ZoneInfo(timezone)
@@ -273,7 +277,11 @@ def run_daily_pipeline(
         current = current.replace(tzinfo=local_zone)
     local_day = current.astimezone(local_zone).date()
     run_id, claimed, previous = _reserve_run(
-        session_factory, local_day, timezone, current.astimezone(UTC)
+        session_factory,
+        local_day,
+        timezone,
+        current.astimezone(UTC),
+        allow_early_retry=allow_early_retry,
     )
     if not claimed:
         return previous
@@ -428,3 +436,132 @@ def run_daily_pipeline(
             error=f"{type(exc).__name__}: {str(exc)[:600]}",
             now=current.astimezone(UTC),
         )
+
+
+def create_additional_post(
+    session_factory,
+    *,
+    timezone="America/Chicago",
+    now=None,
+    discover_fn: Callable | None = None,
+    generate_fn: Callable | None = None,
+):
+    """Create a fresh, source-grounded draft without replacing today's daily run."""
+    local_zone = ZoneInfo(timezone)
+    current = now or datetime.now(local_zone)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=local_zone)
+    current_utc = current.astimezone(UTC)
+    desired_topic = topic_for_date(current.astimezone(local_zone).date())
+    report = (discover_fn or discover)(now=current_utc)
+    candidates = report.get("articles", [])
+    with session_factory() as db:
+        known_urls = {row[0] for row in db.query(SourceCandidate.url).all()}
+        known_titles = [post.title.casefold() for post in db.query(Post).all()]
+        prior_angles = [
+            row[0]
+            for row in db.query(ArticleEvidence.editorial_angle)
+            .order_by(ArticleEvidence.created_at.desc())
+            .limit(12)
+            .all()
+        ]
+
+    eligible = []
+    for candidate in candidates:
+        try:
+            url = canonical_source_url(candidate.get("url", ""))
+        except ValueError:
+            continue
+        published = candidate.get("published_at")
+        if not isinstance(published, datetime):
+            continue
+        if published.tzinfo is None:
+            published = published.replace(tzinfo=UTC)
+        age = current_utc - published
+        if url in known_urls or age < timedelta(days=-1) or age > timedelta(days=14):
+            continue
+        title = candidate.get("title", "").strip()
+        if not title or any(
+            SequenceMatcher(None, title.casefold(), existing).ratio() >= 0.90
+            for existing in known_titles
+        ):
+            continue
+        eligible.append((published, candidate, url))
+
+    selected = None
+    warnings = list(report.get("errors", []))
+    for published, candidate, url in sorted(eligible, key=lambda item: item[0], reverse=True)[:12]:
+        excerpt = _safe_article_evidence(candidate)
+        if len(excerpt) < 240:
+            warnings.append(f"{candidate.get('source', 'Source')}: insufficient readable evidence")
+            continue
+        selected = published, candidate, url, excerpt
+        break
+    if not selected:
+        raise RuntimeError(
+            "No new recent source with enough evidence was found. Existing stories were skipped."
+        )
+
+    published, article, source_url, excerpt = selected
+    generated = (generate_fn or generate)(
+        article["title"],
+        source_url,
+        excerpt,
+        topic=desired_topic,
+        prior_angles=prior_angles,
+    )
+    post_id = str(uuid.uuid4())
+    with session_factory.begin() as db:
+        db.add(Post(id=post_id, title=generated["title"], caption=generated["caption"]))
+        db.add(
+            SourceCandidate(
+                id=str(uuid.uuid4()),
+                url=source_url,
+                title=article["title"][:500],
+                source=article.get("source", "Unknown")[:200],
+                post_id=post_id,
+            )
+        )
+        db.add(
+            ArticleEvidence(
+                id=str(uuid.uuid4()),
+                post_id=post_id,
+                source_url=source_url,
+                source_title=article["title"][:500],
+                source_name=article.get("source", "Unknown")[:200],
+                excerpt=excerpt,
+                published_at=published,
+                retrieved_at=current_utc,
+                topic=desired_topic,
+                editorial_angle=generated["editorial_angle"],
+                created_at=current_utc,
+            )
+        )
+        for position, slide in enumerate(generated["slides"], 1):
+            db.add(
+                Slide(
+                    id=str(uuid.uuid4()),
+                    post_id=post_id,
+                    position=f"{position:03d}",
+                    headline=slide["headline"],
+                    body=slide["body"],
+                    visual_direction=slide.get("visual_direction") or None,
+                )
+            )
+        db.add(
+            Audit(
+                id=str(uuid.uuid4()),
+                post_id=post_id,
+                event=f"Additional research draft from {source_url}; human verification required",
+            )
+        )
+    return {
+        "id": post_id,
+        "status": "draft",
+        "topic": desired_topic,
+        "source_url": source_url,
+        "source_title": article["title"],
+        "slide_count": len(generated["slides"]),
+        "verification_required": True,
+        "warnings": warnings,
+    }
