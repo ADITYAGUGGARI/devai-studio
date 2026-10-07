@@ -1,13 +1,15 @@
 import uuid
+from datetime import datetime
 from difflib import SequenceMatcher
+from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from devai.core.auth import require_api_key
 from devai.core.database import SessionFactory
 from devai.models import Audit, Post, Slide, SourceCandidate
 from devai.schemas.research import GenerateInput, ResearchDraftInput
-from devai.services.daily import ingest
+from devai.services.daily import ingest, latest_run, run_daily_pipeline, topic_for_date
 from devai.services.generation import generate
 from devai.services.research import create_editorial_draft, discover
 from devai.services.source_urls import canonical_source_url
@@ -96,6 +98,29 @@ def generate_post(data: GenerateInput, session_factory: SessionFactory):
         return {"id": p.id, "status": "draft", "fact_check_required": True}
 
 
+@router.get("/research/daily/latest")
+def daily_latest(session_factory: SessionFactory, request: Request):
+    timezone_name = request.app.state.settings.daily_timezone
+    timezone = ZoneInfo(timezone_name)
+    return {
+        "run": latest_run(session_factory, timezone_name),
+        "topic": topic_for_date(datetime.now(timezone).date()),
+        "timezone": timezone_name,
+    }
+
+
 @router.post("/research/ingest")
-def ingest_daily(session_factory: SessionFactory):
+def ingest_scaffolds(session_factory: SessionFactory):
+    """Import the legacy unverified link scaffolds for manual curation."""
     return ingest(session_factory, SourceCandidate, Post, Slide, Audit)
+
+
+@router.post("/research/daily/run")
+def create_daily_package(session_factory: SessionFactory, request: Request):
+    timezone_name = request.app.state.settings.daily_timezone
+    timezone = ZoneInfo(timezone_name)
+    return run_daily_pipeline(
+        session_factory,
+        timezone=timezone_name,
+        now=datetime.now(timezone),
+    )

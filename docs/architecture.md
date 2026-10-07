@@ -14,7 +14,7 @@ Web / mobile -> API-key dependency -> route + input schema
 
 `create_app` accepts settings and an optional engine. Routers obtain its session factory through a dependency. Imports do not open database connections or create tables; app lifespan initializes the development schema. Tests inject isolated SQLite databases. The scheduler constructs its own engine without importing the HTTP app.
 
-Tables are `posts`, `slides`, `source_candidates`, `audit`, and `publish_attempts`. Existing string-valued versions and padded positions are retained to avoid an implicit migration. Native development uses SQLite; Docker uses PostgreSQL. Schema creation is not a migration system.
+Tables are `posts`, `slides`, `source_candidates`, `article_evidence`, `daily_runs`, `audit`, and `publish_attempts`. Existing string-valued versions and padded positions are retained to avoid an implicit migration. The evidence and daily-run tables are added by development schema creation. Native development uses SQLite; Docker uses PostgreSQL. Schema creation is not a migration system.
 
 ## Content paths
 
@@ -24,7 +24,7 @@ Tables are `posts`, `slides`, `source_candidates`, `audit`, and `publish_attempt
 - AI generation uses the supplied excerpt, validates eight-slide output, retains attribution, and saves a draft.
 - Export renders saved slides into 1080 × 1350 PNGs and a caption file in a ZIP. Fonts support OS paths, overrides, and a Pillow fallback. The browser preview approximates the exported layout.
 
-Originality currently means URL deduplication during ingestion plus title similarity at generation time. Manual drafts can overlap; generated source URLs are not yet in a unified history index. These checks are not plagiarism detection.
+Daily ingestion avoids previously used canonical source URLs, near-duplicate source titles, and recent angles in its generation prompt. Manual and independently generated drafts can still overlap, and public Instagram posts are not searched. These checks are not plagiarism detection or a guarantee of uniqueness.
 
 ## Review and publishing
 
@@ -42,4 +42,4 @@ Image URLs are caller-supplied; they are not yet bound to approved slides. Produ
 
 ## Scheduling
 
-One explicit process checks the configured local hour every minute, including catch-up after a late startup. Its last-run date is in memory; source identities persist. Durable run records, leases, retry policy, ranking, complete draft generation, and automatic export belong to the next milestone.
+One explicit process checks the configured local hour every minute, including catch-up after a late startup. A unique daily-run record persists its claim, result, and up-to-three retries. RSS candidates are ranked for recency and editorial-topic fit; one source-backed eight-slide carousel is generated and rendered from the saved slide copy. Human review and image export are still required. The dashboard can start the same daily operation manually.

@@ -3,9 +3,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { samplePost } from '../data/samplePost';
 import { PostEditor } from '../features/posts/PostEditor';
 import { PostLibrary } from '../features/posts/PostLibrary';
+import { DailyRunPanel } from '../features/research/DailyRunPanel';
 import { GenerationForm } from '../features/research/GenerationForm';
 import { request } from '../services/api';
-import type { Post, SourceInput } from '../types/posts';
+import type { DailyRun, DailyRunSummary, Post, SourceInput } from '../types/posts';
 
 export function App() {
   const queryClient = useQueryClient();
@@ -18,6 +19,10 @@ export function App() {
     isLoading,
     error: queryError,
   } = useQuery({ queryKey: ['posts'], queryFn: () => request<Post[]>('/posts') });
+  const { data: daily, isLoading: dailyLoading } = useQuery({
+    queryKey: ['daily-run'],
+    queryFn: () => request<DailyRunSummary>('/research/daily/latest'),
+  });
   const active = data.find((post) => post.id === id);
 
   async function run(operation: () => Promise<unknown>): Promise<void> {
@@ -26,6 +31,7 @@ export function App() {
     try {
       await operation();
       await queryClient.invalidateQueries({ queryKey: ['posts'] });
+      await queryClient.invalidateQueries({ queryKey: ['daily-run'] });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Something went wrong');
     } finally {
@@ -43,6 +49,14 @@ export function App() {
 
   const create = () => openDraft('/posts', samplePost);
   const generate = (source: SourceInput) => openDraft('/research/generate', source);
+  const runDaily = () =>
+    run(async () => {
+      const result = await request<DailyRun>('/research/daily/run', 'POST');
+      if (result.result?.post_id) {
+        setId(result.result.post_id);
+        setTab('Library');
+      }
+    });
   const visibleError = error || queryError?.message;
 
   return (
@@ -102,6 +116,7 @@ export function App() {
             />
           ) : (
             <>
+              <DailyRunPanel summary={daily} loading={dailyLoading} busy={busy} onRun={runDaily} />
               <GenerationForm busy={busy} onGenerate={generate} />
               <PostLibrary
                 posts={data}

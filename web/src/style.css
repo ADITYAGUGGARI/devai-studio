@@ -265,6 +265,67 @@ textarea {
   gap: 12px;
   flex-wrap: wrap;
 }
+.daily-run {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border-color: #51498b;
+  background: linear-gradient(125deg, #211d3b, #171a2d 72%);
+}
+.daily-run h2 {
+  font-size: 21px;
+  margin-top: 10px;
+}
+.daily-run-copy {
+  display: grid;
+  gap: 6px;
+}
+.daily-run-copy p {
+  margin: 3px 0;
+  line-height: 1.5;
+}
+.run-warning {
+  color: #ffd192;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.source-evidence {
+  display: grid;
+  gap: 9px;
+  padding: 14px;
+  background: #111426;
+  border: 1px solid #343653;
+  border-radius: 12px;
+}
+.source-evidence a {
+  color: #9dd9f4;
+  overflow-wrap: anywhere;
+}
+.source-evidence p {
+  margin: 0;
+  line-height: 1.5;
+}
+.source-evidence details {
+  color: #c5c9df;
+  line-height: 1.6;
+}
+.source-evidence summary {
+  cursor: pointer;
+  color: #c7c0ff;
+}
+.source-evidence details p {
+  margin-top: 9px;
+  max-height: 270px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+@media (max-width: 700px) {
+  .daily-run {
+    grid-template-columns: 1fr;
+  }
+  .daily-run > .primary {
+    justify-content: center;
+  }
+}
 @media (max-width: 900px) {
   aside {
     display: none;

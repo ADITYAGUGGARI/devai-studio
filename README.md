@@ -2,7 +2,7 @@
 
 Research AI developments for software engineers, turn verified sources into original Instagram carousels, and review every post before publication.
 
-The project contains a FastAPI API, a React dashboard, and an Expo mobile review app. It supports source discovery, draft generation from a supplied excerpt, editing, approval, and 1080 × 1350 PNG export. The full daily research-to-finished-carousel workflow is still under development.
+The project contains a FastAPI API, a React dashboard, and an Expo mobile review app. It supports daily primary-source discovery, source-grounded eight-slide draft generation, editing, approval, and 1080 × 1350 PNG export. Every generated post remains a draft until a person reviews and approves it.
 
 ## Repository layout
 
@@ -75,7 +75,9 @@ make scheduler
 docker compose --profile automation up --build
 ```
 
-The worker checks once a minute and creates up to five unverified editorial scaffolds at or after 8 AM `America/Chicago`. Configure `DAILY_TIMEZONE` and `DAILY_HOUR` in `.env`. It must remain running; this setup does not install an OS background service or modify a ChatGPT scheduled task. It does not generate final AI copy, export images, approve, or publish automatically. Its last-run date is in memory; canonical URL deduplication persists, but durable scheduling and concurrent ingestion are still planned. Do not manually ingest while the worker is running.
+The worker checks once a minute and prepares one source-grounded eight-slide draft on or after `DAILY_HOUR` (8 AM by default) in `DAILY_TIMEZONE` (`America/Chicago` by default). It reads official feeds from GitHub, Google Developers, OpenAI, the Claude Code changelog, the Codex and MCP repositories, and arXiv. It records a source excerpt and retrieval date, follows the rotating editorial mix, and saves the caption, hashtags, evidence, and run history. The Dashboard can also start the day's run with **Prepare today's carousel**. Both paths share the same daily lock. The draft remains unapproved; export its 1080 × 1350 images from the editor after reviewing the copy and source.
+
+Set `OPENAI_API_KEY` in the server-side root `.env` to create carousel copy. For example, replace the empty `OPENAI_API_KEY=` line in `.env` with the key from your OpenAI API account. Keep this key out of client `.env` files and source control. Restart `make dev-api` and `make scheduler` after changing it. If a run previously failed only because the key was missing, the Dashboard enables an immediate retry after the API has loaded the key. If no recent source qualifies, all feeds fail, or generation is unavailable, the run creates no fabricated post. Other transient failures are retried up to three times at 30-minute intervals. Keep exactly one scheduler running and do not also run another scheduler replica. This command runs in the foreground; it does not install an OS service or change a ChatGPT scheduled task. `POST /research/ingest` remains available in Swagger as a separate, explicitly unverified link-scaffold import.
 
 ## Quality checks
 
@@ -87,10 +89,14 @@ make format         # Apply Ruff and Prettier formatting
 
 CI runs equivalent checks on pushes and pull requests. Each HTTP test gets its own in-memory database. Tests use fake provider responses and do not publish to Instagram or spend AI credits. npm lockfiles and `api/constraints.txt` capture resolved dependencies; update them deliberately.
 
+## Built and remaining
+
+See [feature status](docs/features.md) for the implemented product areas, operational setup, and remaining work. The reusable editorial and originality guidance lives in [the project skill](.agents/skills/devai-instagram-editorial/SKILL.md).
+
 ## Current limits and next work
 
 - Originality checks cover canonical source URLs in daily discovery and title similarity during AI generation. They do not compare against all Instagram creators or guarantee unique content.
-- Source verification, topic rotation, original examples, and automatic final carousel production are the next content-pipeline milestone.
+- Generated drafts use source excerpts, attribution, a developer-focused editorial angle, and an enforced topic rotation. A human must fact-check claims, review the code/examples, and export the images before posting.
 - The Instagram adapter is exercised with fakes. Live publishing still needs verified credentials, public JPEG media hosting, media-to-approved-version validation, and production concurrency checks. Export currently produces PNGs.
 - Tables are created during startup for development. Versioned migrations and production authentication remain planned.
 - The inherited Expo 54 dependency tree has npm audit findings; upgrade it separately with device validation before distribution.

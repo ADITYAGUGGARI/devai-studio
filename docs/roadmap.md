@@ -8,14 +8,24 @@
 - Portable PNG export, corrected publish route registration, failure-path regression coverage.
 - EditorConfig, Ruff, ESLint, Prettier, TypeScript checks, dependency snapshots, CI, environment examples, Docker health checks.
 
-## Next: complete the daily content pipeline
+## Daily pipeline — first pass implemented
 
-1. Introduce migrations, durable runs, and source metadata including publication/retrieval times.
-2. Expand primary sources and rank fresh stories; implement the agreed topic mix.
-3. Store topics, angles, examples, and source identities across all draft entry points; add meaningful similarity checks.
-4. Build source-backed drafts with original examples, verification flags, captions, hashtags, and rendered images.
-5. Produce one package per daily run; make retries idempotent and report failures without invented content.
-6. Add dashboard views for source evidence, run status, and originality findings.
+- Official feeds for GitHub, Google Developers, OpenAI, Anthropic Claude Code, OpenAI Codex, MCP, and two arXiv categories. Only source-dated stories from the last 14 days enter selection.
+- Bounded HTTPS source fetching with publisher-host allowlists and redirects disabled.
+- One durable run per local day, up to three attempts, duplicate source/title avoidance, and a 20-day weighted topic calendar.
+- Grounded eight-slide text, caption, hashtags, source excerpt, publication/retrieval dates, and an editorial angle are saved on the draft.
+- Dashboard view and manual trigger share the scheduler's daily lock. All generated posts remain unapproved.
+
+## Next: make the pipeline production-ready
+
+1. Introduce versioned database migrations; daily runs and source metadata are already persisted in the current schema.
+2. Expand publisher coverage, expose feed-level diagnostics, and validate candidate ranking with real days of results.
+3. Store topic/angle history across all draft entry points and add stronger similarity checks against slide copy.
+4. Add visual diagrams or image layouts driven by verified technical concepts; currently the generated carousel is typography on the shared slide design.
+5. Validate the weighted schedule and source matching against an editorial review set.
+6. Add dashboard controls for source comparison and originality findings.
+
+See [feature status](features.md) for the full implementation inventory, prerequisites, and remaining validation.
 
 ## Before public deployment or live publishing
 

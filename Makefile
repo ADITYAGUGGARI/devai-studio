@@ -13,7 +13,7 @@ setup-api:
 	$(VENV)/python -m pip install -c api/constraints.txt -e './api[dev]'
 
 dev-api:
-	$(VENV)/uvicorn devai.main:app --reload --host 127.0.0.1 --port 8000 --env-file .env
+	$(VENV)/uvicorn devai.main:app --app-dir api/src --reload --reload-dir api/src --reload-exclude .venv --host 127.0.0.1 --port 8000 --env-file .env
 
 dev-web:
 	npm run dev:web
@@ -25,7 +25,7 @@ scheduler:
 	$(VENV)/devai-scheduler
 
 test:
-	$(VENV)/python -m pytest -c api/pyproject.toml api/tests
+	PYTHONPATH=api/src $(VENV)/python -m pytest -c api/pyproject.toml api/tests
 
 lint:
 	$(VENV)/ruff check api

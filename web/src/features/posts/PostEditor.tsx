@@ -42,6 +42,26 @@ export function PostEditor({ post, busy, onBack, onAction }: Props) {
         <section className="editor">
           <div className="panel">
             <h3>Post details · v{post.version}</h3>
+            {post.evidence && (
+              <div className="source-evidence">
+                <strong>Source evidence · {post.evidence.topic}</strong>
+                <a href={post.evidence.source_url} target="_blank" rel="noreferrer">
+                  {post.evidence.source_name}: {post.evidence.source_title}
+                </a>
+                <p className="hint">Angle: {post.evidence.editorial_angle}</p>
+                <details>
+                  <summary>Review source excerpt</summary>
+                  <p>{post.evidence.excerpt}</p>
+                </details>
+                <span className="hint">
+                  Published{' '}
+                  {post.evidence.published_at
+                    ? new Date(post.evidence.published_at).toLocaleString()
+                    : 'date unavailable'}{' '}
+                  · Retrieved {new Date(post.evidence.retrieved_at).toLocaleString()}
+                </span>
+              </div>
+            )}
             <label htmlFor="edit-title">Headline</label>
             <input
               id="edit-title"
