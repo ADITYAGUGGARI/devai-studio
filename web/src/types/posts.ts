@@ -65,6 +65,7 @@ export interface DailyRunSummary {
   topic: string;
   timezone: string;
   run: DailyRun | null;
+  latest_research?: Job | null;
 }
 
 export interface SourceInput {
@@ -97,6 +98,8 @@ export interface Job {
   attempts: number;
   max_attempts: number;
   available_at: string;
+  created_at: string;
+  finished_at: string | null;
   error: string | null;
   payload: { post_id?: string; topic_id?: string; slide_id?: string; version?: string };
   result: {

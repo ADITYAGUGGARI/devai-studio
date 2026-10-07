@@ -1,4 +1,4 @@
-import type { DailyRunSummary } from '../../types/posts';
+import type { DailyRunSummary, Job } from '../../types/posts';
 import { useEffect, useState } from 'react';
 
 interface Props {
@@ -17,10 +17,63 @@ const topicLabels: Record<string, string> = {
   insight: 'An engineering insight',
 };
 
+function RefreshStatus({ job }: { job: Job }) {
+  const completed = job.status.startsWith('completed');
+  const timestamp = new Date(job.finished_at || job.created_at).toLocaleString();
+  return (
+    <>
+      <p className="hint">Latest research refresh · {timestamp}</p>
+      {completed ? (
+        <>
+          <p className="hint">
+            {job.result?.created_topic_ids?.length ?? 0} new topics added ·{' '}
+            {job.result?.skipped_urls?.length ?? 0} sources already queued or used. Select a story
+            below to generate its carousel.
+          </p>
+          {job.result?.warnings?.length ? (
+            <details className="run-warning">
+              <summary>
+                Latest refresh source warnings ({new Set(job.result.warnings).size})
+              </summary>
+              <ul>
+                {[...new Set(job.result.warnings)].map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </details>
+          ) : (
+            <p className="hint">Latest refresh completed without source warnings.</p>
+          )}
+        </>
+      ) : job.status === 'failed' ? (
+        <p className="run-warning" role="status">
+          Latest research refresh failed. {job.error}
+        </p>
+      ) : (
+        <p className="hint" role="status">
+          Research refresh is in progress. {job.step}
+        </p>
+      )}
+    </>
+  );
+}
+
 export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: Props) {
   const [now, setNow] = useState(() => Date.now());
   const run = summary?.run;
   const topicOnly = summary?.mode !== 'carousel';
+  const latestResearch = summary?.latest_research;
+  const refresh =
+    topicOnly &&
+    latestResearch &&
+    (!run ||
+      new Date(latestResearch.created_at).getTime() >
+        new Date(run.finished_at || run.started_at).getTime())
+      ? latestResearch
+      : null;
+  const refreshActive = Boolean(
+    refresh && ['queued', 'running', 'retry_wait'].includes(refresh.status),
+  );
   const title = run?.result?.source_title;
   const retryAfter = run?.retry_after ? new Date(run.retry_after) : null;
   const retryAfterMs = retryAfter?.getTime();
@@ -41,6 +94,22 @@ export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: P
         <h2 id="daily-run-heading">{topicLabels[summary?.topic || 'news']}</h2>
         {loading ? (
           <p className="hint">Checking today’s research run…</p>
+        ) : refresh ? (
+          <>
+            <RefreshStatus job={refresh} />
+            {run && (
+              <details className="hint">
+                <summary>
+                  Earlier daily run · {new Date(run.finished_at || run.started_at).toLocaleString()}
+                </summary>
+                <p>Saved daily run: {run.status.replaceAll('_', ' ')}.</p>
+                {run.result?.warnings?.length ? (
+                  <p>Historical source warnings: {[...new Set(run.result.warnings)].join('; ')}</p>
+                ) : null}
+                {run.error && <p>{run.error}</p>}
+              </details>
+            )}
+          </>
         ) : run?.status === 'running' ? (
           <p className="hint">
             Research is in progress. You can review the draft as soon as it finishes.
@@ -90,10 +159,18 @@ export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: P
           </p>
         )}
       </div>
-      {run?.status === 'completed' || run?.status === 'completed_with_warnings' ? (
+      {refresh || run?.status === 'completed' || run?.status === 'completed_with_warnings' ? (
         <div className="daily-run-actions">
-          <button className="primary" disabled={busy || loading} onClick={onRegenerate}>
-            {busy ? 'Researching…' : 'Refresh more topics'}
+          <button
+            className="primary"
+            disabled={busy || loading || refreshActive}
+            onClick={onRegenerate}
+          >
+            {busy || refreshActive
+              ? 'Researching…'
+              : refresh?.status === 'failed'
+                ? 'Retry research'
+                : 'Refresh more topics'}
           </button>
           <p className="hint">Adds recent unused sources to your topic queue.</p>
         </div>

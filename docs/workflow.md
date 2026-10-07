@@ -12,6 +12,8 @@ The React dashboard retains its original shell, colors, navigation, library and 
 
 Research results show how many new topics were saved and how many sources were already queued or used. Partial research completes with `completed_with_warnings`; repeated article failures are grouped by source/reason and count. Historical completed jobs with warnings also display a warning badge. Empty research without usable or already-known sources fails. OpenAI's article pages currently return HTTP 403 to the local server; short RSS summaries remain excluded, with the HTTP reason visible. Manually add and review primary-source evidence for an inaccessible story; the worker does not bypass publisher access restrictions.
 
+In research mode, the daily panel shows a newer manual refresh with its timestamp, counts and current warnings. The original daily result stays unchanged and is available under dated **Earlier daily run** history. `/research/daily/latest` returns both the preserved `run` and `latest_research` job, including in-progress or failed refreshes. Carousel mode continues to show the daily draft result. A manual refresh updates the topic queue without rewriting that draft or its research history.
+
 ## Complete image composition
 
 Every new slide is a complete image-model composition: imagery, diagrams, lettering, typography and copy. There are no layout presets, CSS/SVG compositions, drawing operations, or local text overlays in the artwork path. Pillow only decodes images, validates dimensions, resizes and converts formats. The default image request is `gpt-image-2`, medium quality, 1088 × 1360 (4:5); it is resized without cropping to 1080 × 1350.

@@ -60,6 +60,8 @@ const blankJob = {
   attempts: 0,
   max_attempts: 3,
   available_at: new Date().toISOString(),
+  created_at: '2026-10-07T23:00:00Z',
+  finished_at: null,
   payload: {},
   result: null,
   error: null,
@@ -266,3 +268,70 @@ test('partial research shows warning status, topic counts and expandable source 
     ),
   ).toBeVisible();
 });
+
+for (const status of ['completed_with_warnings', 'running', 'failed']) {
+  test(`latest ${status} refresh supersedes old daily warnings and retains dated history`, async ({
+    page,
+  }) => {
+    await mockApi(page);
+    await page.route('http://127.0.0.1:8123/research/daily/latest', async (route) => {
+      await route.fulfill({
+        json: {
+          topic: 'news',
+          timezone: 'America/Chicago',
+          mode: 'research',
+          run: {
+            id: 'earlier-daily',
+            local_date: '2026-10-07',
+            timezone: 'America/Chicago',
+            status: 'completed_with_warnings',
+            attempt_count: 1,
+            started_at: '2026-10-07T05:40:00Z',
+            finished_at: '2026-10-07T05:41:00Z',
+            retry_after: null,
+            result: { warnings: ['GitHub Blog: ParseError'] },
+            error: null,
+          },
+          latest_research: {
+            ...blankJob,
+            kind: 'research',
+            status,
+            step: 'Checking source evidence',
+            error: status === 'failed' ? 'No usable evidence' : null,
+            result:
+              status === 'completed_with_warnings'
+                ? {
+                    created_topic_ids: ['topic-1'],
+                    skipped_urls: [],
+                    warnings: ['OpenAI News: article HTTP 403'],
+                  }
+                : null,
+          },
+        },
+      });
+    });
+    await page.goto('/');
+    const panel = page.getByRole('region', { name: 'AI news and developer impact' });
+    await expect(panel.getByText('Latest research refresh ·', { exact: false })).toBeVisible();
+    await expect(
+      panel.getByText('Historical source warnings:', { exact: false }),
+    ).not.toBeVisible();
+    if (status === 'completed_with_warnings') {
+      await expect(
+        panel.getByText('1 new topics added · 0 sources already queued or used.', { exact: false }),
+      ).toBeVisible();
+      await panel.getByText('Latest refresh source warnings (1)').click();
+      await expect(panel.getByText('OpenAI News: article HTTP 403', { exact: true })).toBeVisible();
+    } else if (status === 'running') {
+      await expect(panel.getByRole('button', { name: 'Researching…' })).toBeDisabled();
+      await expect(panel.getByRole('status')).toContainText('Research refresh is in progress.');
+    } else {
+      await expect(panel.getByRole('button', { name: 'Retry research' })).toBeEnabled();
+      await expect(panel.getByRole('status')).toContainText('No usable evidence');
+    }
+    await panel.getByText('Earlier daily run ·', { exact: false }).click();
+    await expect(
+      panel.getByText('Historical source warnings: GitHub Blog: ParseError'),
+    ).toBeVisible();
+  });
+}

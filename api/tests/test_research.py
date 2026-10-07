@@ -1,3 +1,6 @@
+import json
+from datetime import UTC, datetime, timedelta
+
 import httpx
 import pytest
 
@@ -144,3 +147,55 @@ def test_short_blocked_article_reports_http_reason_without_using_it_as_evidence(
     warnings = []
     assert research.article_evidence(article, warnings) == "Short"
     assert warnings == ["OpenAI News: article HTTP 403; insufficient readable source evidence"]
+
+
+def test_daily_summary_preserves_history_and_returns_latest_research_job(client):
+    from devai.models import DailyRun, Job
+
+    now = datetime.now(UTC)
+    historical_result = {"post_id": "existing-draft", "warnings": ["GitHub Blog: ParseError"]}
+    factory = client.app.state.session_factory
+    with factory.begin() as db:
+        db.add(
+            DailyRun(
+                id="old-daily",
+                local_date=now.date().isoformat(),
+                timezone="America/Chicago",
+                status="completed_with_warnings",
+                started_at=now - timedelta(hours=2),
+                finished_at=now - timedelta(hours=1),
+                result_json=json.dumps(historical_result),
+            )
+        )
+        db.add(
+            Job(
+                id="old-refresh",
+                kind="research",
+                status="completed",
+                created_at=now - timedelta(minutes=20),
+            )
+        )
+        db.add(
+            Job(
+                id="current-refresh",
+                kind="research",
+                status="running",
+                created_at=now - timedelta(minutes=10),
+            )
+        )
+        db.add(Job(id="newer-artwork", kind="artwork", status="completed", created_at=now))
+    response = client.get("/research/daily/latest", headers={"X-API-Key": "test-secret"})
+    assert response.status_code == 200
+    summary = response.json()
+    assert summary["latest_research"]["id"] == "current-refresh"
+    assert summary["latest_research"]["status"] == "running"
+    assert summary["run"]["result"] == historical_result
+    with factory() as db:
+        assert json.loads(db.get(DailyRun, "old-daily").result_json) == historical_result
+
+
+def test_daily_summary_without_jobs_remains_compatible(client):
+    response = client.get("/research/daily/latest", headers={"X-API-Key": "test-secret"})
+    assert response.status_code == 200
+    assert response.json()["latest_research"] is None
+    assert response.json()["run"] is None

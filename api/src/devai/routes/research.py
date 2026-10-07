@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from devai.core.auth import require_api_key
 from devai.core.database import SessionFactory
-from devai.models import ArticleEvidence, Audit, Post, Slide, SourceCandidate
+from devai.models import ArticleEvidence, Audit, Job, Post, Slide, SourceCandidate
 from devai.schemas.research import GenerateInput, ResearchDraftInput
 from devai.services.daily import (
     ingest,
@@ -15,7 +15,7 @@ from devai.services.daily import (
     topic_for_date,
 )
 from devai.services.generation import generate
-from devai.services.jobs import enqueue, enqueue_daily
+from devai.services.jobs import enqueue, enqueue_daily, serialise_job
 from devai.services.research import create_editorial_draft, discover
 from devai.services.source_urls import canonical_source_url
 
@@ -132,8 +132,17 @@ def generate_post(data: GenerateInput, session_factory: SessionFactory):
 def daily_latest(session_factory: SessionFactory, request: Request):
     timezone_name = request.app.state.settings.daily_timezone
     timezone = ZoneInfo(timezone_name)
+    with session_factory() as db:
+        research_job = (
+            db.query(Job)
+            .filter(Job.kind.in_({"research", "daily_research"}))
+            .order_by(Job.created_at.desc(), Job.id.desc())
+            .first()
+        )
+        latest_research = serialise_job(research_job) if research_job else None
     return {
         "run": latest_run(session_factory, timezone_name),
+        "latest_research": latest_research,
         "topic": topic_for_date(datetime.now(timezone).date()),
         "timezone": timezone_name,
         "mode": "carousel" if request.app.state.settings.daily_generate_carousel else "research",
