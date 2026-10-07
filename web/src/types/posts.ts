@@ -108,6 +108,12 @@ export interface Job {
     created_topic_ids?: string[];
     skipped_urls?: string[];
     instagram_media_id?: string;
+    grounding?: {
+      supported: boolean;
+      issues: string[];
+      claims?: { claim: string; evidence_quote: string; evidence_matched?: boolean }[];
+      audit_attempts?: number;
+    };
   } | null;
 }
 

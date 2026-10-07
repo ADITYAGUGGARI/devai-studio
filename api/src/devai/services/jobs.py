@@ -13,6 +13,7 @@ from sqlalchemy.exc import IntegrityError
 
 from devai.models import DailyRun, Job, Post, Topic
 from devai.services.provider import ProviderError
+from devai.services.verification import GroundingError
 
 logger = logging.getLogger(__name__)
 ACTIVE = {"queued", "running", "retry_wait"}
@@ -380,6 +381,8 @@ def work_once(session_factory, *, handler=None) -> bool:
                 else "failed"
             )
             job.error, job.step = message, "Waiting to retry" if retry else "Failed; review error"
+            if isinstance(exc, GroundingError):
+                job.result_json = json.dumps({"grounding": exc.report})
             job.available_at = datetime.now(UTC) + timedelta(seconds=30 * 2 ** (job.attempts - 1))
             if not retry:
                 job.active_key, job.finished_at = None, datetime.now(UTC)

@@ -65,6 +65,23 @@ export function JobPanel({ jobs, config, busy, onAction, onOpen }: Props) {
               {job.result.skipped_urls?.length ?? 0} sources already queued or used
             </p>
           )}
+          {job.result?.grounding && (
+            <details className="run-warning">
+              <summary>Review grounding report</summary>
+              <p>{job.result.grounding.issues.join('; ')}</p>
+              <ul>
+                {job.result.grounding.claims?.map((claim, index) => (
+                  <li key={index}>
+                    <strong>Claim {index + 1}:</strong> {claim.claim}
+                    <p>Source quote: {claim.evidence_quote || 'No supporting quote supplied'}</p>
+                    {claim.evidence_matched === false && (
+                      <p>Quote does not match saved evidence.</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
           {job.result?.warnings?.length ? (
             <details className="run-warning">
               <summary>Source warnings ({new Set(job.result.warnings).size})</summary>

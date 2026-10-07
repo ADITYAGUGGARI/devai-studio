@@ -335,3 +335,44 @@ for (const status of ['completed_with_warnings', 'running', 'failed']) {
     ).toBeVisible();
   });
 }
+
+test('failed grounding jobs show claim-level evidence without exposing an approvable draft', async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.route('http://127.0.0.1:8123/jobs', async (route) => {
+    await route.fulfill({
+      json: [
+        {
+          ...blankJob,
+          kind: 'generate',
+          status: 'failed',
+          error: 'Source grounding failed: 1 evidence quote does not match the saved source',
+          result: {
+            grounding: {
+              supported: false,
+              issues: ['Unsupported accuracy claim'],
+              claims: [
+                {
+                  claim: 'The system reaches 99.9% accuracy',
+                  evidence_quote: '99.9% accuracy',
+                  evidence_matched: false,
+                },
+              ],
+            },
+          },
+        },
+      ],
+    });
+  });
+  await page.goto('/');
+  await page.getByText('Review grounding report', { exact: true }).click();
+  await expect(page.getByRole('listitem').filter({ hasText: 'Claim 1:' })).toContainText(
+    '99.9% accuracy',
+  );
+  await expect(
+    page.getByText('Quote does not match saved evidence.', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Review draft', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Retry job', exact: true })).toBeEnabled();
+});

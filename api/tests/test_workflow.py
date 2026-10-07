@@ -329,6 +329,10 @@ def test_unsupported_copy_never_saves_post(client, monkeypatch):
     job_id = client.post(f"/topics/{topic_id}/generate", headers=HEADERS, json={}).json()["id"]
     jobs.work_once(client.app.state.session_factory)
     assert client.get(f"/jobs/{job_id}", headers=HEADERS).json()["status"] == "failed"
+    assert client.get(f"/jobs/{job_id}", headers=HEADERS).json()["result"]["grounding"] == {
+        "supported": False,
+        "issues": ["Invented benchmark"],
+    }
     assert client.get("/posts", headers=HEADERS).json() == []
 
 

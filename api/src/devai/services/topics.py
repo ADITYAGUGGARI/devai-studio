@@ -13,7 +13,7 @@ from devai.models import ArticleEvidence, Audit, Post, Slide, SourceCandidate, T
 from devai.services.generation import generate
 from devai.services.research import ARTICLE_HOSTS, article_evidence, classify_topic, discover
 from devai.services.source_urls import canonical_source_url
-from devai.services.verification import verify_copy
+from devai.services.verification import GroundingError, verify_copy
 
 
 def serialise_topic(topic: Topic) -> dict:
@@ -152,7 +152,7 @@ def create_from_topic(
     )
     report = verify_copy(packet["excerpt"], content, packet["url"])
     if not report["supported"]:
-        raise ValueError("Source grounding failed: " + "; ".join(report["issues"])[:800])
+        raise GroundingError(report)
     if not all(s.get("visual_direction") for s in content["slides"]):
         raise ValueError("Generation must provide an individual art direction for every slide")
     new_copy = " ".join(s["headline"] + " " + s["body"] for s in content["slides"]).casefold()

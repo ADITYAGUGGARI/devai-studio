@@ -5,6 +5,7 @@
 - Persistent prioritized research queue and manual topic selection.
 - Complete capped RSS/Atom parsing, full feed evidence, publisher-only redirects and grouped source diagnostics with explicit partial-success status and topic counts.
 - Source-grounded 6–8-slide writing with citations and independent evidence audit.
+- Verbatim evidence audits with strict schemas, bounded quote-format re-audits and persisted claim-level failure diagnostics.
 - Complete AI-native per-slide composition, validation diagnostics and individual regeneration.
 - Durable background jobs, progress, transient retries and interrupted-job recovery.
 - Human review/approval, version invalidation, metadata-rich export and managed Instagram publishing.
