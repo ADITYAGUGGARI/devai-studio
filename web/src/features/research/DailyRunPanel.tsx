@@ -68,7 +68,7 @@ export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: P
               ? retryIsWaiting
                 ? `Automatic retry is available after ${retryTime}. You can manually retry now.`
                 : 'You can retry this run now.'
-              : 'The daily retry limit was reached.'}
+              : 'Automatic retries stopped. You can manually retry from Background work.'}
           </p>
         ) : (
           <p className="hint">

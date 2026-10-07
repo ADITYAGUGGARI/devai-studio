@@ -1,7 +1,7 @@
 PYTHON ?= python3
 VENV := .venv/bin
 
-.PHONY: setup setup-api dev-api dev-web dev-mobile scheduler test lint format check
+.PHONY: setup setup-api dev-api dev-web dev-mobile scheduler worker test lint format check
 
 setup: setup-api
 	npm ci
@@ -22,7 +22,10 @@ dev-mobile:
 	npm run dev:mobile
 
 scheduler:
-	$(VENV)/devai-scheduler
+	$(VENV)/python -m devai.scheduler
+
+worker:
+	$(VENV)/python -m devai.worker
 
 test:
 	PYTHONPATH=api/src $(VENV)/python -m pytest -c api/pyproject.toml api/tests

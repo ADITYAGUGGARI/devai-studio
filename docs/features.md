@@ -1,35 +1,23 @@
 # Product feature status
 
-This page distinguishes implemented code from configured or production-ready services. A feature in the implemented column may still require local credentials or human review.
-
 ## Implemented
 
-- **API and storage:** FastAPI app factory, API-key-gated endpoints, SQLAlchemy persistence, SQLite local development, and PostgreSQL Compose setup.
-- **Web dashboard:** post library and editor, source research tools, daily run status, manual daily trigger, a separate “Research another story” action that skips previously used sources, evidence review, approval flow, and PNG export.
-- **Mobile review app:** Expo app organized for reviewing posts against the API. Device packaging and full device walkthrough are still outstanding.
-- **Source discovery:** recent source-dated RSS/Atom items from GitHub, Google Developers, OpenAI, Anthropic Claude Code, Codex, MCP, and arXiv; allowlisted bounded page retrieval; and source excerpts saved with generated drafts.
-- **Editorial workflow:** 20-day topic rotation across news, tutorials, architecture, tools, and insights; daily run history; URL/title duplication checks; source attribution; and human approval requirement.
-- **Carousel generation and assets:** OpenAI-backed grounded eight-slide copy, captions, hashtags, and slide-specific art directions. The editor can explicitly generate eight original AI artwork images, then typeset the exact copy over each image and export 1080 × 1350 PNGs. Artwork generation uses eight image API calls and may incur usage charges.
-- **Developer workflow:** linting, formatting, type checks, API tests, web build, Docker Compose, documentation, and CI configuration.
+- Existing React dashboard shell, library, editor, manual drafts and review transitions, extended with a prioritized persistent topic queue, category filtering, selection of 6–8 slides and progress controls.
+- Daily official-source research, canonical URL/title deduplication, retained evidence/dates/citations, editorial rotation, manual-source human verification and priority/archive controls.
+- Original grounded copy, independent claim/evidence audit, recent-angle and full-copy similarity checks.
+- Individual complete AI image compositions including typography; dimension checks, vision transcription comparison, legibility/clipping checks, duplicate detection, two-pass validation repair, and single-slide regeneration.
+- Persistent database-backed jobs, leases/heartbeats, progress polling, retries with backoff, recovery and reuse of validated slides. API background worker, standalone worker and scheduler commands.
+- Review/approval with source and image checks, invalidation on edits, version/content/image hashes, and PNG ZIP export with caption, sources and review metadata.
+- Approval-gated Instagram publishing jobs using immutable managed JPEG snapshots, public tokenized media URLs, version reservation, uncertainty handling and human reconciliation.
+- Additive compatibility schema updates for existing local installations; existing data and assets retained. New tables are created at startup.
 
-## Required local configuration
+## External configuration or verification required
 
-- Set `OPENAI_API_KEY` in the root `.env` and restart both API and scheduler to enable AI generation. Never put provider keys in `web/.env`, `mobile/.env`, or `VITE_*` variables.
-- Match `ADMIN_API_KEY` in the root `.env` with `VITE_ADMIN_API_KEY` in `web/.env` for local dashboard API requests.
-- Start the API and web app for manual use. Start exactly one `make scheduler` process for scheduled discovery. A configured schedule is not evidence that a scheduler is running.
-- Instagram account credentials are not needed for local drafting or export.
+- OpenAI API key, billing and model access for copy, grounding, images and vision checks. AI validation is fallible; human review is mandatory.
+- Enable `DAILY_ENABLED=true` or run `make scheduler`, and keep a worker running. A code/configured schedule does not establish an active daily service.
+- Instagram professional-account publishing token, account ID, supported Graph version and app permissions, plus a publicly reachable HTTPS API media origin. Live publishing is not verified by fake-adapter tests.
+- Review real generated image lettering, visual continuity and readability on phones. Originality checks do not inspect all public Instagram posts.
+- Public deployment: account authentication/authorization, backups, monitoring, versioned production migration tooling and asset retention/cleanup.
+- Native iOS/Android walkthrough and inherited Expo dependency upgrade remain outstanding.
 
-## Still to build or validate
-
-1. Add versioned database migrations for existing and future installs; current startup table creation does not migrate schemas.
-2. Improve source-feed health and candidate-ranking observability; measure the weighted topic schedule against a reviewed editorial sample.
-3. Compare full slide copy and angles across manually created drafts, and add source comparisons to the dashboard. Current checks do not search public Instagram posts and cannot guarantee uniqueness.
-4. Validate AI artwork quality, text contrast, visual continuity, and image crops on generated carousels and real devices.
-5. Add account-grade authentication, authorization, secret management, backups, monitoring, and multi-instance durable scheduler coordination before public deployment.
-6. For live Instagram publishing, host approved JPEG media, bind uploads to the approved post version, and verify Meta integration, concurrency, and reconciliation with a designated test account. Current PNG export and fake-adapter checks do not establish live publishing readiness.
-7. Complete browser interaction and native iOS/Android device validation. Type checks alone do not verify device packaging or usability.
-8. Revisit the inherited Expo dependency advisories through an upgrade validated on devices.
-
-## Content review before posting
-
-Check the primary source, dates, every factual claim, examples/code, caption attribution, phone-size readability, and the exported PNGs. Correct or reject unsupported claims. Only publish after the normal human approval step; this repository does not automatically post daily content to Instagram.
+See [workflow and operations](workflow.md) for endpoints, configuration, retry/recovery behavior and publishing setup.

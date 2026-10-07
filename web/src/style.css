@@ -351,3 +351,35 @@ textarea {
     padding: 18px;
   }
 }
+/* Dashboard controls only. Instagram compositions come entirely from the image model. */
+select {
+  background: #0e1120;
+  border: 1px solid #393d5c;
+  border-radius: 10px;
+  padding: 10px;
+  color: white;
+  font: inherit;
+  display: block;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.check input {
+  width: auto;
+}
+.topic-list {
+  display: grid;
+  gap: 12px;
+  max-height: 650px;
+  overflow: auto;
+}
+.job-row {
+  border-top: 1px solid #343653;
+  padding-top: 12px;
+}
+progress {
+  width: 100%;
+  accent-color: #9d8bff;
+}

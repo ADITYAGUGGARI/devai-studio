@@ -1,4 +1,4 @@
-"""Single-instance discovery worker. Restart history is not yet persisted."""
+"""Daily scheduler: persistent deduplicated jobs, no provider work in its loop."""
 
 import logging
 import time
@@ -10,9 +10,7 @@ from sqlalchemy.orm import sessionmaker
 
 from devai.core.config import Settings
 from devai.core.database import build_engine, initialize_database
-from devai.services.daily import run_daily_pipeline
-
-logger = logging.getLogger(__name__)
+from devai.services.jobs import enqueue_daily
 
 
 def should_run(now, last_date, hour: int = 8):
@@ -23,38 +21,18 @@ def run_forever():
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
     settings = Settings()
-    timezone = ZoneInfo(settings.daily_timezone)
     engine = build_engine(settings.database_url)
     initialize_database(engine)
     session_factory = sessionmaker(bind=engine)
-    last_date = None
-    retry_after = None
     try:
         while True:
-            now = datetime.now(timezone)
-            if should_run(now, last_date, settings.daily_hour):
-                if retry_after:
-                    retry_at = datetime.fromisoformat(retry_after)
-                    if retry_at.tzinfo is None:
-                        retry_at = retry_at.replace(tzinfo=timezone)
-                    if now < retry_at:
-                        time.sleep(60)
-                        continue
+            now = datetime.now(ZoneInfo(settings.daily_timezone))
+            if should_run(now, None, settings.daily_hour):
                 try:
-                    result = run_daily_pipeline(
-                        session_factory, timezone=settings.daily_timezone, now=now
-                    )
-                    logger.info("Daily editorial run: %s", result)
-                    if (
-                        result["status"] in ("completed", "completed_with_warnings")
-                        or result["attempt_count"] >= 3
-                    ):
-                        last_date = now.date()
-                        retry_after = None
-                    elif result["status"] == "failed":
-                        retry_after = result.get("retry_after")
+                    job = enqueue_daily(session_factory, settings.daily_timezone, now=now)
+                    logging.info("Daily job %s: %s", job["id"], job["status"])
                 except Exception:
-                    logger.exception("Daily discovery failed")
+                    logging.exception("Could not enqueue daily job")
             time.sleep(60)
     finally:
         engine.dispose()

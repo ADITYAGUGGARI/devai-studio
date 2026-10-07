@@ -7,16 +7,15 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from devai.core.auth import require_api_key
 from devai.core.database import SessionFactory
-from devai.models import Audit, Post, Slide, SourceCandidate
+from devai.models import ArticleEvidence, Audit, Post, Slide, SourceCandidate
 from devai.schemas.research import GenerateInput, ResearchDraftInput
 from devai.services.daily import (
-    create_additional_post,
     ingest,
     latest_run,
-    run_daily_pipeline,
     topic_for_date,
 )
 from devai.services.generation import generate
+from devai.services.jobs import enqueue, enqueue_daily
 from devai.services.research import create_editorial_draft, discover
 from devai.services.source_urls import canonical_source_url
 
@@ -68,6 +67,8 @@ def generate_post(data: GenerateInput, session_factory: SessionFactory):
     if len(data.excerpt.strip()) < 120:
         raise HTTPException(422, "Source excerpt of at least 120 characters required")
     with session_factory() as db:
+        if db.query(SourceCandidate).filter_by(url=source_url).first():
+            raise HTTPException(409, "This source was already used in a post")
         titles = [p.title for p in db.query(Post).all()]
         if any(
             SequenceMatcher(None, data.title.casefold(), title.casefold()).ratio() >= 0.86
@@ -85,6 +86,27 @@ def generate_post(data: GenerateInput, session_factory: SessionFactory):
     with session_factory.begin() as db:
         p = Post(id=str(uuid.uuid4()), title=generated["title"], caption=generated["caption"])
         db.add(p)
+        db.add(
+            SourceCandidate(
+                id=str(uuid.uuid4()),
+                url=source_url,
+                title=data.title,
+                source="Manual source",
+                post_id=p.id,
+            )
+        )
+        db.add(
+            ArticleEvidence(
+                id=str(uuid.uuid4()),
+                post_id=p.id,
+                source_url=source_url,
+                source_title=data.title,
+                source_name="Manual source (review required)",
+                excerpt=data.excerpt,
+                topic="news",
+                editorial_angle=generated.get("editorial_angle", generated["title"]),
+            )
+        )
         for i, s in enumerate(generated["slides"], 1):
             db.add(
                 Slide(
@@ -123,30 +145,18 @@ def ingest_scaffolds(session_factory: SessionFactory):
     return ingest(session_factory, SourceCandidate, Post, Slide, Audit)
 
 
-@router.post("/research/daily/run")
+@router.post("/research/daily/run", status_code=202)
 def create_daily_package(session_factory: SessionFactory, request: Request):
-    timezone_name = request.app.state.settings.daily_timezone
-    timezone = ZoneInfo(timezone_name)
-    return run_daily_pipeline(
-        session_factory,
-        timezone=timezone_name,
-        now=datetime.now(timezone),
-        allow_early_retry=True,
+    result = enqueue_daily(session_factory, request.app.state.settings.daily_timezone)
+    if result["status"] in {"failed", "retry_wait"}:
+        from devai.routes.workflow import retry_job
+
+        return retry_job(result["id"], session_factory)
+    return result
+
+
+@router.post("/research/daily/regenerate", status_code=202)
+def regenerate_research(session_factory: SessionFactory):
+    return enqueue(
+        session_factory, "research_generate", {"slide_count": 8}, key="research_generate"
     )
-
-
-@router.post("/research/daily/regenerate")
-def regenerate_research(session_factory: SessionFactory, request: Request):
-    """Research a different recent source and save it as a separate draft."""
-    timezone_name = request.app.state.settings.daily_timezone
-    timezone = ZoneInfo(timezone_name)
-    try:
-        return create_additional_post(
-            session_factory,
-            timezone=timezone_name,
-            now=datetime.now(timezone),
-        )
-    except RuntimeError as exc:
-        raise HTTPException(422, str(exc))
-    except Exception:
-        raise HTTPException(502, "Research or AI generation failed; no draft was saved")

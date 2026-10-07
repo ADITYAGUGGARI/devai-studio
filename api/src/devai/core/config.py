@@ -23,6 +23,13 @@ class Settings:
     )
     daily_hour: int = field(default_factory=lambda: int(os.getenv("DAILY_HOUR", "8")))
 
+    background_worker_enabled: bool = field(
+        default_factory=lambda: os.getenv("BACKGROUND_WORKER_ENABLED", "true").lower() == "true"
+    )
+    daily_enabled: bool = field(
+        default_factory=lambda: os.getenv("DAILY_ENABLED", "false").lower() == "true"
+    )
+
     def __post_init__(self):
         if not self.admin_api_key:
             raise ValueError("ADMIN_API_KEY must not be empty")

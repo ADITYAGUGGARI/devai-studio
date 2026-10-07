@@ -1,4 +1,12 @@
+import json
+from datetime import UTC
+
 from devai.models import ArticleEvidence, Slide
+from devai.services.artwork import slide_hash
+
+
+def utc_iso(value):
+    return (value.replace(tzinfo=UTC) if value.tzinfo is None else value).isoformat()
 
 
 def serialize(db, p):
@@ -9,7 +17,8 @@ def serialize(db, p):
         caption=p.caption,
         status=p.status,
         version=p.version,
-        created=p.created.isoformat(),
+        created=utc_iso(p.created),
+        verification=json.loads(p.verification_json) if p.verification_json else None,
         slides=[
             dict(
                 id=s.id,
@@ -18,6 +27,17 @@ def serialize(db, p):
                 position=int(s.position),
                 visual_direction=s.visual_direction,
                 has_artwork=bool(s.artwork_path),
+                composition_mode=s.composition_mode,
+                validation=json.loads(s.validation_json) if s.validation_json else None,
+                artwork_current=s.content_hash
+                == slide_hash(
+                    p.title,
+                    {
+                        "headline": s.headline or "",
+                        "body": s.body or "",
+                        "visual_direction": s.visual_direction,
+                    },
+                ),
             )
             for s in db.query(Slide).filter_by(post_id=p.id).order_by(Slide.position).all()
         ],
@@ -26,13 +46,11 @@ def serialize(db, p):
                 "source_title": evidence.source_title,
                 "source_name": evidence.source_name,
                 "source_url": evidence.source_url,
-                "published_at": evidence.published_at.isoformat()
-                if evidence.published_at
-                else None,
-                "retrieved_at": evidence.retrieved_at.isoformat(),
+                "published_at": utc_iso(evidence.published_at) if evidence.published_at else None,
+                "retrieved_at": utc_iso(evidence.retrieved_at),
                 "topic": evidence.topic,
                 "editorial_angle": evidence.editorial_angle,
-                "excerpt": evidence.excerpt[:1200],
+                "excerpt": evidence.excerpt,
             }
             if evidence
             else None

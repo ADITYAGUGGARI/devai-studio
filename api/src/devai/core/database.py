@@ -41,11 +41,25 @@ def initialize_database(engine):
                 )
     if "slides" in inspector.get_table_names():
         existing_columns = {column["name"] for column in inspector.get_columns("slides")}
-        missing_columns = {"visual_direction", "artwork_path"} - existing_columns
+        missing_columns = {
+            "visual_direction",
+            "artwork_path",
+            "composition_mode",
+            "validation_json",
+            "content_hash",
+        } - existing_columns
         if missing_columns:
             with engine.begin() as connection:
                 for column_name in sorted(missing_columns):
                     connection.execute(text(f"ALTER TABLE slides ADD COLUMN {column_name} TEXT"))
+                connection.execute(
+                    text(
+                        "UPDATE slides SET composition_mode = 'legacy' WHERE composition_mode IS NULL"
+                    )
+                )
+    if "verification_json" not in {c["name"] for c in inspector.get_columns("posts")}:
+        with engine.begin() as connection:
+            connection.execute(text("ALTER TABLE posts ADD COLUMN verification_json TEXT"))
 
 
 def get_session_factory(request: Request) -> sessionmaker:

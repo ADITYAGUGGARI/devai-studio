@@ -162,7 +162,7 @@ def _reserve_run(session_factory, local_date, timezone, now, *, allow_early_retr
                 .filter_by(local_date=local_date.isoformat(), timezone=timezone)
                 .first()
             )
-            if run and run.status == "completed":
+            if run and run.status in {"completed", "completed_with_warnings"}:
                 return run.id, False, _serialise_run(run)
             if run and run.status == "running":
                 started = run.started_at

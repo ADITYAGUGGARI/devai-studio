@@ -11,9 +11,9 @@ from devai.models import Audit, Post, Slide
 from devai.services import artwork
 
 
-def _png_bytes():
+def _png_bytes(index=0):
     output = BytesIO()
-    Image.new("RGB", (1080, 1350), (62, 92, 142)).save(output, format="PNG")
+    Image.new("RGB", (1080, 1350), (62 + index, 92, 142)).save(output, format="PNG")
     return output.getvalue()
 
 
@@ -49,13 +49,14 @@ def test_artwork_is_unique_persisted_and_invalidates_approval(monkeypatch, tmp_p
 
     prompts = []
 
-    def fake_generate(prompt, *, api_key, model):
+    def fake_generate(prompt, *, api_key=None, model=None):
         prompts.append(prompt)
-        return _png_bytes()
+        return _png_bytes(len(prompts))
 
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setenv("CAROUSEL_ARTWORK_DIR", str(tmp_path))
     monkeypatch.setattr(artwork, "_generate_image", fake_generate)
+    monkeypatch.setattr(artwork, "validate_image", lambda *_: {"passed": True, "issues": []})
 
     result = artwork.generate_post_artwork(session, post_id)
 
@@ -67,4 +68,4 @@ def test_artwork_is_unique_persisted_and_invalidates_approval(monkeypatch, tmp_p
         slides = db.query(Slide).filter_by(post_id=post_id).all()
         assert all(slide.artwork_path for slide in slides)
         assert all(Image.open(slide.artwork_path).size == (1080, 1350) for slide in slides)
-        assert db.query(Audit).filter_by(post_id=post_id).count() == 1
+        assert db.query(Audit).filter_by(post_id=post_id).count() == 2

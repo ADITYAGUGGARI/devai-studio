@@ -18,9 +18,10 @@ export function GenerationForm({ busy, onGenerate }: Props) {
         void onGenerate({ title, url, excerpt });
       }}
     >
-      <h2>Generate a source-backed AI carousel</h2>
+      <h2>Add a source to the topic queue</h2>
       <p className="hint">
-        Paste a verified article excerpt. All generated content requires fact-checking and approval.
+        Save a primary source excerpt, then review and verify its evidence in the queue before
+        generating.
       </p>
       <label htmlFor="source-title">Story headline</label>
       <input
@@ -37,7 +38,7 @@ export function GenerationForm({ busy, onGenerate }: Props) {
         onChange={(event) => setUrl(event.target.value)}
         required
       />
-      <label htmlFor="source-excerpt">Source excerpt (at least 120 characters)</label>
+      <label htmlFor="source-excerpt">Source excerpt (at least 240 characters)</label>
       <textarea
         id="source-excerpt"
         rows={4}
@@ -48,10 +49,10 @@ export function GenerationForm({ busy, onGenerate }: Props) {
       <button
         className="primary"
         disabled={
-          busy || !title.trim() || !url.startsWith('https://') || excerpt.trim().length < 120
+          busy || !title.trim() || !url.startsWith('https://') || excerpt.trim().length < 240
         }
       >
-        ✳ Generate 8-slide draft
+        ✳ Add source to queue
       </button>
     </form>
   );

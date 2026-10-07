@@ -1,30 +1,24 @@
-"""Exercise the real publish route with a fake adapter; never contact Meta."""
+"""Real route and worker, fake Meta transport, immutable managed JPEGs."""
 
-from devai.models import PublishAttempt
-from devai.routes import publishing
+import json
+
+from devai.models import Job, MediaAsset, Post, PublishAttempt
+from devai.services import managed_publishing
+from devai.services.jobs import work_once
 
 HEADERS = {"x-api-key": "test-secret"}
-IMAGES = ["https://example.com/one.jpg", "https://example.com/two.jpg"]
 
 
-def approved_post(client):
-    response = client.post(
-        "/posts",
-        headers=HEADERS,
-        json={
-            "title": "Review this carousel",
-            "slides": [{"headline": "One"}, {"headline": "Two"}],
-        },
-    )
-    post_id = response.json()["id"]
+def approve(client, post_id):
     client.post(f"/posts/{post_id}/submit", headers=HEADERS)
-    client.post(f"/posts/{post_id}/approve", headers=HEADERS)
-    return post_id
+    assert client.post(f"/posts/{post_id}/approve", headers=HEADERS).status_code == 200
 
 
-def configure_publisher(monkeypatch, callback):
+def configure(monkeypatch, tmp_path, callback):
     monkeypatch.setenv("INSTAGRAM_ACCESS_TOKEN", "fake-token")
     monkeypatch.setenv("INSTAGRAM_ACCOUNT_ID", "fake-account")
+    monkeypatch.setenv("PUBLIC_MEDIA_BASE_URL", "https://media.example.com")
+    monkeypatch.setenv("PUBLISH_MEDIA_DIR", str(tmp_path / "published"))
 
     class FakePublisher:
         def __enter__(self):
@@ -36,21 +30,20 @@ def configure_publisher(monkeypatch, callback):
         def publish_carousel(self, urls, caption):
             return callback(urls, caption)
 
-    monkeypatch.setattr(publishing, "InstagramPublisher", FakePublisher)
+    monkeypatch.setattr(managed_publishing, "InstagramPublisher", FakePublisher)
 
 
-def test_publish_route_is_reachable_and_reserves_before_network(client, monkeypatch):
-    post_id = approved_post(client)
+def test_publish_reserves_version_and_serves_only_bound_media(
+    client, ready_post, monkeypatch, tmp_path
+):
+    post_id = ready_post()
+    approve(client, post_id)
     calls = []
 
     def publish(urls, caption):
         calls.append(urls)
-        # Simulate a second request arriving during the external operation.
-        assert (
-            client.post(
-                f"/posts/{post_id}/publish", headers=HEADERS, json={"image_urls": IMAGES}
-            ).status_code
-            == 409
+        assert len(urls) == 6 and all(
+            url.startswith("https://media.example.com/media/") for url in urls
         )
         assert (
             client.patch(
@@ -58,61 +51,74 @@ def test_publish_route_is_reachable_and_reserves_before_network(client, monkeypa
             ).status_code
             == 409
         )
+        assert client.post(f"/posts/{post_id}/publish", headers=HEADERS).status_code == 409
+        for url in urls:
+            response = client.get("/media/" + url.rsplit("/", 1)[1])
+            assert response.status_code == 200 and response.headers["content-type"] == "image/jpeg"
+            assert response.content.startswith(b"\xff\xd8")
         return "media-123"
 
-    configure_publisher(monkeypatch, publish)
-    response = client.post(
-        f"/posts/{post_id}/publish", headers=HEADERS, json={"image_urls": IMAGES}
-    )
-    assert response.json() == {"status": "published", "instagram_media_id": "media-123"}
-    assert calls == [IMAGES]
+    configure(monkeypatch, tmp_path, publish)
+    queued = client.post(f"/posts/{post_id}/publish", headers=HEADERS)
+    assert queued.status_code == 202
+    assert client.post(f"/posts/{post_id}/publish", headers=HEADERS).status_code == 409
+    assert work_once(client.app.state.session_factory)
     with client.app.state.session_factory() as db:
+        assert db.get(Post, post_id).status == "published"
+        assert db.get(Job, queued.json()["id"]).status == "completed"
         attempt = db.query(PublishAttempt).one()
-        assert attempt.status == "published"
-        assert attempt.version == "1"
-        assert attempt.external_id == "media-123"
+        assert (attempt.version, attempt.status, attempt.external_id) == (
+            "1",
+            "published",
+            "media-123",
+        )
+        assert db.query(MediaAsset).count() == 6
+    assert len(calls) == 1
 
 
-def test_uncertain_publish_requires_reconciliation_and_does_not_retry(client, monkeypatch):
-    post_id = approved_post(client)
+def test_uncertain_publish_never_retries_and_requires_human_reconciliation(
+    client, ready_post, monkeypatch, tmp_path
+):
+    post_id = ready_post()
+    approve(client, post_id)
     calls = []
 
     def fail(urls, caption):
         calls.append(urls)
-        raise RuntimeError("Failure containing fake-token")
+        raise RuntimeError("contains fake-token")
 
-    configure_publisher(monkeypatch, fail)
-    response = client.post(
-        f"/posts/{post_id}/publish", headers=HEADERS, json={"image_urls": IMAGES}
-    )
-    assert response.status_code == 502
-    assert "fake-token" not in response.text
+    configure(monkeypatch, tmp_path, fail)
+    job_id = client.post(f"/posts/{post_id}/publish", headers=HEADERS).json()["id"]
+    work_once(client.app.state.session_factory)
+    job = client.get(f"/jobs/{job_id}", headers=HEADERS).json()
+    assert job["status"] == "needs_reconciliation" and "fake-token" not in json.dumps(job)
+    assert client.post(f"/jobs/{job_id}/retry", headers=HEADERS).status_code == 409
+    assert client.post(f"/posts/{post_id}/publish", headers=HEADERS).status_code == 409
+    assert len(calls) == 1
     assert (
         client.post(
-            f"/posts/{post_id}/publish", headers=HEADERS, json={"image_urls": IMAGES}
-        ).status_code
-        == 409
+            f"/posts/{post_id}/reconcile",
+            headers=HEADERS,
+            json={"published": False, "note": "Checked Meta and account: no publication."},
+        ).json()["status"]
+        == "draft"
     )
-    assert len(calls) == 1
-    with client.app.state.session_factory() as db:
-        attempt = db.query(PublishAttempt).one()
-        assert attempt.status == "needs_reconciliation"
-        assert attempt.error == "RuntimeError"
+    assert client.post(f"/posts/{post_id}/publish", headers=HEADERS).status_code == 409
 
 
-def test_image_count_must_match_approved_slides(client, monkeypatch):
-    post_id = approved_post(client)
-
-    def unexpected_network(*args):
-        raise AssertionError("Invalid input must not reach the publisher")
-
-    configure_publisher(monkeypatch, unexpected_network)
+def test_external_images_cannot_replace_approved_artwork(client, ready_post, monkeypatch, tmp_path):
+    post_id = ready_post()
+    approve(client, post_id)
+    configure(monkeypatch, tmp_path, lambda *_: "never")
     response = client.post(
-        f"/posts/{post_id}/publish", headers=HEADERS, json={"image_urls": IMAGES + [IMAGES[0]]}
+        f"/posts/{post_id}/publish",
+        headers=HEADERS,
+        json={"image_urls": ["https://example.com/unrelated.jpg"] * 6},
     )
     assert response.status_code == 422
-    assert client.get("/posts", headers=HEADERS).json()[0]["status"] == "approved"
+    assert client.get(f"/posts/{post_id}", headers=HEADERS).json()["status"] == "approved"
 
 
-def test_publish_requires_authentication(client):
-    assert client.post("/posts/any/publish", json={"image_urls": IMAGES}).status_code == 401
+def test_media_integrity_and_authentication(client):
+    assert client.get("/media/no-token.jpg").status_code == 404
+    assert client.post("/posts/any/publish").status_code == 401

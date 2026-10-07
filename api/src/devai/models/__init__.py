@@ -7,6 +7,7 @@ from devai.models.content import (
     Slide,
     SourceCandidate,
 )
+from devai.models.workflow import Job, MediaAsset, Topic
 
 __all__ = [
     "ArticleEvidence",
@@ -16,4 +17,7 @@ __all__ = [
     "PublishAttempt",
     "Slide",
     "SourceCandidate",
+    "Job",
+    "MediaAsset",
+    "Topic",
 ]

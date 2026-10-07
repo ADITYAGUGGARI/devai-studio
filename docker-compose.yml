@@ -24,8 +24,17 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      OPENAI_VERIFY_MODEL: ${OPENAI_VERIFY_MODEL:-gpt-4.1-mini}
+      OPENAI_VISION_MODEL: ${OPENAI_VISION_MODEL:-gpt-4.1-mini}
+      OPENAI_IMAGE_SIZE: ${OPENAI_IMAGE_SIZE:-1088x1360}
+      OPENAI_IMAGE_QUALITY: ${OPENAI_IMAGE_QUALITY:-medium}
+      IMAGE_VALIDATION_ATTEMPTS: ${IMAGE_VALIDATION_ATTEMPTS:-2}
+      BACKGROUND_WORKER_ENABLED: ${BACKGROUND_WORKER_ENABLED:-true}
+      DAILY_ENABLED: ${DAILY_ENABLED:-false}
+      PUBLIC_MEDIA_BASE_URL: ${PUBLIC_MEDIA_BASE_URL:-}
+      PUBLISH_MEDIA_DIR: /app/.local-data/publishing-media
       OPENAI_IMAGE_MODEL: ${OPENAI_IMAGE_MODEL:-gpt-image-2}
-      CAROUSEL_ARTWORK_DIR: ${CAROUSEL_ARTWORK_DIR:-/app/.local-data/carousel-artwork}
+      CAROUSEL_ARTWORK_DIR: /app/.local-data/carousel-artwork
       INSTAGRAM_ACCESS_TOKEN: ${INSTAGRAM_ACCESS_TOKEN:-}
       INSTAGRAM_ACCOUNT_ID: ${INSTAGRAM_ACCOUNT_ID:-}
       META_GRAPH_VERSION: ${META_GRAPH_VERSION:-v24.0}
@@ -35,6 +44,7 @@ services:
       - '127.0.0.1:8000:8000'
     volumes:
       - carousel_artwork:/app/.local-data/carousel-artwork
+      - publishing_media:/app/.local-data/publishing-media
     depends_on:
       postgres:
         condition: service_healthy
@@ -68,6 +78,19 @@ services:
       api:
         condition: service_healthy
     restart: unless-stopped
+  worker:
+    profiles: ['workers']
+    build: ./api
+    command: python -m devai.worker
+    environment: *api-environment
+    volumes:
+      - carousel_artwork:/app/.local-data/carousel-artwork
+      - publishing_media:/app/.local-data/publishing-media
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
 volumes:
+  publishing_media:
   pgdata:
   carousel_artwork:

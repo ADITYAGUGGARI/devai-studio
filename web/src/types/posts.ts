@@ -9,6 +9,9 @@ export interface Slide {
   position: number;
   visual_direction?: string | null;
   has_artwork?: boolean;
+  composition_mode?: string;
+  artwork_current?: boolean;
+  validation?: ImageValidation | null;
 }
 
 export interface Post {
@@ -20,6 +23,7 @@ export interface Post {
   created: string;
   slides: Slide[];
   evidence: ArticleEvidence | null;
+  verification?: { supported: boolean; issues: string[]; human_review_required: boolean } | null;
 }
 
 export interface ArticleEvidence {
@@ -64,4 +68,52 @@ export interface SourceInput {
   title: string;
   url: string;
   excerpt: string;
+}
+
+export interface ImageValidation {
+  image_sha256?: string;
+  passed: boolean;
+  issues: string[];
+  human_review_required: boolean;
+}
+
+export interface Job {
+  id: string;
+  kind: string;
+  status: 'queued' | 'running' | 'retry_wait' | 'completed' | 'failed' | 'needs_reconciliation';
+  step: string;
+  progress: number;
+  total: number;
+  attempts: number;
+  max_attempts: number;
+  available_at: string;
+  error: string | null;
+  payload: { post_id?: string; topic_id?: string; slide_id?: string; version?: string };
+  result: { post_id?: string; warnings?: string[]; instagram_media_id?: string } | null;
+}
+
+export interface Topic {
+  id: string;
+  title: string;
+  url: string;
+  source: string;
+  excerpt: string;
+  category: string;
+  priority: number;
+  status: 'queued' | 'generating' | 'used' | 'archived';
+  verification: 'unverified' | 'primary_source' | 'human_verified';
+  published_at: string | null;
+  retrieved_at: string;
+  post_id: string | null;
+  error: string | null;
+}
+
+export interface WorkflowConfig {
+  worker_enabled: boolean;
+  daily_enabled: boolean;
+  daily_hour: number;
+  timezone: string;
+  openai_configured: boolean;
+  instagram_configured: boolean;
+  public_media_configured: boolean;
 }

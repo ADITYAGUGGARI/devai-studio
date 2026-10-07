@@ -19,3 +19,6 @@ build/
 coverage/
 .coverage
 htmlcov/
+
+test-results/
+playwright-report/

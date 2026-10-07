@@ -6,7 +6,16 @@ import { PostLibrary } from '../features/posts/PostLibrary';
 import { DailyRunPanel } from '../features/research/DailyRunPanel';
 import { GenerationForm } from '../features/research/GenerationForm';
 import { request } from '../services/api';
-import type { DailyRun, DailyRunSummary, Post, SourceInput } from '../types/posts';
+import { JobPanel } from '../features/workflow/JobPanel';
+import { TopicQueue } from '../features/workflow/TopicQueue';
+import type {
+  Job,
+  Topic,
+  WorkflowConfig,
+  DailyRunSummary,
+  Post,
+  SourceInput,
+} from '../types/posts';
 
 export function App() {
   const queryClient = useQueryClient();
@@ -18,11 +27,34 @@ export function App() {
     data = [],
     isLoading,
     error: queryError,
-  } = useQuery({ queryKey: ['posts'], queryFn: () => request<Post[]>('/posts') });
+  } = useQuery({
+    queryKey: ['posts'],
+    queryFn: () => request<Post[]>('/posts'),
+    refetchInterval: 3000,
+  });
   const { data: daily, isLoading: dailyLoading } = useQuery({
     queryKey: ['daily-run'],
     queryFn: () => request<DailyRunSummary>('/research/daily/latest'),
+    refetchInterval: 3000,
   });
+  const { data: jobs = [], error: jobsError } = useQuery({
+    queryKey: ['jobs'],
+    queryFn: () => request<Job[]>('/jobs'),
+    refetchInterval: 2000,
+  });
+  const { data: topics = [], error: topicsError } = useQuery({
+    queryKey: ['topics'],
+    queryFn: () => request<Topic[]>('/topics'),
+    refetchInterval: 3000,
+  });
+  const { data: config } = useQuery({
+    queryKey: ['workflow-config'],
+    queryFn: () => request<WorkflowConfig>('/workflow/config'),
+  });
+  function openPost(postId: string) {
+    setId(postId);
+    setTab('Library');
+  }
   const active = data.find((post) => post.id === id);
 
   async function run(operation: () => Promise<unknown>): Promise<void> {
@@ -32,6 +64,8 @@ export function App() {
       await operation();
       await queryClient.invalidateQueries({ queryKey: ['posts'] });
       await queryClient.invalidateQueries({ queryKey: ['daily-run'] });
+      await queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      await queryClient.invalidateQueries({ queryKey: ['topics'] });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Something went wrong');
     } finally {
@@ -48,22 +82,10 @@ export function App() {
   }
 
   const create = () => openDraft('/posts', samplePost);
-  const generate = (source: SourceInput) => openDraft('/research/generate', source);
-  const runDaily = () =>
-    run(async () => {
-      const result = await request<DailyRun>('/research/daily/run', 'POST');
-      if (result.result?.post_id) {
-        setId(result.result.post_id);
-        setTab('Library');
-      }
-    });
-  const regenerateResearch = () =>
-    run(async () => {
-      const result = await request<{ id: string }>('/research/daily/regenerate', 'POST');
-      setId(result.id);
-      setTab('Library');
-    });
-  const visibleError = error || queryError?.message;
+  const generate = (source: SourceInput) => run(() => request('/topics', 'POST', source));
+  const runDaily = () => run(() => request('/research/daily/run', 'POST'));
+  const regenerateResearch = () => run(() => request('/research/daily/regenerate', 'POST'));
+  const visibleError = error || queryError?.message || jobsError?.message || topicsError?.message;
 
   return (
     <div className="shell">
@@ -112,6 +134,7 @@ export function App() {
               {visibleError}
             </div>
           )}
+          <JobPanel jobs={jobs} config={config} busy={busy} onAction={run} onOpen={openPost} />
           {active ? (
             <PostEditor
               key={active.id}
@@ -119,6 +142,8 @@ export function App() {
               busy={busy}
               onBack={() => setId(null)}
               onAction={run}
+              jobs={jobs}
+              config={config}
             />
           ) : (
             <>
@@ -129,6 +154,7 @@ export function App() {
                 onRun={runDaily}
                 onRegenerate={regenerateResearch}
               />
+              <TopicQueue topics={topics} busy={busy} onAction={run} onOpen={openPost} />
               <GenerationForm busy={busy} onGenerate={generate} />
               <PostLibrary
                 posts={data}

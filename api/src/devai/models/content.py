@@ -24,6 +24,7 @@ class Post(Base):
     status: Mapped[str | None] = mapped_column(String, default="draft")
     version: Mapped[str | None] = mapped_column(String, default="1")
     created: Mapped[datetime | None] = mapped_column(DateTime, default=utc_now)
+    verification_json: Mapped[str | None] = mapped_column(Text)
 
 
 class Slide(Base):
@@ -36,6 +37,9 @@ class Slide(Base):
     body: Mapped[str | None] = mapped_column(Text)
     visual_direction: Mapped[str | None] = mapped_column(Text)
     artwork_path: Mapped[str | None] = mapped_column(Text)
+    composition_mode: Mapped[str | None] = mapped_column(String, default="ai_native")
+    validation_json: Mapped[str | None] = mapped_column(Text)
+    content_hash: Mapped[str | None] = mapped_column(String(64))
 
 
 class PublishAttempt(Base):

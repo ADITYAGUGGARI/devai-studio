@@ -27,10 +27,10 @@ def test_source_required():
         validate_generated(sample("https://other.com"), "https://example.com")
 
 
-def test_eight_slides_required():
+def test_six_to_eight_slides_required():
     data = sample("https://example.com")
-    data["slides"].pop()
-    with pytest.raises(ValueError, match="eight"):
+    data["slides"] = data["slides"][:5]
+    with pytest.raises(ValueError, match="Six"):
         validate_generated(data, "https://example.com")
 
 

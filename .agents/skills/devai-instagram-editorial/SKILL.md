@@ -23,11 +23,11 @@ Create practical, trustworthy Instagram carousels that help software engineers u
 
 ## Carousel quality
 
-- Target eight portrait slides at 1080 × 1350. Move from a concrete hook to verified context, technical explanation, developer impact, caveats, and a useful action.
+- Target six to eight portrait slides at 1080 × 1350. Move from a concrete hook to verified context, technical explanation, developer impact, caveats, and a useful action.
 - Give each slide one clear idea. Keep copy readable at phone size; use code only when it is correct, explained, and supported by evidence.
 - Include source credit and a concise caption with relevant hashtags. Keep every post a draft until a human checks the source, technical details, code, attribution, and exported images.
-- Let an image model invent a specific visual concept, composition, and materials for each slide; do not select from a fixed layout pack or repeat a stock motif. Keep enough calm negative space for exact, locally typeset copy. Preserve brand continuity through restrained palette and finish rather than repeated slide templates.
-- Keep text legible by typesetting the exact approved headline/body over generated artwork. Never rely on image-model lettering for factual copy. Do not mimic another account's layout or branding.
+- Let an image model invent a specific visual concept, composition, and materials for each slide; do not select from a fixed layout pack or repeat a stock motif. Have the image model compose the entire image including exact headline/body typography. Preserve brand continuity through restrained palette and finish rather than repeated slide templates.
+- Validate image dimensions and vision-transcribed headline/body against saved copy. Reject clipped, unreadable, inaccurate or stale images; regenerate failed slides. Do not compose artwork with templates, CSS, SVG, Pillow drawing, or local text overlays. Programmatic image processing is limited to validation, resizing, conversion and export. Do not mimic another account's layout or branding.
 
 ## Product implementation
 

@@ -1,48 +1,15 @@
 # Architecture
 
-## Decision: retain three applications in one repository
+`main.py` constructs FastAPI, auth/CORS, persistence and an optional background worker. Imports perform no I/O. The original React shell is retained; feature components manage the topic queue, jobs and review editor. Provider credentials remain server-side.
 
-FastAPI, React/Vite, and Expo remain independent applications. The backend is an installable `api/src/devai` package; clients have feature-oriented source directories. The root owns common tooling and documentation. Generated OpenAPI contracts can replace the small duplicated client types later.
+Models preserve existing post, slide, evidence, audit and daily-run records. Additive startup compatibility migrations add native composition, content hashes and validation metadata; `topics`, `jobs` and `media_assets` provide persistent workflow state. SQLite supports local use; Compose uses PostgreSQL. Worker processes share the database and asset volumes.
 
-## Request and storage flow
+Research gathers relevant dated official-feed entries, retrieves allowlisted bounded source text and queues evidence-backed candidates. Ranking combines freshness and engineering value. Manual evidence requires an explicit human verification. Generation uses prior angles and checks full-copy similarity, then audits claim support with saved-source quotations before persistence.
 
-```text
-Web / mobile -> API-key dependency -> route + input schema
-                                     -> transaction / service
-                                     -> model or external adapter
-```
+HTTP handlers enqueue jobs. Workers use conditional updates, unique active keys, expiring leases and heartbeat renewal. Results are saved before later steps, making image retries resumable. Editing and approval are blocked during a post's active jobs. Content/version checks prevent stale generation writes. A separate worker CLI supports API deployments with the embedded worker disabled.
 
-`create_app` accepts settings and an optional engine. Routers obtain its session factory through a dependency. Imports do not open database connections or create tables; app lifespan initializes the development schema. Tests inject isolated SQLite databases. The scheduler constructs its own engine without importing the HTTP app.
+Artwork is entirely image-model composed. Complete source-backed slide text is sent with each distinct visual brief. Pillow only validates, resizes and converts. A vision model transcribes the result independently; programmatic comparison and image hashes supplement its visual checks. Failed reports remain reviewable. There is no fallback programmatic renderer.
 
-Tables are `posts`, `slides`, `source_candidates`, `article_evidence`, `daily_runs`, `audit`, and `publish_attempts`. Existing string-valued versions and padded positions are retained to avoid an implicit migration. The evidence and daily-run tables are added by development schema creation. Native development uses SQLite; Docker uses PostgreSQL. Schema creation is not a migration system.
+Review requires current complete images, validated hashes and source attribution. Publishing rechecks the approved version, reserves it atomically, creates immutable JPEG snapshots and serves them through random media tokens. Meta receives only those snapshots. Unknown outcomes are locked for human reconciliation; publication has no automatic retries.
 
-## Content paths
-
-- Manual creation stores editable copy and ordered slides.
-- Discovery parses configured feeds and returns source links and feed errors.
-- Scaffolds contain eight placeholder slides explicitly requiring verification.
-- AI generation uses the supplied excerpt, validates eight-slide output, retains attribution, and saves a draft.
-- The editor can request one AI-generated image per slide from its slide-specific art direction. Exact headline/body text is overlaid locally for legibility. Artwork files are stored under `.local-data/carousel-artwork` and slide rows retain their paths. Regenerating artwork increments the post version and returns it to draft so approval must happen afterward.
-- Export renders saved slides and optional artwork into 1080 × 1350 PNGs and a caption file in a ZIP. Fonts support OS paths, overrides, and a Pillow fallback. The browser preview loads the same server-rendered image used for export.
-
-Daily ingestion avoids previously used canonical source URLs, near-duplicate source titles, and recent angles in its generation prompt. Manual and independently generated drafts can still overlap, and public Instagram posts are not searched. These checks are not plagiarism detection or a guarantee of uniqueness.
-
-## Review and publishing
-
-```text
-draft / rejected -> pending_review -> approved
-                                  -> rejected
-approved -> publishing -> published
-                     -> needs_reconciliation (attempt; post stays publishing)
-editable content + edit -> draft, increment version
-```
-
-The exact publishing route precedes the generic review-action route. It checks credentials, approval, and image count, then atomically reserves the version. The adapter creates child containers, waits for readiness, creates a carousel container, and performs one final publish call. Owned HTTP clients are closed. Errors record their type rather than possibly credential-bearing provider details.
-
-Image URLs are caller-supplied; they are not yet bound to approved slides. Production publishing needs managed media, account authentication, and concurrent edit/publish tests on PostgreSQL. No live Meta verification is claimed.
-
-## Scheduling
-
-One explicit process checks the configured local hour every minute, including catch-up after a late startup. A unique daily-run record persists its claim, result, and up-to-three retries. RSS candidates are ranked for recency and editorial-topic fit; one source-backed eight-slide carousel is generated and rendered from the saved slide copy. Human review and image export are still required. The dashboard can start the same daily operation manually.
-
-AI artwork is a separate, explicit editor action so eight image-generation requests do not happen unexpectedly during daily text generation. The server uses `OPENAI_IMAGE_MODEL` (default `gpt-image-2`); API billing and model access are required. Docker stores artwork in its named `carousel_artwork` volume.
+See [workflow](workflow.md) for configuration, operational guarantees and limits.
