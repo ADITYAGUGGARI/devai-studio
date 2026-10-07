@@ -3,7 +3,7 @@
 from typing import Annotated
 
 from fastapi import Depends, Request
-from sqlalchemy import DateTime, create_engine, inspect, text
+from sqlalchemy import Boolean, DateTime, create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 
@@ -61,9 +61,48 @@ def initialize_database(engine):
         with engine.begin() as connection:
             connection.execute(text("ALTER TABLE posts ADD COLUMN verification_json TEXT"))
 
+    if "selected" not in {c["name"] for c in inspect(engine).get_columns("topics")}:
+        column_type = Boolean().compile(dialect=engine.dialect)
+        with engine.begin() as connection:
+            connection.execute(
+                text(f"ALTER TABLE topics ADD COLUMN selected {column_type} NOT NULL DEFAULT FALSE")
+            )
+    migrate_editorial_topics(engine)
+
 
 def get_session_factory(request: Request) -> sessionmaker:
     return request.app.state.session_factory
 
 
 SessionFactory = Annotated[sessionmaker, Depends(get_session_factory)]
+
+
+def migrate_editorial_topics(engine):
+    """Keep the upstream editorial backlog visible in the expanded queue."""
+    from sqlalchemy.orm import sessionmaker
+
+    from devai.models import EditorialTopic, Topic
+    from devai.services.research import classify_topic
+
+    with sessionmaker(bind=engine).begin() as db:
+        known = {t.url for t in db.query(Topic).all()}
+        for old in db.query(EditorialTopic).all():
+            if old.source_url in known:
+                continue
+            db.add(
+                Topic(
+                    id=old.id,
+                    url=old.source_url,
+                    title=old.title,
+                    source=old.source_name,
+                    excerpt=old.summary,
+                    category=classify_topic(old.title, old.summary),
+                    priority=old.priority,
+                    status="archived" if old.status == "archived" else "queued",
+                    selected=old.status == "selected",
+                    verification="unverified",
+                    published_at=old.published_at,
+                    retrieved_at=old.discovered_at,
+                )
+            )
+            known.add(old.source_url)

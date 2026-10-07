@@ -87,7 +87,7 @@ def enqueue(session_factory, kind: str, payload: dict, *, key=None, schedule_key
             return serialise_job(job)
 
 
-def enqueue_daily(session_factory, timezone: str, *, now=None) -> dict:
+def enqueue_daily(session_factory, timezone: str, *, now=None, generate_carousel=False) -> dict:
     zone = ZoneInfo(timezone)
     current = now or datetime.now(zone)
     current = current.replace(tzinfo=zone) if current.tzinfo is None else current.astimezone(zone)
@@ -95,7 +95,7 @@ def enqueue_daily(session_factory, timezone: str, *, now=None) -> dict:
     key = f"daily:{timezone}:{date}"
     return enqueue(
         session_factory,
-        "daily",
+        "daily" if generate_carousel else "daily_research",
         {"timezone": timezone, "local_date": date, "slide_count": 8},
         key=key,
         schedule_key=key,
@@ -185,8 +185,28 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
     from devai.services.topics import create_from_topic, research_queue
 
     kind, payload = claim["kind"], claim["payload"]
-    if kind == "research":
-        return research_queue(session_factory, progress=progress)
+    if kind in {"research", "daily_research"}:
+        result = research_queue(session_factory, progress=progress)
+        if kind == "daily_research":
+            with session_factory.begin() as db:
+                run = (
+                    db.query(DailyRun)
+                    .filter_by(local_date=payload["local_date"], timezone=payload["timezone"])
+                    .first()
+                )
+                if not run:
+                    run = DailyRun(
+                        id=str(uuid.uuid4()),
+                        local_date=payload["local_date"],
+                        timezone=payload["timezone"],
+                        started_at=datetime.now(UTC),
+                    )
+                    db.add(run)
+                run.status = "completed_with_warnings" if result["warnings"] else "completed"
+                result = {**json.loads(run.result_json or "{}"), **result}
+                run.result_json, run.finished_at = json.dumps(result), datetime.now(UTC)
+                run.attempt_count = db.get(Job, claim["id"]).attempts
+        return result
     if kind == "artwork":
         return generate_post_artwork(
             session_factory,
@@ -227,7 +247,7 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
             run.status, run.error = "running", None
             run.attempt_count = db.get(Job, claim["id"]).attempts
     if not payload.get("topic_id"):
-        with session_factory() as db:
+        with session_factory.begin() as db:
             candidates = (
                 db.query(Topic)
                 .filter(
@@ -235,6 +255,7 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
                     Topic.verification.in_(["primary_source", "human_verified"]),
                 )
                 .order_by(Topic.priority.desc(), Topic.published_at.desc())
+                .with_for_update(skip_locked=True)
             )
             desired = (
                 topic_for_date(datetime.fromisoformat(payload["local_date"]).date())
@@ -248,6 +269,7 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
                     "No verified unused topic is available; refresh research or verify a manual topic"
                 )
             payload["topic_id"] = topic.id
+            topic.status, topic.job_id = "generating", claim["id"]
         _update(session_factory, claim, payload_json=json.dumps(payload))
     progress(1, 10, "Writing original carousel and checking every factual claim")
     result = create_from_topic(
@@ -364,11 +386,11 @@ def work_once(session_factory, *, handler=None) -> bool:
             payload = json.loads(job.payload_json)
             if payload.get("topic_id"):
                 topic = db.get(Topic, payload["topic_id"])
-                if topic and not topic.post_id:
+                if topic and not topic.post_id and topic.job_id == job.id:
                     topic.error = message
                     if not retry:
                         topic.status, topic.job_id = "queued", None
-            if job.kind == "daily":
+            if job.kind in {"daily", "daily_research"}:
                 run = (
                     db.query(DailyRun)
                     .filter_by(local_date=payload["local_date"], timezone=payload["timezone"])
@@ -388,7 +410,12 @@ def run_worker(session_factory, stop: threading.Event, settings=None):
             if settings and settings.daily_enabled:
                 now = datetime.now(ZoneInfo(settings.daily_timezone))
                 if now.hour >= settings.daily_hour:
-                    enqueue_daily(session_factory, settings.daily_timezone, now=now)
+                    enqueue_daily(
+                        session_factory,
+                        settings.daily_timezone,
+                        now=now,
+                        generate_carousel=settings.daily_generate_carousel,
+                    )
             if not work_once(session_factory):
                 stop.wait(1)
         except Exception:

@@ -20,6 +20,7 @@ const topicLabels: Record<string, string> = {
 export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: Props) {
   const [now, setNow] = useState(() => Date.now());
   const run = summary?.run;
+  const topicOnly = summary?.mode !== 'carousel';
   const title = run?.result?.source_title;
   const retryAfter = run?.retry_after ? new Date(run.retry_after) : null;
   const retryAfterMs = retryAfter?.getTime();
@@ -46,7 +47,11 @@ export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: P
           </p>
         ) : run?.status === 'completed' || run?.status === 'completed_with_warnings' ? (
           <>
-            <p className="hint">Today’s draft is ready for review{title ? `: ${title}` : '.'}</p>
+            <p className="hint">
+              {topicOnly
+                ? 'Today’s topic queue is refreshed. Select a story below to generate its carousel.'
+                : `Today’s draft is ready for review${title ? `: ${title}` : '.'}`}
+            </p>
             {run.status === 'completed_with_warnings' && (
               <p className="run-warning">
                 Some sources were unavailable: {run.result?.warnings?.join('; ')}
@@ -55,7 +60,7 @@ export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: P
           </>
         ) : run?.status === 'failed' ? (
           <p className="run-warning" role="status">
-            No carousel was created.{' '}
+            Research did not finish.{' '}
             {run.error?.includes('OPENAI_API_KEY is not configured') ? (
               <>
                 Add <code>OPENAI_API_KEY</code> to the root <code>.env</code>, then restart the API
@@ -72,17 +77,18 @@ export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: P
           </p>
         ) : (
           <p className="hint">
-            One source-backed, 8-slide draft each day. A configured OpenAI key is needed; every
-            draft stays unapproved until you review it.
+            {topicOnly
+              ? 'Daily discovery saves recent primary-source topics. Choose a topic below when you are ready to create a carousel.'
+              : 'One source-backed, 8-slide draft each day. A configured OpenAI key is needed; every draft stays unapproved until you review it.'}
           </p>
         )}
       </div>
       {run?.status === 'completed' || run?.status === 'completed_with_warnings' ? (
         <div className="daily-run-actions">
           <button className="primary" disabled={busy || loading} onClick={onRegenerate}>
-            {busy ? 'Researching…' : 'Research another story'}
+            {busy ? 'Researching…' : 'Refresh more topics'}
           </button>
-          <p className="hint">Creates a separate draft from a recent source not used before.</p>
+          <p className="hint">Adds recent unused sources to your topic queue.</p>
         </div>
       ) : (
         <button
@@ -99,7 +105,9 @@ export function DailyRunPanel({ summary, loading, busy, onRun, onRegenerate }: P
             ? 'Researching…'
             : run?.status === 'failed'
               ? 'Retry today’s run'
-              : 'Prepare today’s carousel'}
+              : topicOnly
+                ? 'Research today’s topics'
+                : 'Prepare today’s carousel'}
         </button>
       )}
     </section>

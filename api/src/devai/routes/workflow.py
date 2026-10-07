@@ -25,6 +25,7 @@ def workflow_config(request: Request):
     return {
         "worker_enabled": config.background_worker_enabled,
         "daily_enabled": config.daily_enabled,
+        "daily_generate_carousel": config.daily_generate_carousel,
         "daily_hour": config.daily_hour,
         "timezone": config.daily_timezone,
         "openai_configured": bool(os.getenv("OPENAI_API_KEY")),
@@ -82,8 +83,23 @@ def update_topic(id: str, data: TopicUpdate, session_factory: SessionFactory):
             raise HTTPException(404)
         if topic.status in {"generating", "used"}:
             raise HTTPException(409, "Cannot change a generating or used topic")
+        if data.excerpt is not None:
+            topic.verification = "unverified"
+        if data.status == "archived":
+            topic.selected = False
         for key, value in data.model_dump(exclude_none=True).items():
             setattr(topic, key, value)
+        return serialise_topic(topic)
+
+
+@router.post("/topics/{id}/select")
+def select_topic(id: str, session_factory: SessionFactory):
+    with session_factory.begin() as db:
+        topic = db.query(Topic).filter_by(id=id).with_for_update().first()
+        if not topic or topic.status != "queued":
+            raise HTTPException(409, "Only a queued topic can be selected")
+        db.query(Topic).filter(Topic.selected.is_(True)).update({"selected": False})
+        topic.selected = True
         return serialise_topic(topic)
 
 
@@ -93,6 +109,10 @@ def verify_topic(id: str, session_factory: SessionFactory):
         topic = db.query(Topic).filter_by(id=id).with_for_update().first()
         if not topic or topic.status != "queued":
             raise HTTPException(409, "Only queued topics can be verified")
+        if len(topic.excerpt.strip()) < 240:
+            raise HTTPException(
+                422, "Provide at least 240 characters of readable source evidence first"
+            )
         topic.verification = "human_verified"
         db.add(
             Audit(

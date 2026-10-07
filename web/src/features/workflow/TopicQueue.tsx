@@ -15,7 +15,8 @@ export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
   const [count, setCount] = useState(8);
   const [artwork, setArtwork] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
-  const topic = topics.find((item) => item.id === selected);
+  const selectedId = selected || topics.find((item) => item.selected)?.id || '';
+  const topic = topics.find((item) => item.id === selectedId);
   const eligible = topic?.status === 'queued' && topic.verification !== 'unverified';
   return (
     <section className="panel" aria-labelledby="topic-heading">
@@ -85,8 +86,11 @@ export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
                 <input
                   type="radio"
                   name="selected-topic"
-                  checked={selected === item.id}
-                  onChange={() => setSelected(item.id)}
+                  checked={selectedId === item.id}
+                  onChange={() => {
+                    setSelected(item.id);
+                    void onAction(() => request(`/topics/${item.id}/select`, 'POST'));
+                  }}
                   disabled={busy || item.status !== 'queued'}
                 />
                 <strong>{item.title}</strong>
@@ -104,6 +108,33 @@ export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
                 <summary>Review saved evidence</summary>
                 <p>{item.excerpt}</p>
               </details>
+              {item.status === 'queued' && item.verification === 'unverified' && (
+                <details>
+                  <summary>Update source evidence</summary>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const excerpt = new FormData(e.currentTarget).get('excerpt');
+                      void onAction(() => request(`/topics/${item.id}`, 'PATCH', { excerpt }));
+                    }}
+                  >
+                    <label>
+                      Reviewed source excerpt
+                      <textarea
+                        name="excerpt"
+                        minLength={240}
+                        maxLength={10000}
+                        required
+                        defaultValue={item.excerpt}
+                        rows={5}
+                      />
+                    </label>
+                    <button className="secondary" disabled={busy}>
+                      Save source evidence
+                    </button>
+                  </form>
+                </details>
+              )}
               {item.error && <p className="run-warning">{item.error}</p>}
               <div className="actions">
                 <label>
@@ -173,7 +204,7 @@ export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
         disabled={busy || !eligible}
         onClick={() =>
           onAction(() =>
-            request(`/topics/${selected}/generate`, 'POST', { slide_count: count, artwork }),
+            request(`/topics/${selectedId}/generate`, 'POST', { slide_count: count, artwork }),
           )
         }
       >

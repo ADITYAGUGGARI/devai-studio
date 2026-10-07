@@ -136,6 +136,7 @@ def daily_latest(session_factory: SessionFactory, request: Request):
         "run": latest_run(session_factory, timezone_name),
         "topic": topic_for_date(datetime.now(timezone).date()),
         "timezone": timezone_name,
+        "mode": "carousel" if request.app.state.settings.daily_generate_carousel else "research",
     }
 
 
@@ -147,7 +148,11 @@ def ingest_scaffolds(session_factory: SessionFactory):
 
 @router.post("/research/daily/run", status_code=202)
 def create_daily_package(session_factory: SessionFactory, request: Request):
-    result = enqueue_daily(session_factory, request.app.state.settings.daily_timezone)
+    result = enqueue_daily(
+        session_factory,
+        request.app.state.settings.daily_timezone,
+        generate_carousel=request.app.state.settings.daily_generate_carousel,
+    )
     if result["status"] in {"failed", "retry_wait"}:
         from devai.routes.workflow import retry_job
 

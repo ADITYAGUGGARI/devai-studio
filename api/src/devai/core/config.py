@@ -30,6 +30,10 @@ class Settings:
         default_factory=lambda: os.getenv("DAILY_ENABLED", "false").lower() == "true"
     )
 
+    daily_generate_carousel: bool = field(
+        default_factory=lambda: os.getenv("DAILY_GENERATE_CAROUSEL", "false").lower() == "true"
+    )
+
     def __post_init__(self):
         if not self.admin_api_key:
             raise ValueError("ADMIN_API_KEY must not be empty")

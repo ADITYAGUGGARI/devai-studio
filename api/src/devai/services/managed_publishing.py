@@ -96,7 +96,13 @@ def publish_managed(
             urls = []
             for slide in slides:
                 token = secrets.token_hex(32)
-                data = normalize_image(Path(slide.artwork_path).read_bytes(), output_format="JPEG")
+                raw = Path(slide.artwork_path).read_bytes()
+                if (
+                    hashlib.sha256(raw).hexdigest()
+                    != json.loads(slide.validation_json)["image_sha256"]
+                ):
+                    raise ValueError("Slide image changed while preparing publication")
+                data = normalize_image(raw, output_format="JPEG")
                 path = root / f"{token}.jpg"
                 path.write_bytes(data)
                 created.append(path)

@@ -17,6 +17,7 @@ class TopicInput(BaseModel):
 
 
 class TopicUpdate(BaseModel):
+    excerpt: str | None = Field(default=None, min_length=240, max_length=10000)
     priority: int | None = Field(default=None, ge=0, le=100)
     category: Category | None = None
     status: Literal["queued", "archived"] | None = None

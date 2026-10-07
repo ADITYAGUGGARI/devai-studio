@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from devai.core.database import Base
@@ -18,6 +18,7 @@ class Topic(Base):
     excerpt: Mapped[str] = mapped_column(Text)
     category: Mapped[str] = mapped_column(String(40))
     priority: Mapped[int] = mapped_column(Integer, default=50)
+    selected: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(String(30), default="queued")
     verification: Mapped[str] = mapped_column(String(40), default="unverified")
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

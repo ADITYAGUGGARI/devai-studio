@@ -83,7 +83,7 @@ docker compose --profile automation up --build
 docker compose --profile workers up --build
 ```
 
-At or after `DAILY_HOUR` (8 AM by default) in `DAILY_TIMEZONE`, a date-deduplicated job refreshes official feeds, queues readable recent source evidence, selects a priority topic according to the editorial rotation, writes grounded copy, generates/validates complete images, and leaves a human-review draft. No automatic publication follows. The dashboard’s daily and additional-story buttons use the same background job system. Keep the application/worker running; these commands do not install an OS service or configure a ChatGPT automation.
+At or after `DAILY_HOUR` (8 AM by default) in `DAILY_TIMEZONE`, a date-deduplicated job refreshes official feeds, queues readable recent source evidence and leaves topic selection to the reviewer. Set `DAILY_GENERATE_CAROUSEL=true` only if you want an automatic daily draft with complete validated images. No automatic publication follows. The dashboard’s daily and additional-story buttons use the same background job system. Keep the application/worker running; these commands do not install an OS service or configure a ChatGPT automation.
 
 ## Quality checks
 
@@ -91,6 +91,8 @@ At or after `DAILY_HOUR` (8 AM by default) in `DAILY_TIMEZONE`, a date-deduplica
 make check          # Tests, lint/format checks, client type checks, web build
 make test           # API and service tests only
 make format         # Apply Ruff and Prettier formatting
+npx playwright install chromium
+npm run test:e2e    # Browser regression tests; all APIs mocked
 ```
 
 CI runs equivalent checks on pushes and pull requests. Each HTTP test gets its own in-memory database. Tests use fake provider responses and do not publish to Instagram or spend AI credits. npm lockfiles and `api/constraints.txt` capture resolved dependencies; update them deliberately.

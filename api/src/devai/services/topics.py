@@ -27,6 +27,7 @@ def serialise_topic(topic: Topic) -> dict:
             "excerpt",
             "category",
             "priority",
+            "selected",
             "status",
             "verification",
             "published_at",
@@ -157,6 +158,8 @@ def create_from_topic(
         topic = db.query(Topic).filter_by(id=topic_id).with_for_update().first()
         if topic.post_id:
             return {"post_id": topic.post_id}
+        if topic.job_id != job_id or topic.status != "generating":
+            raise ValueError("Topic ownership changed during generation; discard stale copy")
         for existing in db.query(Post).all():
             text = " ".join(
                 (s.headline or "") + " " + (s.body or "")
@@ -210,7 +213,7 @@ def create_from_topic(
                     composition_mode="ai_native",
                 )
             )
-        topic.status, topic.post_id = "used", post_id
+        topic.status, topic.post_id, topic.selected = "used", post_id, False
         db.add(
             Audit(
                 id=str(uuid.uuid4()),

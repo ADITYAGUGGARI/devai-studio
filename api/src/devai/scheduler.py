@@ -29,7 +29,12 @@ def run_forever():
             now = datetime.now(ZoneInfo(settings.daily_timezone))
             if should_run(now, None, settings.daily_hour):
                 try:
-                    job = enqueue_daily(session_factory, settings.daily_timezone, now=now)
+                    job = enqueue_daily(
+                        session_factory,
+                        settings.daily_timezone,
+                        now=now,
+                        generate_carousel=settings.daily_generate_carousel,
+                    )
                     logging.info("Daily job %s: %s", job["id"], job["status"])
                 except Exception:
                     logging.exception("Could not enqueue daily job")

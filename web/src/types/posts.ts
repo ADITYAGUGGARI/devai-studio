@@ -59,6 +59,7 @@ export interface DailyRun {
 }
 
 export interface DailyRunSummary {
+  mode?: 'research' | 'carousel';
   topic: string;
   timezone: string;
   run: DailyRun | null;
@@ -93,6 +94,7 @@ export interface Job {
 }
 
 export interface Topic {
+  selected?: boolean;
   id: string;
   title: string;
   url: string;

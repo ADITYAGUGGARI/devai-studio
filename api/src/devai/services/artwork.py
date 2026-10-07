@@ -87,9 +87,7 @@ def _generate_image(prompt, *, api_key=None, model=None):
 
 
 def _normal_text(value: str) -> str:
-    return (
-        re.sub(r"\s+", "", value).casefold().replace("’", "'").replace("–", "-").replace("—", "-")
-    )
+    return re.sub(r"\s+", " ", value).strip().replace("’", "'").replace("–", "-").replace("—", "-")
 
 
 def validate_image(image: bytes, slide: dict) -> dict:

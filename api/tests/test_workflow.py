@@ -9,7 +9,7 @@ from io import BytesIO
 import pytest
 from PIL import Image
 
-from devai.models import Job, Post, Slide
+from devai.models import Job, Post, Slide, Topic
 from devai.services import artwork, jobs, topics
 from devai.services.provider import ProviderError
 
@@ -304,3 +304,161 @@ def test_image_request_includes_complete_copy_and_normalizes_only(monkeypatch):
         6,
     )
     assert Image.open(BytesIO(artwork._generate_image(prompt))).size == (1080, 1350)
+
+
+def test_daily_defaults_to_research_queue_without_generating_posts(client, monkeypatch):
+    now = datetime.now(UTC)
+    article = {
+        "title": "Coding agents and practical production workflows",
+        "url": "https://github.blog/agents-production/",
+        "source": "GitHub Blog",
+        "published_at": now,
+        "summary": "Primary announcement for developer tools. " * 20,
+    }
+    monkeypatch.setattr(topics, "discover", lambda **_: {"articles": [article], "errors": []})
+    monkeypatch.setattr(topics, "_safe_article_evidence", lambda item: item["summary"])
+
+    def never_generate(*_, **__):
+        raise AssertionError("Topic-first research must never call the copy or image provider")
+
+    monkeypatch.setattr(topics, "generate", never_generate)
+    monkeypatch.setattr(artwork, "_generate_image", never_generate)
+    response = client.post("/research/daily/run", headers=HEADERS)
+    assert response.status_code == 202 and response.json()["kind"] == "daily_research"
+    jobs.work_once(client.app.state.session_factory)
+    assert len(client.get("/topics", headers=HEADERS).json()) == 1
+    assert client.get("/posts", headers=HEADERS).json() == []
+    assert (
+        client.get("/research/daily/latest", headers=HEADERS).json()["run"]["status"] == "completed"
+    )
+    assert (
+        client.get(f"/jobs/{response.json()['id']}", headers=HEADERS).json()["status"]
+        == "completed"
+    )
+
+
+def test_topic_selection_survives_reload_and_legacy_editorial_api(client):
+    topic_id = add_topic(client)
+    assert client.post(f"/topics/{topic_id}/select", headers=HEADERS).json()["selected"] is True
+    assert client.get("/topics", headers=HEADERS).json()[0]["selected"] is True
+    assert (
+        client.get("/editorial/topics", headers=HEADERS).json()["topics"][0]["status"] == "selected"
+    )
+    assert (
+        client.patch(
+            f"/editorial/topics/{topic_id}", headers=HEADERS, json={"status": "archived"}
+        ).status_code
+        == 200
+    )
+    assert client.get("/topics", headers=HEADERS).json()[0]["status"] == "archived"
+
+
+def test_existing_editorial_records_migrate_once_preserving_selection(tmp_path):
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    from devai.core.database import initialize_database
+    from devai.models import EditorialTopic
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'upgrade.sqlite'}")
+    initialize_database(engine)
+    factory = sessionmaker(bind=engine)
+    with factory.begin() as db:
+        db.add(
+            EditorialTopic(
+                id="old-topic",
+                source_url="https://example.com/old",
+                title="Original saved story",
+                source_name="Original publisher",
+                summary="Old evidence snapshot",
+                status="selected",
+                priority=94,
+            )
+        )
+    initialize_database(engine)
+    initialize_database(engine)
+    with factory() as db:
+        assert db.query(Topic).count() == 1
+        topic = db.get(Topic, "old-topic")
+        assert topic.selected and topic.priority == 94 and topic.verification == "unverified"
+        assert topic.excerpt == "Old evidence snapshot"
+
+
+def test_tampered_image_cannot_be_approved_or_exported(client, ready_post):
+    from pathlib import Path
+
+    post_id = ready_post()
+    with client.app.state.session_factory() as db:
+        slide = db.query(Slide).filter_by(post_id=post_id).first()
+        Path(slide.artwork_path).write_bytes(png(123))
+    client.post(f"/posts/{post_id}/submit", headers=HEADERS)
+    assert client.post(f"/posts/{post_id}/approve", headers=HEADERS).status_code == 409
+    assert client.get(f"/posts/{post_id}/export", headers=HEADERS).status_code == 409
+
+
+def test_api_background_worker_executes_jobs_without_browser_waiting(tmp_path, monkeypatch):
+    import time
+
+    from fastapi.testclient import TestClient
+
+    from devai.core.config import Settings
+    from devai.core.database import build_engine
+    from devai.main import create_app
+
+    now = datetime.now(UTC)
+    monkeypatch.setattr(
+        topics,
+        "discover",
+        lambda **_: {
+            "articles": [
+                {
+                    "title": "AI developer agent release",
+                    "url": "https://github.blog/background-agent/",
+                    "source": "GitHub Blog",
+                    "published_at": now,
+                    "summary": "Official primary-source release evidence. " * 20,
+                }
+            ],
+            "errors": [],
+        },
+    )
+    monkeypatch.setattr(topics, "_safe_article_evidence", lambda item: item["summary"])
+    app = create_app(
+        Settings(admin_api_key="test-secret", background_worker_enabled=True, daily_enabled=False),
+        engine=build_engine(f"sqlite:///{tmp_path / 'background.sqlite'}"),
+    )
+    with TestClient(app) as live:
+        queued = live.post("/research/refresh", headers=HEADERS)
+        assert queued.status_code == 202
+        deadline = time.monotonic() + 5
+        result = {}
+        while time.monotonic() < deadline:
+            result = live.get(f"/jobs/{queued.json()['id']}", headers=HEADERS).json()
+            if result["status"] in {"completed", "failed"}:
+                break
+            time.sleep(0.05)
+        assert result["status"] == "completed", result
+        assert len(live.get("/topics", headers=HEADERS).json()) == 1
+        assert live.get("/posts", headers=HEADERS).json() == []
+
+
+def test_concurrent_job_claims_have_one_owner(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+
+    from sqlalchemy.orm import sessionmaker
+
+    from devai.core.database import build_engine, initialize_database
+
+    engine = build_engine(f"sqlite:///{tmp_path / 'claims.sqlite'}")
+    initialize_database(engine)
+    factory = sessionmaker(bind=engine)
+    jobs.enqueue(factory, "research", {}, key="research")
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        claims = list(pool.map(lambda _: jobs._claim(factory), range(4)))
+    assert len([claim for claim in claims if claim]) == 1
+
+
+def test_image_text_validation_preserves_code_case_and_word_boundaries():
+    assert artwork._normal_text("API_KEY") != artwork._normal_text("api_key")
+    assert artwork._normal_text("async def") != artwork._normal_text("asyncdef")
+    assert artwork._normal_text("Line one\nLine two") == artwork._normal_text("Line one Line two")

@@ -84,7 +84,7 @@ export function App() {
   const create = () => openDraft('/posts', samplePost);
   const generate = (source: SourceInput) => run(() => request('/topics', 'POST', source));
   const runDaily = () => run(() => request('/research/daily/run', 'POST'));
-  const regenerateResearch = () => run(() => request('/research/daily/regenerate', 'POST'));
+  const regenerateResearch = () => run(() => request('/research/refresh', 'POST'));
   const visibleError = error || queryError?.message || jobsError?.message || topicsError?.message;
 
   return (
