@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+.pytest_cache/
+*.pyc
+node_modules/
+dist/
+.expo/
+*.sqlite
+*.db
