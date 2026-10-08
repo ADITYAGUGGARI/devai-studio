@@ -19,7 +19,11 @@ Primary actions use lilac; secondary tools use neutral bordered surfaces. Cards 
 
 ## Web navigation
 
-Overview contains one recommended next action, status counts, recent drafts and a compact link to running tasks. Research contains topic selection and collapsible daily status/manual source entry. Library contains only drafts. Activity holds job logs/retries. Existing editor, publishing and administration functionality remains available. Starting discovery or generation opens Activity so progress is visible.
+The desktop redesign uses a separate AI-generated two-screen reference for research and the carousel editor. The reference is conceptual; all production stories, evidence and images remain backed by real APIs. The existing React application was retained.
+
+A persistent sidebar separates Today, Research, Library and Publishing from Activity and Settings. Today recommends one next action. Research is a ranked list beside a selected-story evidence/approval pane with search/category/archive filters; manual source entry opens a native dialog with Escape dismissal and focus restoration. Daily status and topic maintenance are disclosures. Library shows real image covers with search and status filters.
+
+The desktop editor keeps a vertical slide rail, a full-image canvas and a right inspector with Slide, Copy, Approval and History sections. Arrow keys navigate slides; export remains in the heading, and submission opens Approval. Human approval, validation and version invalidation remain enforced. Publishing separates ready, review, published and scheduled content; scheduling is disclosed per approved version. Settings separates health, daily research, provider usage and accounts. Narrow screens stack these workspaces without changing the native iOS app.
 
 ## Verification
 

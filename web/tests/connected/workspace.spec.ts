@@ -66,18 +66,21 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   expect(draft.ok()).toBeTruthy();
   await page.getByRole('button', { name: 'Library', exact: true }).first().click();
   await page.getByRole('button', { name: /Isolated editorial draft/ }).click();
+  await page.getByRole('tab', { name: 'Copy', exact: true }).click();
   await page.getByLabel('Caption', { exact: true }).fill('Updated manual draft caption.');
   await page.getByRole('button', { name: 'Save post', exact: true }).click();
   await expect(page.getByText('Post details · v2')).toBeVisible();
+  await page.getByRole('tab', { name: 'History', exact: true }).click();
   await page.getByText('Version history', { exact: true }).click();
   await page.getByRole('button', { name: 'Restore version 1 as draft' }).click();
+  await page.getByRole('tab', { name: 'Copy', exact: true }).click();
   await expect(page.getByLabel('Caption', { exact: true })).toHaveValue(
     'Manual copy for version recovery testing.',
   );
   await expect(page.getByText('Post details · v3')).toBeVisible();
   await page.getByRole('button', { name: 'Submit for review', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Approve', exact: true })).toBeDisabled();
-  await page.getByRole('button', { name: 'Operations', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).first().click();
   await expect(page.getByText('postgresql', { exact: false }).first()).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await expect(page).toHaveScreenshot('operations.png', { fullPage: true });
@@ -118,6 +121,7 @@ test('real generated eight-image artifact can be reviewed, exported and invalida
   expect(await file.failure()).toBeNull();
   await page.screenshot({ path: 'test-results/real-provider-review.png', fullPage: true });
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.getByRole('tab', { name: 'Copy', exact: true }).click();
   await page
     .getByLabel('Caption', { exact: true })
     .fill('A changed caption invalidates the reviewed version.');
@@ -125,8 +129,10 @@ test('real generated eight-image artifact can be reviewed, exported and invalida
   await expect(
     page.getByText('Current copy needs source grounding before approval.'),
   ).toBeVisible();
+  await page.getByRole('tab', { name: 'History', exact: true }).click();
   await page.getByText('Version history', { exact: true }).click();
   await page.getByRole('button', { name: 'Restore version 1 as draft' }).click();
+  await page.getByRole('tab', { name: 'Approval', exact: true }).click();
   await expect(
     page.getByRole('checkbox', {
       name: 'I reviewed the sources, copy, code and all slide images.',

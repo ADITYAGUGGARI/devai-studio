@@ -3,33 +3,76 @@ import { accountAtom } from '../../app/state';
 import { useState } from 'react';
 import type { Topic } from '../../types/posts';
 import { request } from '../../services/api';
-
 interface Props {
   topics: Topic[];
   busy: boolean;
-  onAction: (operation: () => Promise<unknown>) => Promise<void>;
+  onAction: (op: () => Promise<unknown>) => Promise<void>;
   onOpen: (id: string) => void;
   onBackgroundWork: () => void;
+  onAddSource: () => void;
 }
-
-export function TopicQueue({ topics, busy, onAction, onOpen, onBackgroundWork }: Props) {
-  const account = useAtomValue(accountAtom);
-  const canReview = ['admin', 'reviewer'].includes(account?.role || '');
-  const [selected, setSelected] = useState('');
-  const [category, setCategory] = useState('all');
-  const [count, setCount] = useState(8);
-  const [artwork, setArtwork] = useState(true);
-  const [showArchived, setShowArchived] = useState(false);
-  const selectedId = selected || topics.find((item) => item.selected)?.id || '';
-  const topic = topics.find((item) => item.id === selectedId);
-  const eligible =
-    topic?.status === 'queued' && topic.verification !== 'unverified' && topic.approved;
+export function TopicQueue({
+  topics,
+  busy,
+  onAction,
+  onOpen,
+  onBackgroundWork,
+  onAddSource,
+}: Props) {
+  const account = useAtomValue(accountAtom),
+    canReview = ['admin', 'reviewer'].includes(account?.role || '');
+  const [selected, setSelected] = useState(''),
+    [category, setCategory] = useState('all'),
+    [query, setQuery] = useState('');
+  const [count, setCount] = useState(8),
+    [artwork, setArtwork] = useState(true),
+    [showArchived, setShowArchived] = useState(false);
+  const visible = topics.filter(
+    (t) =>
+      (category === 'all' || t.category === category) &&
+      (showArchived || t.status !== 'archived') &&
+      `${t.title} ${t.source}`.toLowerCase().includes(query.toLowerCase()),
+  );
+  const selectedId =
+    visible.find((t) => t.id === selected)?.id ||
+    visible.find((t) => t.selected)?.id ||
+    visible[0]?.id ||
+    '';
+  const topic = topics.find((t) => t.id === selectedId),
+    eligible = topic?.status === 'queued' && topic.verification !== 'unverified' && topic.approved;
   return (
-    <section className="panel" aria-labelledby="topic-heading">
-      <div className="sectiontitle">
-        <h2 id="topic-heading">Prioritized topic queue</h2>
+    <section className="research-workbench" aria-labelledby="topic-heading">
+      <div className="research-toolbar">
+        <label className="topic-search">
+          Search topics
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search stories or sources…"
+          />
+        </label>
+        <label>
+          Category
+          <select value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="all">All categories</option>
+            {['news', 'tutorial', 'architecture', 'tools', 'insight'].map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={showArchived}
+            onChange={(e) => setShowArchived(e.target.checked)}
+          />
+          Show archived
+        </label>
+        <button className="secondary" disabled={busy} onClick={onAddSource}>
+          Add your own source
+        </button>
         <button
-          className="secondary"
+          className="primary"
           disabled={busy}
           onClick={() =>
             onAction(async () => {
@@ -41,224 +84,277 @@ export function TopicQueue({ topics, busy, onAction, onOpen, onBackgroundWork }:
           Refresh research
         </button>
       </div>
-      <p className="hint">
-        Primary-source excerpts are saved with dates and citations. Rankings favor recent, practical
-        engineering stories. Review a topic’s evidence before choosing it.
-      </p>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const query = new FormData(e.currentTarget).get('query');
-          void onAction(async () => {
-            await request('/research/search', 'POST', { query });
-            onBackgroundWork();
-          });
-        }}
-      >
-        <label>
-          Search current developer news
-          <input
-            name="query"
-            minLength={5}
-            maxLength={300}
-            placeholder="AI coding agents, evaluation, production RAG…"
-            required
-          />
-        </label>
-        <button className="secondary" disabled={busy}>
-          Search primary sources
-        </button>
-      </form>
-      <div className="actions">
-        <label>
-          Category
-          <select
-            aria-label="Category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="all">All categories</option>
-            {['news', 'tutorial', 'architecture', 'tools', 'insight'].map((name) => (
-              <option key={name}>{name}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Slides
-          <select
-            aria-label="Slides"
-            value={count}
-            onChange={(e) => setCount(Number(e.target.value))}
-          >
-            {[6, 7, 8].map((n) => (
-              <option key={n}>{n}</option>
-            ))}
-          </select>
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={artwork} onChange={(e) => setArtwork(e.target.checked)} />
-          Generate complete slide images
-        </label>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={showArchived}
-            onChange={(e) => setShowArchived(e.target.checked)}
-          />
-          Show archived
-        </label>
-      </div>
-      <div className="topic-list">
-        {topics
-          .filter(
-            (item) =>
-              (category === 'all' || item.category === category) &&
-              (showArchived || item.status !== 'archived'),
-          )
-          .map((item) => (
-            <div key={item.id} className="source-evidence">
-              <label className="check">
+      <div className="research-split">
+        <div className="research-list">
+          <div className="list-heading">
+            <h2 id="topic-heading">Prioritized topic queue</h2>
+            <span className="hint">{visible.length} stories</span>
+          </div>
+          <div className="ranked-topics">
+            {visible.map((item, i) => (
+              <label
+                key={item.id}
+                className={selectedId === item.id ? 'topic-row selected' : 'topic-row'}
+              >
                 <input
                   type="radio"
                   name="selected-topic"
+                  aria-label={`Select ${item.title}`}
                   checked={selectedId === item.id}
+                  disabled={busy}
                   onChange={() => {
                     setSelected(item.id);
-                    void onAction(() => request(`/topics/${item.id}/select`, 'POST'));
+                    if (item.status === 'queued')
+                      void onAction(() => request(`/topics/${item.id}/select`, 'POST'));
                   }}
-                  disabled={busy || item.status !== 'queued'}
                 />
-                <strong>{item.title}</strong>
+                <span className="topic-rank">{String(i + 1).padStart(2, '0')}</span>
+                <span className="topic-row-copy">
+                  <strong>{item.title}</strong>
+                  <small>
+                    {item.source} · {item.category}
+                  </small>
+                  <span className="topic-row-meta">
+                    {item.published_at
+                      ? new Date(item.published_at).toLocaleDateString()
+                      : 'Date not supplied'}
+                    <span className="pill">{item.approved ? 'approved' : item.status}</span>
+                  </span>
+                </span>
               </label>
-              <a href={item.url} target="_blank" rel="noreferrer">
-                {item.source} · {item.category}
+            ))}
+          </div>
+          {!visible.length && (
+            <div className="list-empty">
+              <h3>{query ? 'No matching stories' : 'Your next story starts here'}</h3>
+              <p className="hint">
+                Refresh research, search the web, or add an article you want to explain.
+              </p>
+            </div>
+          )}
+          <details className="web-search">
+            <summary>Search current developer news</summary>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = new FormData(e.currentTarget).get('query');
+                void onAction(async () => {
+                  await request('/research/search', 'POST', { query: q });
+                  onBackgroundWork();
+                });
+              }}
+            >
+              <label>
+                Search current developer news
+                <input
+                  name="query"
+                  minLength={5}
+                  maxLength={300}
+                  placeholder="AI coding agents, production RAG…"
+                  required
+                />
+              </label>
+              <button className="secondary" disabled={busy}>
+                Search primary sources
+              </button>
+            </form>
+          </details>
+        </div>
+        <div className="topic-detail" aria-label="Selected story">
+          {topic ? (
+            <>
+              <div className="topic-detail-head">
+                <span className="eyebrow">
+                  {topic.category.toUpperCase()} · PRIORITY {topic.priority}
+                </span>
+                <span className="pill">{topic.verification.replaceAll('_', ' ')}</span>
+              </div>
+              <h2>{topic.title}</h2>
+              <a className="source-link" href={topic.url} target="_blank" rel="noreferrer">
+                {topic.source} ↗
               </a>
-              <span className="hint">
-                {item.verification.replaceAll('_', ' ')} · {item.status} ·{' '}
-                {item.published_at
-                  ? new Date(item.published_at).toLocaleDateString()
-                  : 'Publication date not supplied'}
-              </span>
-              <details>
+              <p className="hint">
+                {topic.published_at
+                  ? `Published ${new Date(topic.published_at).toLocaleDateString()}`
+                  : 'Publication date not supplied'}{' '}
+                · Evidence saved {new Date(topic.retrieved_at).toLocaleDateString()}
+              </p>
+              <details className="evidence-disclosure" key={topic.id}>
                 <summary>Review saved evidence</summary>
-                <p>{item.excerpt}</p>
+                <p>{topic.excerpt}</p>
               </details>
-              {item.status === 'queued' && item.verification !== 'unverified' && !item.approved && (
-                <button
-                  className="secondary"
-                  disabled={busy || !canReview}
-                  onClick={() => onAction(() => request(`/topics/${item.id}/approve`, 'POST'))}
-                >
-                  Approve topic
-                </button>
-              )}
-              {item.approved && <span className="hint">Topic approved for generation</span>}
-              {item.status === 'queued' && item.verification === 'unverified' && (
-                <details>
-                  <summary>Update source evidence</summary>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const excerpt = new FormData(e.currentTarget).get('excerpt');
-                      void onAction(() => request(`/topics/${item.id}`, 'PATCH', { excerpt }));
-                    }}
-                  >
-                    <label>
-                      Reviewed source excerpt
-                      <textarea
-                        name="excerpt"
-                        minLength={240}
-                        maxLength={10000}
-                        required
-                        defaultValue={item.excerpt}
-                        rows={5}
-                      />
-                    </label>
-                    <button className="secondary" disabled={busy}>
-                      Save source evidence
-                    </button>
-                  </form>
+              {topic.error && (
+                <details className="evidence-disclosure">
+                  <summary>Generation needs attention</summary>
+                  <p className="run-warning">{topic.error}</p>
                 </details>
               )}
-              {item.error && <p className="run-warning">{item.error}</p>}
-              <div className="actions">
-                <label>
-                  Priority (0–100)
-                  <input
-                    aria-label={`Priority for ${item.title}`}
-                    type="number"
-                    min={0}
-                    max={100}
-                    key={`${item.id}-${item.priority}`}
-                    defaultValue={item.priority}
-                    disabled={busy || item.status !== 'queued'}
-                    onBlur={(e) => {
-                      const priority = Number(e.target.value);
-                      if (
-                        Number.isInteger(priority) &&
-                        priority >= 0 &&
-                        priority <= 100 &&
-                        priority !== item.priority
-                      )
-                        void onAction(() => request(`/topics/${item.id}`, 'PATCH', { priority }));
-                    }}
-                  />
-                </label>
-                {item.verification === 'unverified' && item.status === 'queued' && (
-                  <button
-                    className="secondary"
-                    disabled={busy}
-                    onClick={() => onAction(() => request(`/topics/${item.id}/verify`, 'POST'))}
-                  >
-                    I reviewed and verified this evidence
-                  </button>
+              <div className="topic-decision">
+                <h3>
+                  {topic.approved
+                    ? 'Ready to create your carousel'
+                    : topic.verification === 'unverified'
+                      ? 'Verify this source first'
+                      : 'Review this topic'}
+                </h3>
+                <p className="hint">
+                  {topic.approved
+                    ? 'Generate original copy and complete AI-designed images. Your post stays a draft until you review it.'
+                    : 'Read the saved evidence and original article before approving this story for generation.'}
+                </p>
+                {topic.status === 'queued' && (
+                  <>
+                    {topic.verification === 'unverified' ? (
+                      <button
+                        className="primary"
+                        disabled={busy}
+                        onClick={() =>
+                          onAction(() => request(`/topics/${topic.id}/verify`, 'POST'))
+                        }
+                      >
+                        I reviewed and verified this evidence
+                      </button>
+                    ) : !topic.approved ? (
+                      <button
+                        className="primary"
+                        disabled={busy || !canReview}
+                        onClick={() =>
+                          onAction(() => request(`/topics/${topic.id}/approve`, 'POST'))
+                        }
+                      >
+                        Approve topic
+                      </button>
+                    ) : null}
+                    <div className="generation-options">
+                      <label>
+                        Slides
+                        <select
+                          aria-label="Slides"
+                          value={count}
+                          onChange={(e) => setCount(Number(e.target.value))}
+                        >
+                          {[6, 7, 8].map((n) => (
+                            <option key={n}>{n}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="check">
+                        <input
+                          type="checkbox"
+                          checked={artwork}
+                          onChange={(e) => setArtwork(e.target.checked)}
+                        />
+                        Generate complete slide images
+                      </label>
+                    </div>
+                    <button
+                      className="primary"
+                      disabled={busy || !eligible}
+                      onClick={() =>
+                        onAction(async () => {
+                          await request(`/topics/${topic.id}/generate`, 'POST', {
+                            slide_count: count,
+                            artwork,
+                          });
+                          onBackgroundWork();
+                        })
+                      }
+                    >
+                      Generate selected topic · {count} slides →
+                    </button>
+                  </>
                 )}
-                {item.post_id && (
+                {topic.post_id && (
                   <button
-                    className="secondary"
+                    className="primary"
                     disabled={busy}
-                    onClick={() => onOpen(item.post_id!)}
+                    onClick={() => onOpen(topic.post_id!)}
                   >
                     Open draft
                   </button>
                 )}
-                {['queued', 'archived'].includes(item.status) && (
-                  <button
-                    className="ghost"
-                    disabled={busy}
-                    onClick={() =>
-                      onAction(() =>
-                        request(`/topics/${item.id}`, 'PATCH', {
-                          status: item.status === 'archived' ? 'queued' : 'archived',
-                        }),
-                      )
-                    }
-                  >
-                    {item.status === 'archived' ? 'Restore' : 'Archive'}
+                {topic.status === 'generating' && (
+                  <button className="secondary" onClick={onBackgroundWork}>
+                    View generation progress
                   </button>
                 )}
               </div>
+              {['queued', 'archived'].includes(topic.status) && (
+                <details className="evidence-disclosure">
+                  <summary>Topic options</summary>
+                  <div className="topic-tools">
+                    <label>
+                      Priority (0–100)
+                      <input
+                        type="number"
+                        aria-label={`Priority for ${topic.title}`}
+                        min={0}
+                        max={100}
+                        key={`${topic.id}-${topic.priority}`}
+                        defaultValue={topic.priority}
+                        disabled={busy || topic.status !== 'queued'}
+                        onBlur={(e) => {
+                          const p = Number(e.target.value);
+                          if (Number.isInteger(p) && p >= 0 && p <= 100 && p !== topic.priority)
+                            void onAction(() =>
+                              request(`/topics/${topic.id}`, 'PATCH', { priority: p }),
+                            );
+                        }}
+                      />
+                    </label>
+                    <button
+                      className="secondary"
+                      disabled={busy}
+                      onClick={() =>
+                        onAction(() =>
+                          request(`/topics/${topic.id}`, 'PATCH', {
+                            status: topic.status === 'archived' ? 'queued' : 'archived',
+                          }),
+                        )
+                      }
+                    >
+                      {topic.status === 'archived' ? 'Restore' : 'Archive'}
+                    </button>
+                  </div>
+                  {topic.status === 'queued' && topic.verification === 'unverified' && (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const excerpt = new FormData(e.currentTarget).get('excerpt');
+                        void onAction(() => request(`/topics/${topic.id}`, 'PATCH', { excerpt }));
+                      }}
+                    >
+                      <label>
+                        Reviewed source excerpt
+                        <textarea
+                          name="excerpt"
+                          minLength={240}
+                          maxLength={10000}
+                          required
+                          defaultValue={topic.excerpt}
+                          key={topic.id}
+                          rows={5}
+                        />
+                      </label>
+                      <button className="secondary" disabled={busy}>
+                        Save source evidence
+                      </button>
+                    </form>
+                  )}
+                </details>
+              )}
+            </>
+          ) : (
+            <div className="detail-empty">
+              <span aria-hidden="true">⌕</span>
+              <h2>Choose a story</h2>
+              <p className="hint">
+                Select a topic to review its source evidence and create a carousel.
+              </p>
             </div>
-          ))}
-        {!topics.length && (
-          <p className="hint">Refresh research or add a source below to start your queue.</p>
-        )}
+          )}
+        </div>
       </div>
-      <button
-        className="primary"
-        disabled={busy || !eligible}
-        onClick={() =>
-          onAction(async () => {
-            await request(`/topics/${selectedId}/generate`, 'POST', {
-              slide_count: count,
-              artwork,
-            });
-            onBackgroundWork();
-          })
-        }
-      >
-        Generate selected topic · {count} slides
-      </button>
     </section>
   );
 }

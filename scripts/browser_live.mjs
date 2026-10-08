@@ -18,9 +18,15 @@ await page.goto('http://localhost:5173');
 await page.getByLabel('Email', { exact: true }).fill(values.email);
 await page.getByLabel('Password', { exact: true }).fill(values.password);
 await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-await page.getByRole('heading', { name: 'Good morning, creator.' }).waitFor();
+await page.getByRole('heading', { name: 'Your studio, today' }).waitFor();
 await mkdir('.local-data/live-acceptance/browser', { recursive: true });
 await page.screenshot({ path: '.local-data/live-acceptance/browser/overview.png', fullPage: true });
+await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+await page.getByRole('heading', { name: 'Prioritized topic queue' }).waitFor();
+await page.screenshot({
+  path: '.local-data/live-acceptance/browser/research-desktop.png',
+  fullPage: true,
+});
 await page.getByRole('button', { name: 'Library', exact: true }).first().click();
 await page
   .getByRole('button', { name: /Designing Smart Content Ingestion for Generative AI Systems/ })

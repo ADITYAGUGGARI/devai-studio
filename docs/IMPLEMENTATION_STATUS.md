@@ -38,3 +38,9 @@ The existing app and local SQLite data were preserved; the existing data was bac
 ## Resume instructions
 
 From `/Users/aditya/Desktop/local/devai-studio`, run `make dev-api` and `make dev-web`; see `docs/LOCAL_STARTUP.md` for PostgreSQL, scheduler, and worker setup. To finish native verification, open Xcode 27 Device Hub to view the running simulator; for standalone native build acceptance, install CocoaPods, then run the isolated E2E server and `npx expo run:ios` followed by `maestro test mobile/.maestro/editorial.yaml`. Meta credentials and a publicly reachable HTTPS app origin are required before testing actual Instagram publishing. Never use the isolated browser/native test credentials outside a local disposable test database.
+
+## Desktop UX redesign — October 7, 2026
+
+AI-generated desktop wireframe informed the existing web app redesign. Sidebar navigation, split research list/evidence pane, accessible manual-source dialog, real artwork covers, slide rail/canvas/tabbed inspector, publishing filters and focused settings sections are implemented in `web/src/components/`, `web/src/desktop.css`, `web/src/features/`. Existing APIs, approval gates and the native app are preserved. Browser coverage includes source filtering, Escape/focus restoration, keyboard slide navigation, review/export/version recovery and accessibility. Real local research and artwork views were visually inspected at desktop and phone widths. Final check results are recorded below.
+
+Desktop verification: `make check` passed (107 backend tests, lint, formatting, web/mobile TypeScript, production web build); 12 browser regression tests passed; two real PostgreSQL browser journeys passed with the eight-image provider artifact, axe accessibility checks and reviewed visual snapshots. Read-only browser acceptance against the running local workspace passed.

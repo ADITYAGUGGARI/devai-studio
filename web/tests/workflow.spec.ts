@@ -215,7 +215,7 @@ test('preserves dashboard and exposes persistent research progress', async ({ pa
   const calls = await mockApi(page);
   await page.goto('/');
   await expect(page.getByText('devai studio')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Overview', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Today', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Research', exact: true }).first().click();
   await page.getByRole('button', { name: 'Refresh research', exact: true }).click();
   await expect(page.getByText('Checking primary-source evidence', { exact: false })).toBeVisible();
@@ -255,7 +255,7 @@ test('human review and configuration gate publishing from existing editor', asyn
   const calls = await mockApi(page, { draft: true, publishing: true });
   await page.goto('/');
   await page.getByRole('button', { name: 'Library', exact: true }).first().click();
-  await page.getByRole('button', { name: /AI \/ ENGINEERING/ }).click();
+  await page.getByRole('button', { name: /Open carousel:/ }).click();
   await page.getByRole('button', { name: 'Submit for review', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Approve', exact: true })).toBeDisabled();
   await page
@@ -268,6 +268,7 @@ test('human review and configuration gate publishing from existing editor', asyn
     '/posts/post-1/approve',
     '/posts/post-1/publish',
   ]);
+  await page.getByRole('tab', { name: 'Copy', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Save post', exact: true })).toBeDisabled();
 });
 
@@ -412,4 +413,45 @@ test('failed grounding jobs show claim-level evidence without exposing an approv
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Review draft', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Retry job', exact: true })).toBeEnabled();
+});
+
+test('desktop research filters and source dialog preserve a focused workspace', async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByLabel('Search topics', { exact: true }).fill('no matching story');
+  await expect(page.getByRole('radio')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Approve topic', exact: true })).toHaveCount(0);
+  await page.getByLabel('Search topics', { exact: true }).fill('');
+  await expect(page.getByRole('radio')).toHaveCount(1);
+  const add = page.getByRole('button', { name: 'Add your own source', exact: true });
+  await add.click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(add).toBeFocused();
+  await page.screenshot({ path: 'test-results/research-desktop.png', fullPage: true });
+});
+
+test('desktop editor separates copy and history while retaining keyboard slide navigation', async ({
+  page,
+}) => {
+  await mockApi(page, { draft: true });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
+  await page.getByRole('button', { name: /Open carousel:/ }).click();
+  await expect(page.getByLabel('Caption', { exact: true })).toHaveCount(0);
+  await page.getByRole('tab', { name: 'Copy', exact: true }).click();
+  await expect(page.getByLabel('Caption', { exact: true })).toBeVisible();
+  await page.getByRole('tab', { name: 'History', exact: true }).click();
+  await expect(page.getByLabel('Caption', { exact: true })).toHaveCount(0);
+  const preview = page.getByLabel('Carousel preview', { exact: true });
+  await preview.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('button', { name: 'Slide 2', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
 });

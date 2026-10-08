@@ -11,6 +11,8 @@ import { GenerationForm } from '../features/research/GenerationForm';
 import { request } from '../services/api';
 import { JobPanel } from '../features/workflow/JobPanel';
 import { TopicQueue } from '../features/workflow/TopicQueue';
+import { Modal } from '../components/Modal';
+import { WorkspaceShell } from '../components/WorkspaceShell';
 import { StudioOverview } from '../features/StudioOverview';
 import type {
   Job,
@@ -29,6 +31,7 @@ export function App() {
   const canWrite = account?.role !== 'viewer';
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [manualSource, setManualSource] = useState(false);
   const {
     data = [],
     isLoading,
@@ -91,7 +94,11 @@ export function App() {
   }
 
   const create = () => openDraft('/posts', samplePost);
-  const generate = (source: SourceInput) => run(() => request('/topics', 'POST', source));
+  const generate = (source: SourceInput) =>
+    run(async () => {
+      await request('/topics', 'POST', source);
+      setManualSource(false);
+    });
   const runDaily = () => run(() => request('/research/daily/run', 'POST'));
   const regenerateResearch = () =>
     run(async () => {
@@ -101,177 +108,143 @@ export function App() {
   const visibleError = error || queryError?.message || jobsError?.message || topicsError?.message;
 
   return (
-    <div className="shell">
-      <aside>
-        <div className="brand">
-          <span className="brandmark">✳</span>devai studio
-        </div>
-        <div className="workspace">WORKSPACE</div>
-        <nav>
-          {['Overview', 'Research', 'Library', 'Publishing', 'Activity', 'Operations'].map(
-            (name) => (
-              <button
-                key={name}
-                disabled={busy}
-                className={tab === name ? 'nav active' : 'nav'}
-                onClick={() => {
-                  setTab(name);
-                  setId(null);
-                }}
-              >
-                {name}
-              </button>
-            ),
-          )}
-        </nav>
-        <div className="sidefoot">Creator workspace · Private review</div>
-      </aside>
-      <main>
-        <header>
-          <span>Workspace / {tab}</span>
-          <span>✓ Approval required</span>
-          <span className="hint">
-            {account?.email} · {account?.role}
-          </span>
-          <button
-            className="ghost"
-            onClick={async () => {
-              await request('/auth/logout', 'POST');
-              window.location.reload();
-            }}
-          >
-            Sign out
-          </button>
-        </header>
-        <nav className="mobile-nav" aria-label="Workspace navigation">
-          {['Overview', 'Research', 'Library', 'Publishing', 'Activity', 'Operations'].map(
-            (name) => (
-              <button
-                key={name}
-                aria-current={tab === name ? 'page' : undefined}
-                className={tab === name ? 'nav active' : 'nav'}
-                onClick={() => {
-                  setTab(name);
-                  setId(null);
-                }}
-              >
-                {name}
-              </button>
-            ),
-          )}
-        </nav>
-        <div className="content">
-          <div className="topline">
-            <div>
-              <div className="eyebrow">✳ CONTENT INTELLIGENCE</div>
-              <h1>
-                {active ? 'Review content' : tab === 'Overview' ? 'Good morning, creator.' : tab}
-              </h1>
-              <p className="subtitle">
-                {active
-                  ? 'Review one carousel, one version at a time.'
-                  : tab === 'Overview'
-                    ? 'Your content studio. One clear next step.'
-                    : tab === 'Research'
-                      ? 'Choose a credible story worth explaining.'
-                      : tab === 'Library'
-                        ? 'Pick up a draft where you left off.'
-                        : tab === 'Activity'
-                          ? 'Background progress and recovery, in one place.'
-                          : 'Your developer content workspace.'}
-              </p>
-            </div>
-            {tab === 'Library' && !active && (
-              <button className="primary" onClick={create} disabled={busy}>
-                + New draft
-              </button>
-            )}
+    <WorkspaceShell
+      tab={tab}
+      account={account}
+      activeCount={
+        jobs.filter((j) => ['queued', 'running', 'retry_wait'].includes(j.status)).length
+      }
+      onNavigate={(name) => {
+        setTab(name);
+        setId(null);
+      }}
+      onLogout={() =>
+        void request('/auth/logout', 'POST')
+          .then(() => window.location.reload())
+          .catch((cause) => setError(cause instanceof Error ? cause.message : 'Sign out failed'))
+      }
+    >
+      {!active && (
+        <div className="topline">
+          <div>
+            <div className="eyebrow">✳ CONTENT INTELLIGENCE</div>
+            <h1>
+              {tab === 'Overview'
+                ? 'Your studio, today'
+                : tab === 'Research'
+                  ? 'Discover your next story'
+                  : tab === 'Operations'
+                    ? 'Workspace settings'
+                    : tab === 'Library'
+                      ? 'Content library'
+                      : tab}
+            </h1>
+            <p className="subtitle">
+              {active
+                ? 'Review one carousel, one version at a time.'
+                : tab === 'Overview'
+                  ? 'Your content studio. One clear next step.'
+                  : tab === 'Research'
+                    ? 'Choose a credible story worth explaining.'
+                    : tab === 'Library'
+                      ? 'Pick up a draft where you left off.'
+                      : tab === 'Activity'
+                        ? 'Background progress and recovery, in one place.'
+                        : 'Your developer content workspace.'}
+            </p>
           </div>
-          {visibleError && (
-            <div className="error" role="alert">
-              {visibleError}
-            </div>
+          {tab === 'Library' && !active && (
+            <button className="primary" onClick={create} disabled={busy}>
+              + New draft
+            </button>
           )}
-          {(active || tab === 'Activity') && (
-            <JobPanel
-              jobs={
-                active
-                  ? jobs.filter(
-                      (job) =>
-                        job.payload.post_id === active.id &&
-                        String(job.payload.version) === active.version,
-                    )
-                  : jobs
-              }
-              config={config}
-              busy={busy || !canWrite}
-              onAction={run}
-              onOpen={openPost}
-            />
-          )}
-          {active ? (
-            <PostEditor
-              key={active.id}
-              post={active}
-              busy={busy}
-              onBack={() => setId(null)}
-              onAction={run}
-              jobs={jobs}
-              config={config}
-            />
-          ) : tab === 'Publishing' ? (
-            <PublishingWorkspace posts={data} busy={busy} onAction={run} onOpen={openPost} />
-          ) : tab === 'Operations' ? (
-            <OperationsWorkspace busy={busy} onAction={run} />
-          ) : tab === 'Overview' ? (
-            <StudioOverview
-              posts={data}
-              topics={topics}
-              jobs={jobs}
-              onOpen={openPost}
-              onNavigate={(name) => {
-                setTab(name);
-                setId(null);
-              }}
-            />
-          ) : tab === 'Research' ? (
-            <>
-              <details className="panel research-status">
-                <summary>Daily research status</summary>
-                <DailyRunPanel
-                  summary={daily}
-                  loading={dailyLoading}
-                  busy={busy}
-                  onRun={runDaily}
-                  onRegenerate={regenerateResearch}
-                />
-              </details>
-              <TopicQueue
-                topics={topics}
-                busy={busy || !canWrite}
-                onAction={run}
-                onOpen={openPost}
-                onBackgroundWork={() => setTab('Activity')}
-              />
-              <details className="panel">
-                <summary>Add your own source</summary>
-                <GenerationForm busy={busy || !canWrite} onGenerate={generate} />
-              </details>
-            </>
-          ) : tab === 'Library' ? (
-            <PostLibrary
-              posts={data}
-              loading={isLoading}
-              busy={busy}
-              onCreate={create}
-              onSelect={(post) => {
-                setId(post.id);
-                setTab('Library');
-              }}
-            />
-          ) : null}
         </div>
-      </main>
-    </div>
+      )}
+      {visibleError && !manualSource && (
+        <div className="error" role="alert">
+          {visibleError}
+        </div>
+      )}
+      {tab === 'Activity' && !active && (
+        <JobPanel
+          jobs={jobs}
+          config={config}
+          busy={busy || !canWrite}
+          onAction={run}
+          onOpen={openPost}
+        />
+      )}
+      {active ? (
+        <PostEditor
+          key={active.id}
+          post={active}
+          busy={busy}
+          onBack={() => {
+            setId(null);
+            setTab('Library');
+          }}
+          onAction={run}
+          jobs={jobs}
+          config={config}
+        />
+      ) : tab === 'Publishing' ? (
+        <PublishingWorkspace posts={data} busy={busy} onAction={run} onOpen={openPost} />
+      ) : tab === 'Operations' ? (
+        <OperationsWorkspace busy={busy} onAction={run} />
+      ) : tab === 'Overview' ? (
+        <StudioOverview
+          posts={data}
+          topics={topics}
+          jobs={jobs}
+          onOpen={openPost}
+          onNavigate={(name) => {
+            setTab(name);
+            setId(null);
+          }}
+        />
+      ) : tab === 'Research' ? (
+        <>
+          <TopicQueue
+            topics={topics}
+            busy={busy || !canWrite}
+            onAction={run}
+            onOpen={openPost}
+            onBackgroundWork={() => setTab('Activity')}
+            onAddSource={() => setManualSource(true)}
+          />
+          <details className="panel research-status">
+            <summary>Daily research status</summary>
+            <DailyRunPanel
+              summary={daily}
+              loading={dailyLoading}
+              busy={busy}
+              onRun={runDaily}
+              onRegenerate={regenerateResearch}
+            />
+          </details>
+        </>
+      ) : tab === 'Library' ? (
+        <PostLibrary
+          posts={data}
+          loading={isLoading}
+          busy={busy}
+          onCreate={create}
+          onSelect={(post) => {
+            setId(post.id);
+            setTab('Library');
+          }}
+        />
+      ) : null}
+      {manualSource && (
+        <Modal title="Add your own source" onClose={() => setManualSource(false)}>
+          {visibleError && (
+            <p className="error" role="alert">
+              {visibleError}
+            </p>
+          )}
+          <GenerationForm busy={busy || !canWrite} onGenerate={generate} />
+        </Modal>
+      )}
+    </WorkspaceShell>
   );
 }
