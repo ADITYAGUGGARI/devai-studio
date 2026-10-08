@@ -25,7 +25,22 @@ async function fetchApi(path: string, method = 'GET', body?: unknown): Promise<R
   if (!response.ok) {
     const data = await response.json().catch(() => null);
     const detail = data?.detail;
-    throw new Error(typeof detail === 'string' ? detail : `Request failed (${response.status})`);
+    const validation = Array.isArray(detail)
+      ? detail
+          .map(
+            (item: { loc?: unknown[]; msg?: string }) =>
+              `${item.loc?.filter((part) => part !== 'body').join(' → ') || 'Input'}: ${item.msg || 'Invalid value'}`,
+          )
+          .join('; ')
+      : null;
+    throw new Error(
+      typeof detail === 'string'
+        ? detail
+        : validation ||
+            (response.status === 401
+              ? 'Your session expired. Sign in again to continue; saved work is safe.'
+              : `Request failed (${response.status}). Please try again.`),
+    );
   }
   return response;
 }

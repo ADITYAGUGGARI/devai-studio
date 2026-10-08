@@ -9,6 +9,7 @@ interface Props {
   onAction: (op: () => Promise<unknown>) => Promise<void>;
   onOpen: (id: string) => void;
   onBackgroundWork: () => void;
+  onViewActivity: () => void;
   onAddSource: () => void;
 }
 export function TopicQueue({
@@ -17,6 +18,7 @@ export function TopicQueue({
   onAction,
   onOpen,
   onBackgroundWork,
+  onViewActivity,
   onAddSource,
 }: Props) {
   const account = useAtomValue(accountAtom),
@@ -274,7 +276,7 @@ export function TopicQueue({
                   </button>
                 )}
                 {topic.status === 'generating' && (
-                  <button className="secondary" onClick={onBackgroundWork}>
+                  <button className="secondary" onClick={onViewActivity}>
                     View generation progress
                   </button>
                 )}

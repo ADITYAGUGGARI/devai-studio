@@ -30,3 +30,9 @@ The desktop editor keeps a vertical slide rail, a full-image canvas and a right 
 Browser tests exercise the redesigned navigation and prove that topic approval, generation, review, retry, source diagnostics and publishing guards still work. Connected browser tests use real FastAPI/PostgreSQL and real generated images in an isolated test schema. The running iOS Expo Go carousel screen was visually inspected through simulator screenshots. Native automated Maestro acceptance remains separately tracked; a screenshot does not establish every native journey.
 
 Xcode 27 manages simulator screens through Device Hub (`Xcode > Open Developer Tool > Device Hub`). The absence of a standalone Simulator app is not evidence of a broken Xcode installation.
+
+## Background interactions and edits
+
+A second AI-generated interaction board explored running, completed and failed tasks and saved feedback. The implemented task strip is in normal document flow so it cannot cover editor controls. It remains visible across workspaces, lets people expand diagnostics and open the resulting draft/research queue, and preserves uncertain-publication reconciliation. Starting research or generation retains the current screen. Activity provides explicit filters. Native iOS navigation is unchanged.
+
+Editor navigation and slide changes protect unsaved input. Saves preserve pending edits in other sections; unsaved input blocks actions that would operate on an older saved version. Mutation feedback is dismissible, and form validation points to the invalid field without closing its dialog. Publishing checks configuration before enabling its actions.

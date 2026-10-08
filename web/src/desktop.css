@@ -848,3 +848,52 @@
 .workspace-sections .active {
   border-color: var(--studio-accent);
 }
+.action-feedback {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #3e665b;
+  background: #142b26;
+  color: #ddf8ec;
+  padding: 8px 16px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+.task-dock {
+  background: #192235;
+  border: 1px solid #65538c;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.task-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.task-summary span {
+  display: block;
+  color: var(--studio-muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.task-expanded {
+  border-top: 1px solid var(--studio-border);
+  margin-top: 12px;
+  padding-top: 12px;
+  font-size: 13px;
+}
+.task-dock progress {
+  width: 100%;
+  height: 5px;
+  margin-top: 12px;
+}
+@media (max-width: 900px) {
+  .task-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

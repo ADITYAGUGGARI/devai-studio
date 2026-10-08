@@ -3,14 +3,16 @@ import { useAtomValue } from 'jotai';
 import { useState } from 'react';
 import { accountAtom } from '../app/state';
 import { request, downloadPost } from '../services/api';
-import type { Post } from '../types/posts';
+import type { Post, WorkflowConfig } from '../types/posts';
 
 export function PublishingWorkspace({
   posts,
   busy,
   onOpen,
   onAction,
+  config,
 }: {
+  config?: WorkflowConfig;
   posts: Post[];
   busy: boolean;
   onOpen: (id: string) => void;
@@ -34,6 +36,7 @@ export function PublishingWorkspace({
   });
   const account = useAtomValue(accountAtom);
   const canPublish = ['admin', 'reviewer'].includes(account?.role || '');
+  const configured = Boolean(config?.instagram_configured && config?.public_media_configured);
   return (
     <section className="panel" aria-label="Publishing workspace">
       <h2>Publishing workspace</h2>
@@ -53,6 +56,12 @@ export function PublishingWorkspace({
           </button>
         ))}
       </div>
+      {!configured && (
+        <p className="hint">
+          Export is available. To publish or schedule, configure Instagram credentials and a public
+          HTTPS media address on the server.
+        </p>
+      )}
       {posts
         .filter((p) =>
           filter === 'Ready'
@@ -83,7 +92,7 @@ export function PublishingWorkspace({
               {p.status === 'approved' && canPublish && (
                 <button
                   className="primary"
-                  disabled={busy}
+                  disabled={busy || !configured}
                   onClick={() => onAction(() => request(`/posts/${p.id}/publish`, 'POST'))}
                 >
                   Publish approved version
@@ -117,7 +126,7 @@ export function PublishingWorkspace({
                         .replace(' ', 'T')}
                     />
                   </label>
-                  <button className="secondary" disabled={busy}>
+                  <button className="secondary" disabled={busy || !configured}>
                     Schedule approved version
                   </button>
                 </form>
@@ -393,7 +402,7 @@ export function OperationsWorkspace({
             </label>
             <label>
               Role
-              <select name="role">
+              <select name="role" aria-label="Role">
                 <option>editor</option>
                 <option>reviewer</option>
                 <option>viewer</option>

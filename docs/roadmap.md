@@ -22,3 +22,5 @@
 7. Expand originality comparisons with accessible external content; never claim uniqueness across all Instagram accounts.
 
 Account roles/sessions, PostgreSQL migration/adoption, backups with restore verification, usage/monitoring, publishing schedules, version restore and connected browser tests are implemented. See IMPLEMENTATION_STATUS.md for current evidence.
+
+The workflow UX acceptance audit added persistent background-task feedback, completion/recovery actions, unsaved-edit protection, safe cross-section saves, configuration guards and expanded connected account/settings verification. See [workflow acceptance](WORKFLOW_ACCEPTANCE.md) for the tested journeys and remaining external/native verification.

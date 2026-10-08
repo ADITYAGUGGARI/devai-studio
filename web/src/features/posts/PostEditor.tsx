@@ -3,6 +3,7 @@ import { useAtomValue } from 'jotai';
 import { accountAtom } from '../../app/state';
 import { downloadPost, request } from '../../services/api';
 import type { Job, Post, ReviewAction, WorkflowConfig } from '../../types/posts';
+import { Modal } from '../../components/Modal';
 import { SlidePreview } from './SlidePreview';
 import { VersionHistory } from './VersionHistory';
 
@@ -12,13 +13,15 @@ interface Props {
   jobs: Job[];
   config?: WorkflowConfig;
   onBack: () => void;
+  onDirtyChange: (dirty: boolean) => void;
   onAction: (operation: () => Promise<unknown>) => Promise<void>;
 }
 
-export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props) {
+export function PostEditor({ post, busy, jobs, config, onBack, onAction, onDirtyChange }: Props) {
   const account = useAtomValue(accountAtom);
   const canReview = ['admin', 'reviewer'].includes(account?.role || '');
   const [index, setIndex] = useState(0);
+  const [pendingSlide, setPendingSlide] = useState<number | null>(null);
   const [inspector, setInspector] = useState<'Slide' | 'Copy' | 'Approval' | 'History'>('Slide');
   const [title, setTitle] = useState(post.title);
   const [caption, setCaption] = useState(post.caption);
@@ -27,14 +30,23 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
   const [reviewed, setReviewed] = useState(false);
   useEffect(() => setReviewed(false), [post.version]);
   const previousVersion = useRef(post.version);
+  const previousPost = useRef(post);
   useEffect(() => {
     if (previousVersion.current === post.version) return;
     previousVersion.current = post.version;
-    setTitle(post.title);
-    setCaption(post.caption);
-    setHeadline(post.slides[index]?.headline || '');
-    setBody(post.slides[index]?.body || '');
-  }, [post.version, post.title, post.caption, post.slides, index]);
+    const previous = previousPost.current;
+    previousPost.current = post;
+    setTitle((current) => (current === previous.title ? post.title : current));
+    setCaption((current) => (current === previous.caption ? post.caption : current));
+    setHeadline((current) =>
+      current === (previous.slides[index]?.headline || '')
+        ? post.slides[index]?.headline || ''
+        : current,
+    );
+    setBody((current) =>
+      current === (previous.slides[index]?.body || '') ? post.slides[index]?.body || '' : current,
+    );
+  }, [post, index]);
   const [confirmedPublished, setConfirmedPublished] = useState(false);
   const [externalId, setExternalId] = useState('');
   const [reconcileNote, setReconcileNote] = useState('');
@@ -61,7 +73,32 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
   );
   const slide = post.slides[index];
 
+  const dirty =
+    title !== post.title ||
+    caption !== post.caption ||
+    headline !== (slide?.headline || '') ||
+    body !== (slide?.body || '');
+  useEffect(() => {
+    onDirtyChange(dirty);
+  }, [dirty, onDirtyChange]);
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => {
+      if (dirty) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
+
   function changeSlide(position: number) {
+    if (position === index) return;
+    if (headline !== (slide?.headline || '') || body !== (slide?.body || ''))
+      setPendingSlide(position);
+    else applySlide(position);
+  }
+  function applySlide(position: number) {
     setIndex(position);
     setHeadline(post.slides[position]?.headline || '');
     setBody(post.slides[position]?.body || '');
@@ -76,6 +113,28 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
 
   return (
     <>
+      {pendingSlide !== null && (
+        <Modal title="Save this slide before switching?" onClose={() => setPendingSlide(null)}>
+          <p>
+            Your current slide has unsaved edits. Keep editing to save them, or discard these edits
+            to switch slides.
+          </p>
+          <div className="actions">
+            <button className="primary" onClick={() => setPendingSlide(null)}>
+              Keep editing slide
+            </button>
+            <button
+              className="secondary"
+              onClick={() => {
+                applySlide(pendingSlide);
+                setPendingSlide(null);
+              }}
+            >
+              Discard edits and switch
+            </button>
+          </div>
+        </Modal>
+      )}
       <div className="reviewhead editor-heading">
         <button className="ghost" disabled={busy} onClick={onBack}>
           ← Back to library
@@ -94,6 +153,7 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
             className="secondary"
             disabled={
               busy ||
+              dirty ||
               !post.slides.length ||
               post.slides.some(
                 (item) => !item.artwork_current || item.composition_mode !== 'ai_native',
@@ -104,39 +164,28 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
             Download 1080 × 1350 PNG ZIP
           </button>
           {['draft', 'rejected'].includes(post.status) && (
-            <button className="primary" disabled={locked} onClick={() => transition('submit')}>
+            <button
+              className="primary"
+              disabled={locked || dirty}
+              onClick={() => transition('submit')}
+            >
               {post.status === 'rejected' ? 'Resubmit' : 'Submit for review'}
             </button>
           )}
         </div>
       </div>
-      {jobs
-        .filter(
-          (job) =>
-            job.payload.post_id === post.id &&
-            ['queued', 'running', 'retry_wait'].includes(job.status),
-        )
-        .map((job) => (
-          <div key={job.id} className="panel" role="status">
-            <strong>
-              {job.kind.replaceAll('_', ' ')} · {job.status.replaceAll('_', ' ')}
-            </strong>
-            <p className="hint">
-              {job.step} · attempt {job.attempts}/{job.max_attempts}
-            </p>
-            <progress aria-label={`${job.kind} progress`} value={job.progress} max={job.total} />
-            <p className="hint">
-              You can leave this screen; work continues in the background. Open Activity for
-              details.
-            </p>
-          </div>
-        ))}
+      {dirty && (
+        <p className="hint" role="status">
+          Unsaved edits · save your copy and slide changes before generating artwork, submitting or
+          exporting.
+        </p>
+      )}
       {!post.verification?.supported && (
         <div className="panel">
           <p className="run-warning">Current copy needs source grounding before approval.</p>
           <button
             className="secondary"
-            disabled={locked}
+            disabled={locked || dirty}
             onClick={() => onAction(() => request(`/posts/${post.id}/verify`, 'POST'))}
           >
             Verify current copy against source
@@ -165,7 +214,7 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
               <VersionHistory
                 id={post.id}
                 version={post.version}
-                locked={locked}
+                locked={locked || dirty}
                 onAction={onAction}
               />
             )}
@@ -231,7 +280,7 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
                   </p>
                   <button
                     className="secondary"
-                    disabled={locked || busy || !post.slides.length}
+                    disabled={locked || dirty || !post.slides.length}
                     onClick={() => onAction(() => request(`/posts/${post.id}/artwork`, 'POST'))}
                   >
                     {jobActive
@@ -244,7 +293,7 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
                     <>
                       <button
                         className="secondary"
-                        disabled={locked}
+                        disabled={locked || dirty}
                         onClick={() =>
                           onAction(() =>
                             request(`/posts/${post.id}/slides/${slide.id}/regenerate`, 'POST'),
@@ -353,7 +402,7 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
                     <>
                       <button
                         className="primary"
-                        disabled={locked || !canReview || !ready || !reviewed}
+                        disabled={locked || dirty || !canReview || !ready || !reviewed}
                         onClick={() => transition('approve')}
                       >
                         Approve
@@ -372,6 +421,7 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
                       className="primary"
                       disabled={
                         locked ||
+                        dirty ||
                         !canReview ||
                         !config?.instagram_configured ||
                         !config?.public_media_configured

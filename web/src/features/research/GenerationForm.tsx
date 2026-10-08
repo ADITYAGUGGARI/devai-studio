@@ -52,7 +52,7 @@ export function GenerationForm({ busy, onGenerate }: Props) {
           busy || !title.trim() || !url.startsWith('https://') || excerpt.trim().length < 240
         }
       >
-        ✳ Add source to queue
+        Add source to queue
       </button>
     </form>
   );

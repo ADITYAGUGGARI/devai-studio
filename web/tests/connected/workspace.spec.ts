@@ -66,10 +66,20 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   expect(draft.ok()).toBeTruthy();
   await page.getByRole('button', { name: 'Library', exact: true }).first().click();
   await page.getByRole('button', { name: /Isolated editorial draft/ }).click();
+  await page
+    .getByLabel('Headline', { exact: true })
+    .fill('Unsaved slide kept while saving caption');
   await page.getByRole('tab', { name: 'Copy', exact: true }).click();
   await page.getByLabel('Caption', { exact: true }).fill('Updated manual draft caption.');
   await page.getByRole('button', { name: 'Save post', exact: true }).click();
   await expect(page.getByText('Post details · v2')).toBeVisible();
+  await page.getByRole('tab', { name: 'Slide', exact: true }).click();
+  await expect(page.getByLabel('Headline', { exact: true })).toHaveValue(
+    'Unsaved slide kept while saving caption',
+  );
+  await expect(page.getByRole('button', { name: 'Submit for review', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Save slide', exact: true }).click();
+  await expect(page.getByText('Unsaved edits ·', { exact: false })).toHaveCount(0);
   await page.getByRole('tab', { name: 'History', exact: true }).click();
   await page.getByText('Version history', { exact: true }).click();
   await page.getByRole('button', { name: 'Restore version 1 as draft' }).click();
@@ -77,7 +87,7 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   await expect(page.getByLabel('Caption', { exact: true })).toHaveValue(
     'Manual copy for version recovery testing.',
   );
-  await expect(page.getByText('Post details · v3')).toBeVisible();
+  await expect(page.getByText('Post details · v4')).toBeVisible();
   await page.getByRole('button', { name: 'Submit for review', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Approve', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Settings', exact: true }).first().click();
@@ -138,4 +148,41 @@ test('real generated eight-image artifact can be reviewed, exported and invalida
       name: 'I reviewed the sources, copy, code and all slide images.',
     }),
   ).not.toBeChecked();
+});
+
+test('real settings persist and administrator-created viewer cannot create drafts', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Daily research', exact: true }).click();
+  await page.getByLabel('Hour (0–23)', { exact: true }).fill('9');
+  await page.getByLabel('Timezone', { exact: true }).fill('UTC');
+  await page.getByRole('button', { name: 'Save research schedule', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Workspace updated.' })).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: 'Settings', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Daily research', exact: true }).click();
+  await expect(page.getByLabel('Hour (0–23)', { exact: true })).toHaveValue('9');
+  await expect(page.getByLabel('Timezone', { exact: true })).toHaveValue('UTC');
+  await page.getByRole('button', { name: 'Accounts', exact: true }).click();
+  await page.getByLabel('Account email', { exact: true }).fill('viewer-ux@devai.test');
+  await page.getByLabel('Initial password', { exact: true }).fill('Isolated-viewer-password-12345');
+  await page.getByLabel('Role', { exact: true }).selectOption('viewer');
+  await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(page.getByText('Account created.', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await page.getByLabel('Email', { exact: true }).fill('viewer-ux@devai.test');
+  await page.getByLabel('Password', { exact: true }).fill('Isolated-viewer-password-12345');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
+  await expect(page.getByRole('button', { name: '+ New draft', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await expect(
+    page.getByRole('button', { name: 'Add your own source', exact: true }),
+  ).toBeDisabled();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const source = 'https://example.com/primary-source';
 const topic = {
@@ -219,10 +220,9 @@ test('preserves dashboard and exposes persistent research progress', async ({ pa
   await page.getByRole('button', { name: 'Research', exact: true }).first().click();
   await page.getByRole('button', { name: 'Refresh research', exact: true }).click();
   await expect(page.getByText('Checking primary-source evidence', { exact: false })).toBeVisible();
-  await expect(page.getByRole('progressbar', { name: 'research progress' })).toHaveAttribute(
-    'value',
-    '1',
-  );
+  await expect(
+    page.getByRole('progressbar', { name: 'Current background task progress' }),
+  ).toHaveAttribute('value', '1');
   expect(calls[0].path).toBe('/research/refresh');
   await page.screenshot({ path: 'test-results/dashboard-overview.png', fullPage: true });
 });
@@ -246,6 +246,7 @@ test('manual evidence must be verified before selecting six-slide generation', a
     slide_count: 6,
     artwork: true,
   });
+  await page.getByRole('button', { name: 'Activity', exact: true }).first().click();
   await page.getByRole('button', { name: 'Review draft', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Review content' })).toBeVisible();
   await expect(page.getByText('Image validation passed.', { exact: false })).toBeVisible();
@@ -454,4 +455,155 @@ test('desktop editor separates copy and history while retaining keyboard slide n
     'aria-pressed',
     'true',
   );
+});
+
+test('unsaved copy and slide edits survive navigation cancellation', async ({ page }) => {
+  await mockApi(page, { draft: true });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
+  await page.getByRole('button', { name: /Open carousel:/ }).click();
+  await page.getByLabel('Headline', { exact: true }).fill('Unsaved slide headline');
+  await page.getByRole('button', { name: 'Slide 2', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('button', { name: 'Keep editing slide', exact: true }).click();
+  await expect(page.getByLabel('Headline', { exact: true })).toHaveValue('Unsaved slide headline');
+  await page.getByRole('tab', { name: 'Copy', exact: true }).click();
+  await page.getByLabel('Caption', { exact: true }).fill('Unsaved caption');
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('button', { name: 'Keep editing', exact: true }).click();
+  await expect(page.getByLabel('Caption', { exact: true })).toHaveValue('Unsaved caption');
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Discard edits and leave', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Discover your next story' })).toBeVisible();
+});
+
+test('background work remains visible across navigation and completion opens the draft', async ({
+  page,
+}) => {
+  await mockApi(page, { draft: true });
+  let status = 'running';
+  await page.route('http://127.0.0.1:8123/jobs', (route) =>
+    route.fulfill({
+      json: [
+        {
+          ...blankJob,
+          status,
+          kind: 'artwork',
+          step: status === 'running' ? 'Creating slide 3 of 6' : 'Artwork completed',
+          progress: status === 'running' ? 3 : 6,
+          payload: { post_id: 'post-1' },
+          result: status === 'completed' ? { post_id: 'post-1' } : null,
+        },
+      ],
+    }),
+  );
+  await page.goto('/');
+  await expect(page.getByRole('region', { name: 'Task status' })).toBeVisible();
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
+  await expect(
+    page.getByRole('progressbar', { name: 'Current background task progress' }),
+  ).toHaveAttribute('value', '3');
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  status = 'completed';
+  await page.getByRole('button', { name: 'Open ready draft', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Review content' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Submit for review', exact: true })).toBeEnabled();
+});
+
+test('failed background tasks expose recovery without automatic publication retries', async ({
+  page,
+}) => {
+  await mockApi(page);
+  let status = 'running';
+  await page.route('http://127.0.0.1:8123/jobs', (route) =>
+    route.fulfill({
+      json: [
+        {
+          ...blankJob,
+          status,
+          kind: 'publish',
+          step: 'Checking publication',
+          error: status === 'needs_reconciliation' ? 'Uncertain provider response' : null,
+        },
+      ],
+    }),
+  );
+  await page.goto('/');
+  await expect(page.getByRole('region', { name: 'Task status' })).toBeVisible();
+  status = 'needs_reconciliation';
+  await expect(page.getByText('Task needs attention', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Task details', exact: true }).click();
+  await expect(
+    page.getByText('Check Instagram before reconciling this version.', { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retry task', exact: true })).toHaveCount(0);
+});
+
+test('publishing schedules approved versions and exposes cancellation', async ({ page }) => {
+  await mockApi(page, { draft: true, publishing: true });
+  await page.route('http://127.0.0.1:8123/posts', (route) =>
+    route.fulfill({ json: [{ ...post, status: 'approved' }] }),
+  );
+  let schedules: object[] = [];
+  await page.route('http://127.0.0.1:8123/publishing/schedules', (route) =>
+    route.fulfill({ json: schedules }),
+  );
+  await page.route('http://127.0.0.1:8123/posts/post-1/schedule', async (route) => {
+    const due = route.request().postDataJSON().due_at;
+    schedules = [
+      {
+        id: 'schedule-1',
+        post_id: 'post-1',
+        version: '1',
+        due_at: due,
+        status: 'scheduled',
+        error: null,
+      },
+    ];
+    await route.fulfill({ status: 201, json: schedules[0] });
+  });
+  await page.route(
+    'http://127.0.0.1:8123/publishing/schedules/schedule-1/cancel',
+    async (route) => {
+      schedules = [{ ...schedules[0], status: 'cancelled' }];
+      await route.fulfill({ json: { status: 'cancelled' } });
+    },
+  );
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Publishing', exact: true }).first().click();
+  await page.getByText('Schedule this carousel', { exact: true }).click();
+  await page.getByLabel(`Publication time for ${post.title}`).fill('2030-01-01T09:00');
+  await page.getByRole('button', { name: 'Schedule approved version', exact: true }).click();
+  await page.getByRole('button', { name: 'Schedules', exact: true }).click();
+  await expect(page.getByText('scheduled', { exact: false }).last()).toBeVisible();
+  await page.getByRole('button', { name: 'Cancel schedule', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Cancel schedule', exact: true })).toHaveCount(0);
+  await expect(page.getByText('cancelled', { exact: false }).last()).toBeVisible();
+});
+
+test('input validation returns useful field errors without losing manual source input', async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.route('http://127.0.0.1:8123/topics', async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ json: [topic] });
+      return;
+    }
+    await route.fulfill({
+      status: 422,
+      json: { detail: [{ loc: ['body', 'url'], msg: 'A public HTTPS source is required' }] },
+    });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Add your own source', exact: true }).click();
+  await page.getByLabel('Story headline').fill('Preserved source input');
+  await page.getByLabel('Primary source URL').fill(source);
+  await page.getByLabel('Source excerpt (at least 240 characters)').fill(topic.excerpt);
+  await page.getByRole('button', { name: 'Add source to queue', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('url: A public HTTPS source is required');
+  await expect(page.getByLabel('Story headline')).toHaveValue('Preserved source input');
 });
