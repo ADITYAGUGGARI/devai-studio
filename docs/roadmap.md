@@ -19,3 +19,7 @@
 5. Add versioned production migration tooling, backups, monitoring, asset retention/cleanup and load testing of concurrent PostgreSQL workers.
 6. Validate the mobile review app on iOS/Android and upgrade inherited Expo dependencies with device tests.
 7. Expand originality comparisons with accessible external content; never claim uniqueness across all Instagram accounts.
+
+## UX design handoff available
+
+[Revision 4 desktop and native iOS design handoff](ux/devai-studio-v4/README.md) defines the complete intended product and dependency-aware implementation plan. The package includes ranked rolling-24-hour developer AI research, autonomous varied carousel/Reel artwork, independent approvals, explicitly authorized publication, recovery states, and the remaining workflows. Publication of the design package does not mark proposed backend or client capabilities as implemented or verified. See its [implementation roadmap](ux/devai-studio-v4/handoff/roadmap.md) and [QA limitations](ux/devai-studio-v4/qa/review.md).

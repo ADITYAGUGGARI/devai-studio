@@ -1,0 +1,15 @@
+# Premium visual specification — revision 3
+
+Use the user's design-system/application-shell reference for finish, not a new generic SaaS theme. The authoritative token colors remain unchanged. Application shell forest/cream is distinct from freely varied generated-content artwork.
+
+Primary surfaces: warm cream page, softly raised off-white cards with1pxdecorativewarmborder andshadow0 3px 18pxrgba(32,53,45,.08),radius12–16px. Limit elevation to functional groups,menus/sheets andcontentpreviewcards; avoid boxing every line. Buttons48pxweb/50ptnative,8pxradius,forest primary,outlinedsecondary with validatedcontrolborder. Hoverforest#245646;disabledshowsreasonanddoesnotuseopacityalone. Focus2pxoutline+2pxgap. Icons20–24pxmeaningfuloutlinedsymbols,44px/pttarget; captionsandmetadata14pxweb/15ptnative.
+
+Headings: editorial serif32–40pxforwelcomes/topicpages; refinedsans24–32pxforfunctionaleditor/formsections. Body16/24webandSF17ptnative. No all-caps paragraph content or excessively spaced display labels. Small uppercasesectioneyebrows optional12pxwebonly,notsoleinstruction. Native DynamicTypeusessemanticstylesandfullywrappingtext.
+
+Desktop Home/Library: real thumbnail-rich content previews, status pill overlay, title/format/revisionbelow,contextmenu44pxtarget. Different posts visiblydifferentartwork; actualcurrentassetonly,notfabricatedcoverforungeneratedtopic. Discover uses readable evidence-first ranked rows; legitimate source thumbnail optional. Topicreadingcolumngetsstrongeditorialhierarchy,sourceidentityanddates,nextactionunambiguous.
+
+Dedicated editors: canvasdominantwithhigh-qualityactualartwork/video,stablefilmstrip,distinctinspector,andclearSaved/Unsaved/Stalestatus. No fake movabletextlayersforbakedAIartwork. Native portrait uses focused copy/scenelistformsandlargemediapreview,notdesktopmultitrackcompression. Sidebars andnative tabstatesmustmatchauthoritativeroutes,notrastermodelhallucinations.
+
+State design keepscontext: partialgenerationshowssuccessfulthumbnailsplusfailedunitaction;savefailurekeepsbuffer;conflictreadablebase/mine/server;publishunknownkeepsfrozenpreviewandResolveoutcome,noRetrypost. Successrelatesexactrevision/format/accountafterACK. Backgroundtasksneverblockwholeapp. Modal/sheetcopycomesfromcatalogandkeepscontrolsreadablewithkeyboardandlargestDynamicType.
+
+Generatedrasterreferencesarestyleguides. Finalbuildfollowswrittencontrolcatalogandeditablevectors. Reconcileanyrasterfictionalpercent/date,unsupportedfilter,extra tab,manualstatusselectororimaginarypausecontrolusingqa/raster-reconciliation.md. Correctedresearchbehaviorisrolling24hourdevelopernewswithprioritydescendingandallfindings;earlierbroaderinspirationsearchscreensdonotdefineproductbehavior.

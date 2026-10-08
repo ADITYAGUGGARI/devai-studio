@@ -1,0 +1,39 @@
+# ACT-02 — Job details
+
+Purpose: Inspect real progress and recover safely. Web route `/activity/jobs/:jobId`; iOS destination `DevAI/ACT-02`. Parent: ACT-01; preserve invoker on reusable editor/preview.
+
+## Composition
+
+Desktop: Progress detail and unit table; sanitized diagnostics collapsible. At1440px use232px sidebar,32px page gutter and24px gaps; dedicated editors suppress ordinary shell content navigation but retain Done, entity title and Activity status.
+
+iOS: Job detail stack and disclosure diagnostics; conditional recovery footer. Physical viewport390×844 with top safe area47 and bottom34; content scrolls between navigation and fixed actions. Body17pt,44pt targets. Native child editor hides tab bar and uses Done/Back; root destinations keep five tabs. Long form continuation is scrolling content, not a tall fictional phone.
+
+Content and focus order: Job stages → Units → Last heartbeat → Diagnostics → Retry → Cancel. Read boundary: GET /jobs/{id}. Only the contracts below mutate. All IDs are stable, not row indices.
+
+## Controls — authoritative revision 3
+
+| ID/control | Preconditions/trigger | Action and success | Operation/request | Exact next destination | Failure and recovery |
+|---|---|---|---|---|---|
+|ACT-02-I01 job-tabs|Read permission for requested entity; public routes exempt; Click/Enter/Space or native tap; drag has Move before/after alternative|Select labeled tab; preserve other panels state; update URL tab parameter; browser Back restores selection; no mutation.|None: local UI/navigation; destination resource read only No payload|/activity/jobs/:jobId|Read failure retains last loaded content labeled stale with Retry; denied/missing target opens SYS-02; offline navigation uses cached authorized content. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+|ACT-02-I02 diagnostics|Authenticated workspace and permitted role; Click/Enter/Space or native tap; drag has Move before/after alternative|Download sanitized JSON; user chooses destination; no automatic support send|POST /v1/diagnostics/exports {entityId?,includeRedactedLogs:true}|Remain on /activity/jobs/:jobId with acknowledged revision/state; no implicit publication or navigation|422: attach field errors and retain input;403: read-only permission banner;401: SYS-01 with safe return;409: show current state and retain draft; network: retain buffer and fetch authoritative state before retry. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+|ACT-02-I03 retry-job|Server canRetry true; no publish final attempt; failed config corrected; Click/Enter/Space or native tap; drag has Move before/after alternative|New/requeued safe job; retain successful units; paid repeat explicitly confirmed|POST /v1/jobs/{jobId}/retry {expectedJobRevision,unitId?,correctedConfiguration?}|ACT-02 with returned jobId|422: attach field errors and retain input;403: read-only permission banner;401: SYS-01 with safe return;409: show current state and retain draft; network: retain buffer and fetch authoritative state before retry. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+|ACT-02-I04 cancel-job|Server canCancel true; final external publish cannot cancel; Click/Enter/Space or native tap; drag has Move before/after alternative|Cancelling until safe checkpoint; Cancelled retains completed assets|POST /v1/jobs/{jobId}/cancel {expectedJobRevision,reason}|ACT-02 remains, cancelling/cancelled reported only by server|422: attach field errors and retain input;403: read-only permission banner;401: SYS-01 with safe return;409: show current state and retain draft; network: retain buffer and fetch authoritative state before retry. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+|ACT-02-I05 content-open|Read permission for requested entity; public routes exempt; Click/Enter/Space or native tap; drag has Move before/after alternative|Open LIB-02 for selected authorized entity; preserve originating route, tab stack and scroll.|None: local UI/navigation; destination resource read only No payload|LIB-02|Read failure retains last loaded content labeled stale with Retry; denied/missing target opens SYS-02; offline navigation uses cached authorized content. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+|ACT-02-I06 back|Read permission for requested entity; public routes exempt; Click/Enter/Space or native tap; drag has Move before/after alternative|Return invoking route/stack and scroll; dirty unacknowledged edits open Save/Discard/Stay decision; durable jobs continue.|None: local UI/navigation; destination resource read only No payload|/activity/jobs/:jobId|Read failure retains last loaded content labeled stale with Retry; denied/missing target opens SYS-02; offline navigation uses cached authorized content. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+
+## State and persistence contract
+
+Applicable states: initial, loading, populated, failure, permission_denied, session_expired, offline, reconnecting, queued, running, partial_success, stalled, cancelling, cancelled, completed, retryable_failure, permanent_failure. Loading reserves actual layout using skeletons for lists, inline spinner only for submitted control; empty list explains scope and offers Clear filters or relevant create action. Do not show an empty screen while loading. Offline exposes cached timestamp, queues only protected text edits, and disables generation, approval and publication with explanation. Session expiry keeps protected local buffer and returns here after authentication. Permission loss immediately removes mutation actions while preserving permitted read view.
+
+Editors save800ms after idle, ordered per entity with expectedRevision. Saved requires ACK; failure retains buffer and Save now.409 displays field-level base/mine/server comparison; accepting server never silently deletes mine. Back/Done with unacknowledged buffer offers Save, Discard local changes, Stay; selecting Save must succeed before leaving. Navigation never cancels durable jobs. Read-only screens have no autosave, draft, or paid action merely because they share components.
+
+Dialogs follow interactions/dialogs.md; per-control triggers and responses are in interactions.json. Native focus enters screen title; web route title receives focus except returning to original invoker. Preview revision is labeled and retained; latest revision refresh cannot silently swap an approved preview.
+
+## Visuals and tests
+
+Desktop `visuals/desktop/ACT-02-default.svg`; iOS `visuals/ios/ACT-02-default.svg`. Per-control tests: ACT-02-AT01, ACT-02-AT02, ACT-02-AT03, ACT-02-AT04, ACT-02-AT05, ACT-02-AT06. Critical state-specific cases are in acceptance/production-cases.md.
+
+## Authoritative daily editorial behavior
+
+See handoff/product-scope-v3.md. Rolling last24hourdeveloper-focused research, all findings reachable, priority descending with source-backed explanations and explicit independent approval/publication. Earlier undated illustrative topics or broader recency filters must not appear as fresh daily news.
+

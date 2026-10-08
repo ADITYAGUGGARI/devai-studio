@@ -1,0 +1,32 @@
+Requirement,Screens,Specifications,Acceptance
+R01 Authentication/onboarding,"AUTH-01,AUTH-02,ONB-01",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R02 Shell/navigation,"HOME-01,SET-01",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R03 Home,HOME-01,screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R04 Discover,DISC-01,screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R05 Research,"DISC-01,DISC-02,SET-03,ACT-02",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R06 Editorial queue,QUEUE-01,screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R07 Topic detail,TOPIC-01,screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R08 Verification/claims,"SOURCE-01,CLAIM-01",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R09 Custom topic/URL,IMPORT-01,screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R10 Creation setup,"CREATE-01,CREATE-02,CREATE-03",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R11 Carousel generation,"GEN-01,CAR-01",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R12 Carousel edit,"CAR-01,CAR-02,CAR-03,VER-01",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R13 Reel generation,"GEN-02,REEL-01",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R14 Reel edit,"REEL-01,REEL-02,REEL-03,REEL-04,REEL-05,REEL-06",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R15 Captions/hashtags,CAP-01,screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R16 Preview,"PRE-01,PRE-02",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R17 Review/approval,"REVIEW-01,REVIEW-02",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R18 Revision requests,REVIEW-03,screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R19 Publish/schedule,"PUB-01,PUB-02,PUB-03,CAL-01",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R20 Instagram,"SET-06,SET-07",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R21 Library,"LIB-01,LIB-02,TRASH-01",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R22 Activity,"ACT-01,ACT-02",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R23 Notifications,"NOT-01,SET-08",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R24 Analytics,"ANA-01,ANA-02,ANA-03",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R25 Settings,"SET-01,SET-02,SET-03,SET-10",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R26 AI providers,"SET-04,SET-05",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R27 Security/account,"SET-09,SET-11,SYS-01",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R28 System recovery,"SYS-01,SYS-02,VER-01",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R29 Native iOS,"AUTH-01,AUTH-02,ONB-01,HOME-01,DISC-01,QUEUE-01,TOPIC-01,SOURCE-01,CLAIM-01,IMPORT-01,CREATE-01,CREATE-02,CREATE-03,GEN-01,CAR-01,CAR-02,CAR-03,VER-01,REEL-01,REEL-02,REEL-03,REEL-04,REEL-05,REEL-06,CAP-01,PRE-01,PRE-02,REVIEW-01,REVIEW-02,REVIEW-03,PUB-01,PUB-02,PUB-03,CAL-01,LIB-01,LIB-02,TRASH-01,ACT-01,ACT-02,NOT-01,ANA-01,ANA-02,ANA-03,SET-01,SET-02,SET-03,SET-04,SET-05,SET-06,SET-07,SET-08,SET-09,SET-10,SET-11,HELP-01,SYS-01,SYS-02,GEN-02,DISC-02",screens/*.md + interactions + states + contracts,control tests linked via screen IDs
+R30 AI autonomous varied artwork and complete Reels,"CREATE-01,CREATE-02,CREATE-03,GEN-01,GEN-02,CAR-01,CAR-03,REEL-01",handoff/ai-creative-autopilot.md,PC-AI01..09
+R31 Last24hourdeveloperresearch allrankedfindings,"HOME-01,DISC-01,DISC-02,TOPIC-01,ACT-02,SET-03",handoff/product-scope-v3.md,PC-R24-01..08

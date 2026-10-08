@@ -1,0 +1,18 @@
+{
+  "revision": "4.0",
+  "repoCommit": "036fb71a24c203800fb246c3e946c35c8b7dc4ae",
+  "screenContracts": 59,
+  "interactionContracts": 359,
+  "visualArtifacts": 253,
+  "refreshedEditableArtboards": 208,
+  "nativeContinuationViews": 25,
+  "designSystemSpecimens": 2,
+  "optionalRasterStyleReferences": 18,
+  "coreWorkflows": "A\u2013O retained",
+  "brokenManifestLinks": 0,
+  "duplicateIdentifiers": 0,
+  "textWidthFindings": [],
+  "applicationCodeModified": false,
+  "verification": "Artifact consistency and rendered visual review; design acceptance cases not executed on a built application",
+  "productionReadiness": "Design handoff; implementation, real-provider/Instagram, native accessibility and usability validation remain required"
+}

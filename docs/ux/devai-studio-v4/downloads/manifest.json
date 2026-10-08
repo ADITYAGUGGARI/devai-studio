@@ -1,0 +1,159 @@
+{
+  "version": 1,
+  "files": [
+    {
+      "name": "DevAI-Studio-UX-Handoff.zip",
+      "bytes": 83477068,
+      "sha256": "5e01c77c8e15d89c30e508da956cf8e2822d9b4b8ee4588ddb3d3efd8704d351",
+      "parts": [
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-000",
+          "bytes": 4194304,
+          "sha256": "ab5974850b11d36beb78649dc182e519662682ff3d9a60e2cba992a2eb89913b"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-001",
+          "bytes": 4194304,
+          "sha256": "af511ecff968c3fb97c416c3b45c5dd9216d203f83e5504bf41b54c1ba0512df"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-002",
+          "bytes": 4194304,
+          "sha256": "d4a6f37e61da21aef6b8dd7f34d60fc0f7cd1f8033997f789f547b645fea1cbf"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-003",
+          "bytes": 4194304,
+          "sha256": "3cdc61e17702104ab8c732178aef8ef54259e71e7b0e63c482cae1a268edef0e"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-004",
+          "bytes": 4194304,
+          "sha256": "ae947b5bfa64d1a2838fa1fdb8cf17478b8833b6691b778957315ffac49c91c8"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-005",
+          "bytes": 4194304,
+          "sha256": "7876cf441ea6a48a1a376737e985172adff2702b61b860dd46bf22cd40c96d8a"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-006",
+          "bytes": 4194304,
+          "sha256": "770a3406e2bbf3f3299e715c3fab8d48eeba08928f6c0ae4fc22e837777258e1"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-007",
+          "bytes": 4194304,
+          "sha256": "035a8f3841aade7c5a4de139e56e7e66690d53830778f0cd3f5a6a56f7d00706"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-008",
+          "bytes": 4194304,
+          "sha256": "7a0f2eed1cfc37be062b448a6ca84d93720bf1670a73da4743d68d36c3a17f81"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-009",
+          "bytes": 4194304,
+          "sha256": "bd1a667767759bfd65e61eb2eab7bde7f60df8f7d51727d717845b4b26aebbd4"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-010",
+          "bytes": 4194304,
+          "sha256": "11a405f5d58db6b2c47d7567ab5c6cb164cdf68369d8e89b72bb8d32fcab2b0b"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-011",
+          "bytes": 4194304,
+          "sha256": "1ff79167a5a370048c222460d842993a61894bc677223f46ad64fc6c9ff1c455"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-012",
+          "bytes": 4194304,
+          "sha256": "c96a086f16625849e2491b0f724614a32e2fdfe16bf07a700c41342ff97ca697"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-013",
+          "bytes": 4194304,
+          "sha256": "d25abd75d4c6a1d046edbfd1d1025333a2b2ef9c1f4d069f5ab257e7f8ffd17c"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-014",
+          "bytes": 4194304,
+          "sha256": "242dc4b41ca60d0a0f158bf0ed43d2d2624c6cba2dd9ff510381e618f9d2a2a7"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-015",
+          "bytes": 4194304,
+          "sha256": "75ccad3e074f20938e6ea5ca9510111fee072a3d22a8d43d67dba5f4f21ebe71"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-016",
+          "bytes": 4194304,
+          "sha256": "16e60e6991209ad6c42bfb686f6720e50cab3f0dad4a3aa0a9b0a08471f9c4ba"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-017",
+          "bytes": 4194304,
+          "sha256": "94d09f97197867cbf4b0da62da34dac97382400fa1fb66ab47b36956db27b024"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-018",
+          "bytes": 4194304,
+          "sha256": "60d2f7fa5bbd406fd48e4de52ff6ef9275876dfef2bf9ca72329f775d36c3745"
+        },
+        {
+          "name": "DevAI-Studio-UX-Handoff.zip.part-019",
+          "bytes": 3785292,
+          "sha256": "cd78ab89c06bdc1a02d7af631e3e20a5672dfdd3d403bdcedb2d03325ea9ea1a"
+        }
+      ]
+    },
+    {
+      "name": "DevAI-Studio-UX-Gallery.html",
+      "bytes": 30257252,
+      "sha256": "5542a6d854686f3d8daa6089826083fe6b479826f31c07e63504e2c673bf122b",
+      "parts": [
+        {
+          "name": "DevAI-Studio-UX-Gallery.html.part-000",
+          "bytes": 4194304,
+          "sha256": "8db549e0efe863b435a1e183eb9b9122bb31e5e23a9f4cba788ebbc148ccf332"
+        },
+        {
+          "name": "DevAI-Studio-UX-Gallery.html.part-001",
+          "bytes": 4194304,
+          "sha256": "4daf3cf82cbbf6cd30b86623e0e55ba6ebf6c894863f9c39a868e109cdcfdddb"
+        },
+        {
+          "name": "DevAI-Studio-UX-Gallery.html.part-002",
+          "bytes": 4194304,
+          "sha256": "d031922a2590cf4502515b764a8904f4f7e5e5ea518f940bee269acadc81c0e9"
+        },
+        {
+          "name": "DevAI-Studio-UX-Gallery.html.part-003",
+          "bytes": 4194304,
+          "sha256": "518d2219cfde42535152b8e0a115ffc2dc064180af723964b6990ba8eeb2b230"
+        },
+        {
+          "name": "DevAI-Studio-UX-Gallery.html.part-004",
+          "bytes": 4194304,
+          "sha256": "9e668de71becb7c52098752c3c5d29068ba670635f1118925f72c177e3811afd"
+        },
+        {
+          "name": "DevAI-Studio-UX-Gallery.html.part-005",
+          "bytes": 4194304,
+          "sha256": "e97af6ae448d93dc7c6bb0730127731fa19cb26052660c19bc6c6a37b8f5b81b"
+        },
+        {
+          "name": "DevAI-Studio-UX-Gallery.html.part-006",
+          "bytes": 4194304,
+          "sha256": "3e3e3a54486e2630f87688736c0cac5c5136db213defa950a2a512d0aeac85b5"
+        },
+        {
+          "name": "DevAI-Studio-UX-Gallery.html.part-007",
+          "bytes": 897124,
+          "sha256": "d8d6d0ebf41cd292afdf28b48cd8383f033c512f946c598f37e9dccfd2e9e849"
+        }
+      ]
+    }
+  ]
+}

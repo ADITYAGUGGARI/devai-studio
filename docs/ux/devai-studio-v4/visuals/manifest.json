@@ -1,0 +1,2278 @@
+[
+  {
+    "id": "CAR-01-desktop-polished",
+    "screen": "CAR-01",
+    "platform": "desktop",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 1440x1000 desktop web screenshot for DevAI Studio. Screen CAR-01 Carousel editor. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Dedicated shell: 180px filmstrip, flexible 4:5 canvas, 320px inspector; caption opens panel. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): slide-select: Select stable entity ID; highlight and announce position; show current revision detail; flush pending entity edits before switching; failed save offers Stay or keep buffer.; slide-copy: Autosave current text; mark selected full artwork stale; invalidate approval; regenerate-slide: Open CAR-03 for selected authorized entity; preserve originating route, tab stack and scroll.; reorder: Save atomic order; mark baked numbering changes stale; invalidate approval; add-slide: Insert draft slide, select it; review gate still6\u20138; delete-slide: Remove selected slide after confirm; select next or previous; undo creates revision; undo: Apply inverse of latest acknowledged editable operation as new revision; never remove history; no undo across external publish.; redo: Reapply last undone operation with CAS; any divergent edit clears redo stack.; versions: Open VER-01 for selected authorized entity; preserve originating route, tab stack and scroll.; preview: Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.; caption: Open CAP-01 for selected authorized entity; preserve originating route, tab stack and scroll.; submit-review: Output pending_review (Ready for review); REVIEW-02; independent other format unaffected; different-look: AI selects fresh visual concept; scoped generation preserves prior assets; view-comparison: Open read-only AI plan or nearest recent output comparison; no layout input. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/CAR-01-desktop-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "CAR-01-ios-polished",
+    "screen": "CAR-01",
+    "platform": "ios",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 390x844 native iPhone screenshot, portrait, real safe areas and viewport; no giant scroll page and no desktop sidebar for DevAI Studio. Screen CAR-01 Carousel editor. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Full 4:5 selected slide, horizontal filmstrip, Copy/Artwork sheets; Done closes editor. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): slide-select: Select stable entity ID; highlight and announce position; show current revision detail; flush pending entity edits before switching; failed save offers Stay or keep buffer.; slide-copy: Autosave current text; mark selected full artwork stale; invalidate approval; regenerate-slide: Open CAR-03 for selected authorized entity; preserve originating route, tab stack and scroll.; reorder: Save atomic order; mark baked numbering changes stale; invalidate approval; add-slide: Insert draft slide, select it; review gate still6\u20138; delete-slide: Remove selected slide after confirm; select next or previous; undo creates revision; undo: Apply inverse of latest acknowledged editable operation as new revision; never remove history; no undo across external publish.; redo: Reapply last undone operation with CAS; any divergent edit clears redo stack.; versions: Open VER-01 for selected authorized entity; preserve originating route, tab stack and scroll.; preview: Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.; caption: Open CAP-01 for selected authorized entity; preserve originating route, tab stack and scroll.; submit-review: Output pending_review (Ready for review); REVIEW-02; independent other format unaffected; different-look: AI selects fresh visual concept; scoped generation preserves prior assets; view-comparison: Open read-only AI plan or nearest recent output comparison; no layout input. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/CAR-01-ios-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "CREATE-01-desktop-polished",
+    "screen": "CREATE-01",
+    "platform": "desktop",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 1440x1000 desktop web screenshot for DevAI Studio. Screen CREATE-01 Choose format. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Three accessible radio tiles, independent output explanation below Both. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): format-carousel: Set setup formats=[carousel]; explain1080\u00d71350 and6\u20138images; local until setup save.; format-reel: Set setup formats=[reel]; explain1080\u00d71920 and30\u201340sec; disabled if no render capability.; format-both: Set setup formats=[carousel,reel]; show independent jobs/approvals/captions; no combined publishing authorization.; save-setup: Persist setupId; subsequent saves PATCH /v1/setups/{setupId}; next: Persist topic and format with default autonomous options through POST /v1/setups; go directly to CREATE-03. Preferences is optional.; optional-preferences: Open CREATE-02 optional preferences for saved setup; no layout prompt.; choose-topic: Inline searchable topic picker uses GET /v1/topics; choose stable topicId, inspect sources, then format choices; no paid work.; custom-topic: Open IMPORT-01 with safe returnTo=/create; confirmed topic returns to format selection.. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/CREATE-01-desktop-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "CREATE-01-ios-polished",
+    "screen": "CREATE-01",
+    "platform": "ios",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 390x844 native iPhone screenshot, portrait, real safe areas and viewport; no giant scroll page and no desktop sidebar for DevAI Studio. Screen CREATE-01 Choose format. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Radio rows with format dimensions, Continue sticky bottom. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): format-carousel: Set setup formats=[carousel]; explain1080\u00d71350 and6\u20138images; local until setup save.; format-reel: Set setup formats=[reel]; explain1080\u00d71920 and30\u201340sec; disabled if no render capability.; format-both: Set setup formats=[carousel,reel]; show independent jobs/approvals/captions; no combined publishing authorization.; save-setup: Persist setupId; subsequent saves PATCH /v1/setups/{setupId}; next: Persist topic and format with default autonomous options through POST /v1/setups; go directly to CREATE-03. Preferences is optional.; optional-preferences: Open CREATE-02 optional preferences for saved setup; no layout prompt.; choose-topic: Inline searchable topic picker uses GET /v1/topics; choose stable topicId, inspect sources, then format choices; no paid work.; custom-topic: Open IMPORT-01 with safe returnTo=/create; confirmed topic returns to format selection.. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/CREATE-01-ios-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "DISC-01-desktop-polished",
+    "screen": "DISC-01",
+    "platform": "desktop",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 1440x1000 desktop web screenshot for DevAI Studio. Screen DISC-01 Discover. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Search toolbar above two-column topic rows with source/date, right filter popover. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): search-topics: Update URL query after300ms debounce; abort superseded request; reset cursor; existing rows visible with updating status; clear button resets query.; saved-tab: Select labeled tab; preserve other panels state; update URL tab parameter; browser Back restores selection; no mutation.; filters: Open labeled selection surface; Apply validates values and updates query/URL; reset cursor; Cancel preserves original; clear resets to all. Server reads use screen resource listed below.; topic-open: Open TOPIC-01 for selected authorized entity; preserve originating route, tab stack and scroll.; save-topic: Toggle Saved with server acknowledgment; no topic status change; load-more: Request nextCursor of current query; append unique stable IDs; failure keeps rows and Retry load more; expired cursor restarts first page preserving filters.; refresh: 202 job, Activity link and active refresh label; old topics stay visible. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/DISC-01-desktop-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "DISC-01-ios-polished",
+    "screen": "DISC-01",
+    "platform": "ios",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 390x844 native iPhone screenshot, portrait, real safe areas and viewport; no giant scroll page and no desktop sidebar for DevAI Studio. Screen DISC-01 Discover. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Discover tab, search then filter sheet, one-column rows and pull refresh. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): search-topics: Update URL query after300ms debounce; abort superseded request; reset cursor; existing rows visible with updating status; clear button resets query.; saved-tab: Select labeled tab; preserve other panels state; update URL tab parameter; browser Back restores selection; no mutation.; filters: Open labeled selection surface; Apply validates values and updates query/URL; reset cursor; Cancel preserves original; clear resets to all. Server reads use screen resource listed below.; topic-open: Open TOPIC-01 for selected authorized entity; preserve originating route, tab stack and scroll.; save-topic: Toggle Saved with server acknowledgment; no topic status change; load-more: Request nextCursor of current query; append unique stable IDs; failure keeps rows and Retry load more; expired cursor restarts first page preserving filters.; refresh: 202 job, Activity link and active refresh label; old topics stay visible. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/DISC-01-ios-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "GEN-02-desktop-polished",
+    "screen": "GEN-02",
+    "platform": "desktop",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 1440x1000 desktop web screenshot for DevAI Studio. Screen GEN-02 Reel generation progress. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Stage stepper and scene-level list, Rendered is distinct from Validated. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): view-job: Open ACT-02 for selected authorized entity; preserve originating route, tab stack and scroll.; retry-unit: New/requeued safe job; retain successful units; paid repeat explicitly confirmed; cancel-generation: Cancelling until safe checkpoint; Cancelled retains completed assets; open-editor: Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.; library: Open LIB-01 for selected authorized entity; preserve originating route, tab stack and scroll.; different-look: Confirm budget; AI chooses different concept/background, preserves prior assets and enqueues scope-specific generation.; view-comparison: Read-only comparison with nearest recent/scheduled output, date and reason; close restores focus.. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/GEN-02-desktop-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "GEN-02-ios-polished",
+    "screen": "GEN-02",
+    "platform": "ios",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 390x844 native iPhone screenshot, portrait, real safe areas and viewport; no giant scroll page and no desktop sidebar for DevAI Studio. Screen GEN-02 Reel generation progress. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Content progress stack with stages, retained renders list and job destination. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): view-job: Open ACT-02 for selected authorized entity; preserve originating route, tab stack and scroll.; retry-unit: New/requeued safe job; retain successful units; paid repeat explicitly confirmed; cancel-generation: Cancelling until safe checkpoint; Cancelled retains completed assets; open-editor: Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.; library: Open LIB-01 for selected authorized entity; preserve originating route, tab stack and scroll.; different-look: Confirm budget; AI chooses different concept/background, preserves prior assets and enqueues scope-specific generation.; view-comparison: Read-only comparison with nearest recent/scheduled output, date and reason; close restores focus.. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/GEN-02-ios-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "HOME-01-desktop-polished",
+    "screen": "HOME-01",
+    "platform": "desktop",
+    "path": "visuals/polished/HOME-01-desktop-polished.png",
+    "state": "polished-reference",
+    "role": "Visualfinishreference;exactinteractionsinwrittencontract"
+  },
+  {
+    "id": "HOME-01-ios-polished",
+    "screen": "HOME-01",
+    "platform": "ios",
+    "prompt": "Create ONE exceptionally polished native iPhone DevAI Studio Home screen,390x844portrait viewport, using attached desktop dashboard only as visual brand reference. Native iOS navigation and safe areas, five bottom tabs Home Discover Content Activity Settings. Warmcream#F2EDE5,forest#173D32,peach accents, refined typography,soft carddepth,beautiful varied actual illustrative AI content previews. Welcome back,Aditya. Create content action. Discover/Create/Review destinations compact grouped rows. Two recent output cards with radically different ambercinematic andbluecollage backgrounds,Carousel Draft andReel MP4validated. Active job 'Carousel \u00b76of8slidesready' with View activity. No tiny text, no shrunken desktop sidebar, no manual layout prompt, no fictional percentage if denominator is unknown. UI screenshot only,no multiple screens or poster board.",
+    "path": "visuals/polished/HOME-01-ios-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "LIB-01-desktop-polished",
+    "screen": "LIB-01",
+    "platform": "desktop",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 1440x1000 desktop web screenshot for DevAI Studio. Screen LIB-01 Content library. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Toolbar and three-column preview grid or accessible table. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): search-content: Update URL query after300ms debounce; abort superseded request; reset cursor; existing rows visible with updating status; clear button resets query.; library-filters: Open labeled selection surface; Apply validates values and updates query/URL; reset cursor; Cancel preserves original; clear resets to all. Server reads use screen resource listed below.; sort: Open labeled selection surface; Apply validates values and updates query/URL; reset cursor; Cancel preserves original; clear resets to all. Server reads use screen resource listed below.; view-toggle: Switch grid/list, device preference; preserve filters, cursor and selected entity.; content-open: Open LIB-02 for selected authorized entity; preserve originating route, tab stack and scroll.; create: Open CREATE-01 for selected authorized entity; preserve originating route, tab stack and scroll.; content-menu: Open contextual Duplicate/Archive/Export/Delete menu; destructive commands follow catalog confirmations; active publication locks destructive commands with reason.; load-more: Request nextCursor of current query; append unique stable IDs; failure keeps rows and Retry load more; expired cursor restarts first page preserving filters.. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/LIB-01-desktop-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "LIB-01-ios-polished",
+    "screen": "LIB-01",
+    "platform": "ios",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 390x844 native iPhone screenshot, portrait, real safe areas and viewport; no giant scroll page and no desktop sidebar for DevAI Studio. Screen LIB-01 Content library. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Content tab one-column visual rows, filter sheet, Create button. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): search-content: Update URL query after300ms debounce; abort superseded request; reset cursor; existing rows visible with updating status; clear button resets query.; library-filters: Open labeled selection surface; Apply validates values and updates query/URL; reset cursor; Cancel preserves original; clear resets to all. Server reads use screen resource listed below.; sort: Open labeled selection surface; Apply validates values and updates query/URL; reset cursor; Cancel preserves original; clear resets to all. Server reads use screen resource listed below.; view-toggle: Switch grid/list, device preference; preserve filters, cursor and selected entity.; content-open: Open LIB-02 for selected authorized entity; preserve originating route, tab stack and scroll.; create: Open CREATE-01 for selected authorized entity; preserve originating route, tab stack and scroll.; content-menu: Open contextual Duplicate/Archive/Export/Delete menu; destructive commands follow catalog confirmations; active publication locks destructive commands with reason.; load-more: Request nextCursor of current query; append unique stable IDs; failure keeps rows and Retry load more; expired cursor restarts first page preserving filters.. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/LIB-01-ios-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "PUB-01-desktop-polished",
+    "screen": "PUB-01",
+    "platform": "desktop",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 1440x1000 desktop web screenshot for DevAI Studio. Screen PUB-01 Publish or schedule. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Preview 7 columns and 5-column publication form; exact account/version footer. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): account-select: Update local form buffer; eligible connected accountID only; show handle and capability, never auto-switch on failure. Commit only on form Save or editor autosave.; publish-mode: Update local form buffer; Publish now / Schedule; explicit radio; mode change never submits. Commit only on form Save or editor autosave.; schedule-date: Update local form buffer; future local>=5min after serverNow; reject DST gaps; choose offset at overlap. Commit only on form Save or editor autosave.; timezone: Update local form buffer; searchable IANA zone; do not reinterpret existing reservations. Commit only on form Save or editor autosave.; preflight: Display eligibility, conversion, capability changes; no publication authorization; confirm-publish: Create authorized immutable reservation; open PUB-02; confirm-schedule: Create authorized immutable reservation; open PUB-02; cancel: Dismiss uncommitted form/sheet and restore invoker focus; does not cancel active durable job.. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/PUB-01-desktop-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "PUB-01-ios-polished",
+    "screen": "PUB-01",
+    "platform": "ios",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 390x844 native iPhone screenshot, portrait, real safe areas and viewport; no giant scroll page and no desktop sidebar for DevAI Studio. Screen PUB-01 Publish or schedule. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Publication sheet with account selection then native date/time, final explicit confirmation. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): account-select: Update local form buffer; eligible connected accountID only; show handle and capability, never auto-switch on failure. Commit only on form Save or editor autosave.; publish-mode: Update local form buffer; Publish now / Schedule; explicit radio; mode change never submits. Commit only on form Save or editor autosave.; schedule-date: Update local form buffer; future local>=5min after serverNow; reject DST gaps; choose offset at overlap. Commit only on form Save or editor autosave.; timezone: Update local form buffer; searchable IANA zone; do not reinterpret existing reservations. Commit only on form Save or editor autosave.; preflight: Display eligibility, conversion, capability changes; no publication authorization; confirm-publish: Create authorized immutable reservation; open PUB-02; confirm-schedule: Create authorized immutable reservation; open PUB-02; cancel: Dismiss uncommitted form/sheet and restore invoker focus; does not cancel active durable job.. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/PUB-01-ios-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "REEL-01-desktop-polished",
+    "screen": "REEL-01",
+    "platform": "desktop",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 1440x1000 desktop web screenshot for DevAI Studio. Screen REEL-01 Reel editor. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Dedicated editor: video at left, scene inspector right, timeline 240px bottom; time ruler and playhead. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): play: Toggle current rendition play/pause only; no generation. If stale, show rendered revision and needs-render banner.; scrub: Seek decoded rendition to selected time; keyboard left/right\u00b11sec and Shift\u00b15sec; scene tap seeks scene start; no timeline data mutation.; mute: Toggle preview audio only; retained device preference; no render invalidation.; fullscreen: Use browser fullscreen/native landscape player; Escape/Done returns position, playback and invoking focus.; script: Update local form buffer; script per scene1\u20131000characters. Commit only on form Save or editor autosave.; scene-select: Select stable entity ID; highlight and announce position; show current revision detail; flush pending entity edits before switching; failed save offers Stay or keep buffer.; reorder-scenes: Atomic scene timeline revision; preserve reusable assets; total duration gate30\u201340s; add-scene: Atomic scene timeline revision; preserve reusable assets; total duration gate30\u201340s; delete-scene: Atomic scene timeline revision; preserve reusable assets; total duration gate30\u201340s; voiceover: Update local form buffer; None / supported provider voice; explicit synthesis action. Commit only on form Save or editor autosave.; music: Update local form buffer; None / uploaded licensed asset; no fictional catalog. Commit only on form Save or editor autosave.; subtitles: Update local form buffer; on default for Reel; off allowed, measured render still required. Commit only on form Save or editor autosave.; render: 202 renderId/jobId; retain previous MP4 read-only; GEN-02 progresses to validation; versions: Open VER-01 for selected authorized entity; preserve originating route, tab stack and scroll.; preview: Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.; submit-review: Output pending_review (Ready for review); REVIEW-02; independent other format unaffected; different-look: AI selects fresh visual concept; scoped generation preserves prior assets; view-comparison: Open read-only AI plan or nearest recent output comparison; no layout input. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/REEL-01-desktop-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "REEL-01-ios-polished",
+    "screen": "REEL-01",
+    "platform": "ios",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 390x844 native iPhone screenshot, portrait, real safe areas and viewport; no giant scroll page and no desktop sidebar for DevAI Studio. Screen REEL-01 Reel editor. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Video preview upper half, Scenes/Script/Audio/Subtitles destinations; scene list, no desktop timeline. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): play: Toggle current rendition play/pause only; no generation. If stale, show rendered revision and needs-render banner.; scrub: Seek decoded rendition to selected time; keyboard left/right\u00b11sec and Shift\u00b15sec; scene tap seeks scene start; no timeline data mutation.; mute: Toggle preview audio only; retained device preference; no render invalidation.; fullscreen: Use browser fullscreen/native landscape player; Escape/Done returns position, playback and invoking focus.; script: Update local form buffer; script per scene1\u20131000characters. Commit only on form Save or editor autosave.; scene-select: Select stable entity ID; highlight and announce position; show current revision detail; flush pending entity edits before switching; failed save offers Stay or keep buffer.; reorder-scenes: Atomic scene timeline revision; preserve reusable assets; total duration gate30\u201340s; add-scene: Atomic scene timeline revision; preserve reusable assets; total duration gate30\u201340s; delete-scene: Atomic scene timeline revision; preserve reusable assets; total duration gate30\u201340s; voiceover: Update local form buffer; None / supported provider voice; explicit synthesis action. Commit only on form Save or editor autosave.; music: Update local form buffer; None / uploaded licensed asset; no fictional catalog. Commit only on form Save or editor autosave.; subtitles: Update local form buffer; on default for Reel; off allowed, measured render still required. Commit only on form Save or editor autosave.; render: 202 renderId/jobId; retain previous MP4 read-only; GEN-02 progresses to validation; versions: Open VER-01 for selected authorized entity; preserve originating route, tab stack and scroll.; preview: Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.; submit-review: Output pending_review (Ready for review); REVIEW-02; independent other format unaffected; different-look: AI selects fresh visual concept; scoped generation preserves prior assets; view-comparison: Open read-only AI plan or nearest recent output comparison; no layout input. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/REEL-01-ios-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "REVIEW-02-desktop-polished",
+    "screen": "REVIEW-02",
+    "platform": "desktop",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 1440x1000 desktop web screenshot for DevAI Studio. Screen REVIEW-02 Review content. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Preview 8 columns, review rail 4 columns, sticky decision footer. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): preview: Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.; sources: Open SOURCE-01 for selected authorized entity; preserve originating route, tab stack and scroll.; caption: Open CAP-01 for selected authorized entity; preserve originating route, tab stack and scroll.; checklist: Set local reviewer checks scoped to exact revision/hash. View every slide or full Reel before assets checkbox unlocks; edits reset affected checks.; approve: Approval freezes current output; publication becomes eligible; request-changes: Open REVIEW-03 for selected authorized entity; preserve originating route, tab stack and scroll.; edit: Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.; back: Return invoking route/stack and scroll; dirty unacknowledged edits open Save/Discard/Stay decision; durable jobs continue.; acknowledge-style-warning: Only repeated-style or comparison-unavailable warning may be acknowledged with reason; exact/near duplicate blocks remain.. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/REVIEW-02-desktop-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "REVIEW-02-ios-polished",
+    "screen": "REVIEW-02",
+    "platform": "ios",
+    "prompt": "Use case: ui-mockup. Create exactly ONE beautifully finished production-quality 390x844 native iPhone screenshot, portrait, real safe areas and viewport; no giant scroll page and no desktop sidebar for DevAI Studio. Screen REVIEW-02 Review content. Warm premium cream #F2EDE5 canvas, #FAF7F2 surfaces, deep forest #173D32 primary actions, peach microaccents, soft sophisticated elevation, warm hairline separators, generous spacing, polished Inter typography, crisp meaningful line icons. A premium creative editorial studio, not a wireframe or generic SaaS dashboard. Review stack preview then checklist, Approve sticky only after all checks. Clearly readable labels, excellent hierarchy, tasteful rich actual artwork/media previews where relevant. Illustrative topic: Durable AI workflows. Content previews must have freely varied cinematic/illustrative/photo palettes and backgrounds, NOT all forest/cream shapes. UI colors stay consistent. Never invent current AI model news. Never call storyboard a completed video. Never publish automatically. Carousel6\u20138whole AI-composed1080x1350images, Reel35sec1080x1920validatedMP4. AI handles all layouts/backgrounds; no required art-direction prompt. Relevant controls and behaviors (render only visible appropriate controls, no imaginary actions): preview: Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.; sources: Open SOURCE-01 for selected authorized entity; preserve originating route, tab stack and scroll.; caption: Open CAP-01 for selected authorized entity; preserve originating route, tab stack and scroll.; checklist: Set local reviewer checks scoped to exact revision/hash. View every slide or full Reel before assets checkbox unlocks; edits reset affected checks.; approve: Approval freezes current output; publication becomes eligible; request-changes: Open REVIEW-03 for selected authorized entity; preserve originating route, tab stack and scroll.; edit: Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.; back: Return invoking route/stack and scroll; dirty unacknowledged edits open Save/Discard/Stay decision; durable jobs continue.; acknowledge-style-warning: Only repeated-style or comparison-unavailable warning may be acknowledged with reason; exact/near duplicate blocks remain.. Include entity revision and honest save/generation state. Native child editor Back/Done, focused scene/card tools instead of shrunken desktop timeline; roots five labeled tabs Home Discover Content Activity Settings. Desktop persistent forest sidebar where appropriate, dedicated editor workspaces retain Done and title. This is one standalone UI visual reference; not a multi-screen board; no developer/code annotations inside product UI.",
+    "path": "visuals/polished/REVIEW-02-ios-polished.png",
+    "state": "polished-reference",
+    "role": "Visual reference; exact interactions and tokens remain authoritative"
+  },
+  {
+    "id": "AUTH-01-desktop-default",
+    "screen": "AUTH-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/AUTH-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "AUTH-01-ios-default",
+    "screen": "AUTH-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/AUTH-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "AUTH-02-desktop-default",
+    "screen": "AUTH-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/AUTH-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "AUTH-02-ios-default",
+    "screen": "AUTH-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/AUTH-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ONB-01-desktop-default",
+    "screen": "ONB-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/ONB-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ONB-01-ios-default",
+    "screen": "ONB-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/ONB-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "HOME-01-desktop-default",
+    "screen": "HOME-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/HOME-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "HOME-01-ios-default",
+    "screen": "HOME-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/HOME-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "DISC-01-desktop-default",
+    "screen": "DISC-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/DISC-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "DISC-01-ios-default",
+    "screen": "DISC-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/DISC-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "QUEUE-01-desktop-default",
+    "screen": "QUEUE-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/QUEUE-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "QUEUE-01-ios-default",
+    "screen": "QUEUE-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/QUEUE-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "TOPIC-01-desktop-default",
+    "screen": "TOPIC-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/TOPIC-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "TOPIC-01-ios-default",
+    "screen": "TOPIC-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/TOPIC-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SOURCE-01-desktop-default",
+    "screen": "SOURCE-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SOURCE-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SOURCE-01-ios-default",
+    "screen": "SOURCE-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SOURCE-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CLAIM-01-desktop-default",
+    "screen": "CLAIM-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/CLAIM-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CLAIM-01-ios-default",
+    "screen": "CLAIM-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/CLAIM-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "IMPORT-01-desktop-default",
+    "screen": "IMPORT-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/IMPORT-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "IMPORT-01-ios-default",
+    "screen": "IMPORT-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/IMPORT-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CREATE-01-desktop-default",
+    "screen": "CREATE-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/CREATE-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CREATE-01-ios-default",
+    "screen": "CREATE-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/CREATE-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CREATE-02-desktop-default",
+    "screen": "CREATE-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/CREATE-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CREATE-02-ios-default",
+    "screen": "CREATE-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/CREATE-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CREATE-03-desktop-default",
+    "screen": "CREATE-03",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/CREATE-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CREATE-03-ios-default",
+    "screen": "CREATE-03",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/CREATE-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-01-desktop-default",
+    "screen": "GEN-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/GEN-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-01-ios-default",
+    "screen": "GEN-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/GEN-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-01-desktop-default",
+    "screen": "CAR-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/CAR-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-01-ios-default",
+    "screen": "CAR-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/CAR-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-02-desktop-default",
+    "screen": "CAR-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/CAR-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-02-ios-default",
+    "screen": "CAR-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/CAR-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-03-desktop-default",
+    "screen": "CAR-03",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/CAR-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-03-ios-default",
+    "screen": "CAR-03",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/CAR-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "VER-01-desktop-default",
+    "screen": "VER-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/VER-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "VER-01-ios-default",
+    "screen": "VER-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/VER-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-01-desktop-default",
+    "screen": "REEL-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/REEL-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-01-ios-default",
+    "screen": "REEL-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/REEL-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-02-desktop-default",
+    "screen": "REEL-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/REEL-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-02-ios-default",
+    "screen": "REEL-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/REEL-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-03-desktop-default",
+    "screen": "REEL-03",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/REEL-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-03-ios-default",
+    "screen": "REEL-03",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/REEL-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-04-desktop-default",
+    "screen": "REEL-04",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/REEL-04-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-04-ios-default",
+    "screen": "REEL-04",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/REEL-04-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-05-desktop-default",
+    "screen": "REEL-05",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/REEL-05-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-05-ios-default",
+    "screen": "REEL-05",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/REEL-05-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-06-desktop-default",
+    "screen": "REEL-06",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/REEL-06-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-06-ios-default",
+    "screen": "REEL-06",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/REEL-06-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAP-01-desktop-default",
+    "screen": "CAP-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/CAP-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAP-01-ios-default",
+    "screen": "CAP-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/CAP-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PRE-01-desktop-default",
+    "screen": "PRE-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/PRE-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PRE-01-ios-default",
+    "screen": "PRE-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/PRE-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PRE-02-desktop-default",
+    "screen": "PRE-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/PRE-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PRE-02-ios-default",
+    "screen": "PRE-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/PRE-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REVIEW-01-desktop-default",
+    "screen": "REVIEW-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/REVIEW-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REVIEW-01-ios-default",
+    "screen": "REVIEW-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/REVIEW-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REVIEW-02-desktop-default",
+    "screen": "REVIEW-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/REVIEW-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REVIEW-02-ios-default",
+    "screen": "REVIEW-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/REVIEW-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REVIEW-03-desktop-default",
+    "screen": "REVIEW-03",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/REVIEW-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REVIEW-03-ios-default",
+    "screen": "REVIEW-03",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/REVIEW-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-01-desktop-default",
+    "screen": "PUB-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/PUB-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-01-ios-default",
+    "screen": "PUB-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/PUB-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-02-desktop-default",
+    "screen": "PUB-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/PUB-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-02-ios-default",
+    "screen": "PUB-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/PUB-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-03-desktop-default",
+    "screen": "PUB-03",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/PUB-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-03-ios-default",
+    "screen": "PUB-03",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/PUB-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAL-01-desktop-default",
+    "screen": "CAL-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/CAL-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAL-01-ios-default",
+    "screen": "CAL-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/CAL-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "LIB-01-desktop-default",
+    "screen": "LIB-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/LIB-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "LIB-01-ios-default",
+    "screen": "LIB-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/LIB-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "LIB-02-desktop-default",
+    "screen": "LIB-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/LIB-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "LIB-02-ios-default",
+    "screen": "LIB-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/LIB-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "TRASH-01-desktop-default",
+    "screen": "TRASH-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/TRASH-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "TRASH-01-ios-default",
+    "screen": "TRASH-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/TRASH-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ACT-01-desktop-default",
+    "screen": "ACT-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/ACT-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ACT-01-ios-default",
+    "screen": "ACT-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/ACT-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ACT-02-desktop-default",
+    "screen": "ACT-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/ACT-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ACT-02-ios-default",
+    "screen": "ACT-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/ACT-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "NOT-01-desktop-default",
+    "screen": "NOT-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/NOT-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "NOT-01-ios-default",
+    "screen": "NOT-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/NOT-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ANA-01-desktop-default",
+    "screen": "ANA-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/ANA-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ANA-01-ios-default",
+    "screen": "ANA-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/ANA-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ANA-02-desktop-default",
+    "screen": "ANA-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/ANA-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ANA-02-ios-default",
+    "screen": "ANA-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/ANA-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ANA-03-desktop-default",
+    "screen": "ANA-03",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/ANA-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ANA-03-ios-default",
+    "screen": "ANA-03",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/ANA-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-01-desktop-default",
+    "screen": "SET-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-01-ios-default",
+    "screen": "SET-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-02-desktop-default",
+    "screen": "SET-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-02-ios-default",
+    "screen": "SET-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-03-desktop-default",
+    "screen": "SET-03",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-03-ios-default",
+    "screen": "SET-03",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-03-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-04-desktop-default",
+    "screen": "SET-04",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-04-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-04-ios-default",
+    "screen": "SET-04",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-04-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-05-desktop-default",
+    "screen": "SET-05",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-05-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-05-ios-default",
+    "screen": "SET-05",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-05-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-06-desktop-default",
+    "screen": "SET-06",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-06-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-06-ios-default",
+    "screen": "SET-06",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-06-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-07-desktop-default",
+    "screen": "SET-07",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-07-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-07-ios-default",
+    "screen": "SET-07",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-07-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-08-desktop-default",
+    "screen": "SET-08",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-08-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-08-ios-default",
+    "screen": "SET-08",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-08-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-09-desktop-default",
+    "screen": "SET-09",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-09-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-09-ios-default",
+    "screen": "SET-09",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-09-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-10-desktop-default",
+    "screen": "SET-10",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-10-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-10-ios-default",
+    "screen": "SET-10",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-10-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-11-desktop-default",
+    "screen": "SET-11",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SET-11-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-11-ios-default",
+    "screen": "SET-11",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SET-11-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "HELP-01-desktop-default",
+    "screen": "HELP-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/HELP-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "HELP-01-ios-default",
+    "screen": "HELP-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/HELP-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SYS-01-desktop-default",
+    "screen": "SYS-01",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SYS-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SYS-01-ios-default",
+    "screen": "SYS-01",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SYS-01-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SYS-02-desktop-default",
+    "screen": "SYS-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/SYS-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SYS-02-ios-default",
+    "screen": "SYS-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/SYS-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-02-desktop-default",
+    "screen": "GEN-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/GEN-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-02-ios-default",
+    "screen": "GEN-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/GEN-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "DISC-02-desktop-default",
+    "screen": "DISC-02",
+    "platform": "desktop",
+    "state": "default",
+    "path": "visuals/desktop/DISC-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "DISC-02-ios-default",
+    "screen": "DISC-02",
+    "platform": "ios",
+    "state": "default",
+    "path": "visuals/ios/DISC-02-default.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "DISC-01-desktop-empty",
+    "screen": "DISC-01",
+    "platform": "desktop",
+    "state": "empty",
+    "path": "visuals/desktop/DISC-01-empty.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "DISC-01-ios-empty",
+    "screen": "DISC-01",
+    "platform": "ios",
+    "state": "empty",
+    "path": "visuals/ios/DISC-01-empty.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "DISC-01-desktop-loading",
+    "screen": "DISC-01",
+    "platform": "desktop",
+    "state": "loading",
+    "path": "visuals/desktop/DISC-01-loading.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "DISC-01-ios-loading",
+    "screen": "DISC-01",
+    "platform": "ios",
+    "state": "loading",
+    "path": "visuals/ios/DISC-01-loading.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "DISC-01-desktop-offline",
+    "screen": "DISC-01",
+    "platform": "desktop",
+    "state": "offline",
+    "path": "visuals/desktop/DISC-01-offline.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "DISC-01-ios-offline",
+    "screen": "DISC-01",
+    "platform": "ios",
+    "state": "offline",
+    "path": "visuals/ios/DISC-01-offline.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SOURCE-01-desktop-source-failed",
+    "screen": "SOURCE-01",
+    "platform": "desktop",
+    "state": "source-failed",
+    "path": "visuals/desktop/SOURCE-01-source-failed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SOURCE-01-ios-source-failed",
+    "screen": "SOURCE-01",
+    "platform": "ios",
+    "state": "source-failed",
+    "path": "visuals/ios/SOURCE-01-source-failed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-01-desktop-partial",
+    "screen": "GEN-01",
+    "platform": "desktop",
+    "state": "partial",
+    "path": "visuals/desktop/GEN-01-partial.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-01-ios-partial",
+    "screen": "GEN-01",
+    "platform": "ios",
+    "state": "partial",
+    "path": "visuals/ios/GEN-01-partial.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-01-desktop-creative-planning",
+    "screen": "GEN-01",
+    "platform": "desktop",
+    "state": "creative-planning",
+    "path": "visuals/desktop/GEN-01-creative-planning.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-01-ios-creative-planning",
+    "screen": "GEN-01",
+    "platform": "ios",
+    "state": "creative-planning",
+    "path": "visuals/ios/GEN-01-creative-planning.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-01-desktop-similarity-blocked",
+    "screen": "GEN-01",
+    "platform": "desktop",
+    "state": "similarity-blocked",
+    "path": "visuals/desktop/GEN-01-similarity-blocked.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-01-ios-similarity-blocked",
+    "screen": "GEN-01",
+    "platform": "ios",
+    "state": "similarity-blocked",
+    "path": "visuals/ios/GEN-01-similarity-blocked.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-01-desktop-stale",
+    "screen": "CAR-01",
+    "platform": "desktop",
+    "state": "stale",
+    "path": "visuals/desktop/CAR-01-stale.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-01-ios-stale",
+    "screen": "CAR-01",
+    "platform": "ios",
+    "state": "stale",
+    "path": "visuals/ios/CAR-01-stale.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-01-desktop-save-failed",
+    "screen": "CAR-01",
+    "platform": "desktop",
+    "state": "save-failed",
+    "path": "visuals/desktop/CAR-01-save-failed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-01-ios-save-failed",
+    "screen": "CAR-01",
+    "platform": "ios",
+    "state": "save-failed",
+    "path": "visuals/ios/CAR-01-save-failed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-01-desktop-conflict",
+    "screen": "CAR-01",
+    "platform": "desktop",
+    "state": "conflict",
+    "path": "visuals/desktop/CAR-01-conflict.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-01-ios-conflict",
+    "screen": "CAR-01",
+    "platform": "ios",
+    "state": "conflict",
+    "path": "visuals/ios/CAR-01-conflict.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CAR-02-ios-keyboard",
+    "screen": "CAR-02",
+    "platform": "ios",
+    "state": "keyboard",
+    "path": "visuals/ios/CAR-02-keyboard.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-01-desktop-render-failed",
+    "screen": "REEL-01",
+    "platform": "desktop",
+    "state": "render-failed",
+    "path": "visuals/desktop/REEL-01-render-failed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-01-ios-render-failed",
+    "screen": "REEL-01",
+    "platform": "ios",
+    "state": "render-failed",
+    "path": "visuals/ios/REEL-01-render-failed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-01-desktop-scene-reorder",
+    "screen": "REEL-01",
+    "platform": "desktop",
+    "state": "scene-reorder",
+    "path": "visuals/desktop/REEL-01-scene-reorder.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-01-ios-scene-reorder",
+    "screen": "REEL-01",
+    "platform": "ios",
+    "state": "scene-reorder",
+    "path": "visuals/ios/REEL-01-scene-reorder.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-05-ios-continuation",
+    "screen": "REEL-05",
+    "platform": "ios",
+    "state": "continuation",
+    "path": "visuals/ios/REEL-05-continuation.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "IMPORT-01-ios-continuation",
+    "screen": "IMPORT-01",
+    "platform": "ios",
+    "state": "continuation",
+    "path": "visuals/ios/IMPORT-01-continuation.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "CREATE-02-ios-continuation",
+    "screen": "CREATE-02",
+    "platform": "ios",
+    "state": "continuation",
+    "path": "visuals/ios/CREATE-02-continuation.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "SET-03-ios-continuation",
+    "screen": "SET-03",
+    "platform": "ios",
+    "state": "continuation",
+    "path": "visuals/ios/SET-03-continuation.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-06-desktop-timeline",
+    "screen": "REEL-06",
+    "platform": "desktop",
+    "state": "timeline",
+    "path": "visuals/desktop/REEL-06-timeline.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REEL-06-ios-timeline",
+    "screen": "REEL-06",
+    "platform": "ios",
+    "state": "timeline",
+    "path": "visuals/ios/REEL-06-timeline.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-02-desktop-storyboard",
+    "screen": "GEN-02",
+    "platform": "desktop",
+    "state": "storyboard",
+    "path": "visuals/desktop/GEN-02-storyboard.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-02-ios-storyboard",
+    "screen": "GEN-02",
+    "platform": "ios",
+    "state": "storyboard",
+    "path": "visuals/ios/GEN-02-storyboard.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-02-desktop-audio-failed",
+    "screen": "GEN-02",
+    "platform": "desktop",
+    "state": "audio-failed",
+    "path": "visuals/desktop/GEN-02-audio-failed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-02-ios-audio-failed",
+    "screen": "GEN-02",
+    "platform": "ios",
+    "state": "audio-failed",
+    "path": "visuals/ios/GEN-02-audio-failed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-02-desktop-validation-failed",
+    "screen": "GEN-02",
+    "platform": "desktop",
+    "state": "validation-failed",
+    "path": "visuals/desktop/GEN-02-validation-failed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-02-ios-validation-failed",
+    "screen": "GEN-02",
+    "platform": "ios",
+    "state": "validation-failed",
+    "path": "visuals/ios/GEN-02-validation-failed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-02-desktop-success",
+    "screen": "GEN-02",
+    "platform": "desktop",
+    "state": "success",
+    "path": "visuals/desktop/GEN-02-success.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "GEN-02-ios-success",
+    "screen": "GEN-02",
+    "platform": "ios",
+    "state": "success",
+    "path": "visuals/ios/GEN-02-success.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REVIEW-02-desktop-approval-changed",
+    "screen": "REVIEW-02",
+    "platform": "desktop",
+    "state": "approval-changed",
+    "path": "visuals/desktop/REVIEW-02-approval-changed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REVIEW-02-ios-approval-changed",
+    "screen": "REVIEW-02",
+    "platform": "ios",
+    "state": "approval-changed",
+    "path": "visuals/ios/REVIEW-02-approval-changed.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REVIEW-02-desktop-permission",
+    "screen": "REVIEW-02",
+    "platform": "desktop",
+    "state": "permission",
+    "path": "visuals/desktop/REVIEW-02-permission.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "REVIEW-02-ios-permission",
+    "screen": "REVIEW-02",
+    "platform": "ios",
+    "state": "permission",
+    "path": "visuals/ios/REVIEW-02-permission.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-01-desktop-dst-gap",
+    "screen": "PUB-01",
+    "platform": "desktop",
+    "state": "dst-gap",
+    "path": "visuals/desktop/PUB-01-dst-gap.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-01-ios-dst-gap",
+    "screen": "PUB-01",
+    "platform": "ios",
+    "state": "dst-gap",
+    "path": "visuals/ios/PUB-01-dst-gap.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-01-desktop-dst-overlap",
+    "screen": "PUB-01",
+    "platform": "desktop",
+    "state": "dst-overlap",
+    "path": "visuals/desktop/PUB-01-dst-overlap.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-01-ios-dst-overlap",
+    "screen": "PUB-01",
+    "platform": "ios",
+    "state": "dst-overlap",
+    "path": "visuals/ios/PUB-01-dst-overlap.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-01-ios-continuation",
+    "screen": "PUB-01",
+    "platform": "ios",
+    "state": "continuation",
+    "path": "visuals/ios/PUB-01-continuation.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-02-desktop-unknown",
+    "screen": "PUB-02",
+    "platform": "desktop",
+    "state": "unknown",
+    "path": "visuals/desktop/PUB-02-unknown.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-02-ios-unknown",
+    "screen": "PUB-02",
+    "platform": "ios",
+    "state": "unknown",
+    "path": "visuals/ios/PUB-02-unknown.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-02-desktop-expired",
+    "screen": "PUB-02",
+    "platform": "desktop",
+    "state": "expired",
+    "path": "visuals/desktop/PUB-02-expired.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-02-ios-expired",
+    "screen": "PUB-02",
+    "platform": "ios",
+    "state": "expired",
+    "path": "visuals/ios/PUB-02-expired.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-02-desktop-rate-limit",
+    "screen": "PUB-02",
+    "platform": "desktop",
+    "state": "rate-limit",
+    "path": "visuals/desktop/PUB-02-rate-limit.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "PUB-02-ios-rate-limit",
+    "screen": "PUB-02",
+    "platform": "ios",
+    "state": "rate-limit",
+    "path": "visuals/ios/PUB-02-rate-limit.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-APPROVE-desktop-dialog",
+    "screen": "D-APPROVE",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-APPROVE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-APPROVE-ios-dialog",
+    "screen": "D-APPROVE",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-APPROVE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-PUBLISH-desktop-dialog",
+    "screen": "D-PUBLISH",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-PUBLISH-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-PUBLISH-ios-dialog",
+    "screen": "D-PUBLISH",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-PUBLISH-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-SCHEDULE-desktop-dialog",
+    "screen": "D-SCHEDULE",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-SCHEDULE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-SCHEDULE-ios-dialog",
+    "screen": "D-SCHEDULE",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-SCHEDULE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-DELETE-desktop-dialog",
+    "screen": "D-DELETE",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-DELETE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-DELETE-ios-dialog",
+    "screen": "D-DELETE",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-DELETE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-PERMANENT-desktop-dialog",
+    "screen": "D-PERMANENT",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-PERMANENT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-PERMANENT-ios-dialog",
+    "screen": "D-PERMANENT",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-PERMANENT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-UNSAVED-desktop-dialog",
+    "screen": "D-UNSAVED",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-UNSAVED-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-UNSAVED-ios-dialog",
+    "screen": "D-UNSAVED",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-UNSAVED-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-CONFLICT-desktop-dialog",
+    "screen": "D-CONFLICT",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-CONFLICT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-CONFLICT-ios-dialog",
+    "screen": "D-CONFLICT",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-CONFLICT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-REGENERATE-desktop-dialog",
+    "screen": "D-REGENERATE",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-REGENERATE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-REGENERATE-ios-dialog",
+    "screen": "D-REGENERATE",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-REGENERATE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-RESTORE-desktop-dialog",
+    "screen": "D-RESTORE",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-RESTORE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-RESTORE-ios-dialog",
+    "screen": "D-RESTORE",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-RESTORE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-DISCONNECT-desktop-dialog",
+    "screen": "D-DISCONNECT",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-DISCONNECT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-DISCONNECT-ios-dialog",
+    "screen": "D-DISCONNECT",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-DISCONNECT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-CANCEL-desktop-dialog",
+    "screen": "D-CANCEL",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-CANCEL-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-CANCEL-ios-dialog",
+    "screen": "D-CANCEL",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-CANCEL-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-CANCEL-SCHEDULE-desktop-dialog",
+    "screen": "D-CANCEL-SCHEDULE",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-CANCEL-SCHEDULE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-CANCEL-SCHEDULE-ios-dialog",
+    "screen": "D-CANCEL-SCHEDULE",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-CANCEL-SCHEDULE-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-ACCOUNT-desktop-dialog",
+    "screen": "D-ACCOUNT",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-ACCOUNT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-ACCOUNT-ios-dialog",
+    "screen": "D-ACCOUNT",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-ACCOUNT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-SIGNOUT-desktop-dialog",
+    "screen": "D-SIGNOUT",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-SIGNOUT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-SIGNOUT-ios-dialog",
+    "screen": "D-SIGNOUT",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-SIGNOUT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-FILTER-desktop-dialog",
+    "screen": "D-FILTER",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-FILTER-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-FILTER-ios-dialog",
+    "screen": "D-FILTER",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-FILTER-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-AUDIO-desktop-dialog",
+    "screen": "D-AUDIO",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-AUDIO-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-AUDIO-ios-dialog",
+    "screen": "D-AUDIO",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-AUDIO-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-EXPORT-desktop-dialog",
+    "screen": "D-EXPORT",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-EXPORT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-EXPORT-ios-dialog",
+    "screen": "D-EXPORT",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-EXPORT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-APPROVAL-EDIT-desktop-dialog",
+    "screen": "D-APPROVAL-EDIT",
+    "platform": "desktop",
+    "state": "dialog",
+    "path": "visuals/desktop/D-APPROVAL-EDIT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "D-APPROVAL-EDIT-ios-dialog",
+    "screen": "D-APPROVAL-EDIT",
+    "platform": "ios",
+    "state": "dialog",
+    "path": "visuals/ios/D-APPROVAL-EDIT-dialog.svg",
+    "revision": 4,
+    "role": "Authoritative editable build reference"
+  },
+  {
+    "id": "ONB-01-ios-tools-continuation",
+    "screen": "ONB-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/ONB-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "HOME-01-ios-tools-continuation",
+    "screen": "HOME-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/HOME-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "DISC-01-ios-tools-continuation",
+    "screen": "DISC-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/DISC-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "TOPIC-01-ios-tools-continuation",
+    "screen": "TOPIC-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/TOPIC-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "CLAIM-01-ios-tools-continuation",
+    "screen": "CLAIM-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/CLAIM-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "CREATE-01-ios-tools-continuation",
+    "screen": "CREATE-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/CREATE-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "CREATE-03-ios-tools-continuation",
+    "screen": "CREATE-03",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/CREATE-03-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "GEN-01-ios-tools-continuation",
+    "screen": "GEN-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/GEN-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "GEN-02-ios-tools-continuation",
+    "screen": "GEN-02",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/GEN-02-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "REEL-01-ios-tools-continuation",
+    "screen": "REEL-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/REEL-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "REEL-03-ios-tools-continuation",
+    "screen": "REEL-03",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/REEL-03-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "REEL-06-ios-tools-continuation",
+    "screen": "REEL-06",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/REEL-06-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "CAP-01-ios-tools-continuation",
+    "screen": "CAP-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/CAP-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "PUB-01-ios-tools-continuation",
+    "screen": "PUB-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/PUB-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "LIB-01-ios-tools-continuation",
+    "screen": "LIB-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/LIB-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "LIB-02-ios-tools-continuation",
+    "screen": "LIB-02",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/LIB-02-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "ACT-02-ios-tools-continuation",
+    "screen": "ACT-02",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/ACT-02-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "SET-01-ios-tools-continuation",
+    "screen": "SET-01",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/SET-01-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "SET-04-ios-tools-continuation",
+    "screen": "SET-04",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/SET-04-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "SET-07-ios-tools-continuation",
+    "screen": "SET-07",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/SET-07-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "SET-08-ios-tools-continuation",
+    "screen": "SET-08",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/SET-08-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "SET-09-ios-tools-continuation",
+    "screen": "SET-09",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/SET-09-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "SET-10-ios-tools-continuation",
+    "screen": "SET-10",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/SET-10-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "SET-11-ios-tools-continuation",
+    "screen": "SET-11",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/SET-11-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "DISC-02-ios-tools-continuation",
+    "screen": "DISC-02",
+    "platform": "ios",
+    "state": "tools-continuation",
+    "path": "visuals/ios/DISC-02-tools-continuation.svg",
+    "revision": 4,
+    "role": "Editable native continuation reference"
+  },
+  {
+    "id": "DS-01-desktop-design-system",
+    "screen": "DS-01",
+    "platform": "desktop",
+    "state": "design-system",
+    "path": "visuals/desktop/DS-01-design-system.svg",
+    "revision": 4,
+    "role": "Authoritative design-system specimen"
+  },
+  {
+    "id": "DS-01-ios-design-system",
+    "screen": "DS-01",
+    "platform": "ios",
+    "state": "design-system",
+    "path": "visuals/ios/DS-01-design-system.svg",
+    "revision": 4,
+    "role": "Authoritative design-system specimen"
+  }
+]

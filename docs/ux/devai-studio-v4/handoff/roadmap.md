@@ -1,0 +1,18 @@
+# Dependency-aware implementation roadmap
+
+This is the plan for a separate implementation team; no application implementation is authorized by this design task.
+
+1. Preserve existing data and harden foundation: production migrations/backups, account auth/workspace permissions, revision/idempotency/error contracts, immutable approval model; adopt tokens/components and router/native navigation. Gate: no cross-account resource access; existing carousel approval/publishing tests preserved.
+2. Source/queue UX: paginated topics, saved/angle/source/claim contracts, daily schedule/worker-health UI, actual source provenance. Gate: old daily result preserved while latest refresh displays correct warnings; inaccessible sources not fabricated; manual evidence explicit verification.
+3. Carousel editor: protected local buffer, CAS conflict recovery, stable IDs/order/history, freeform brief, stale composition/validation states, actual iOS artwork preview. Gate: no unsaved data loss, 6–8 current1080×1350 outputs; no template overlay fallback.
+4. Reel vertical pipeline and editor: capability adapters, script/storyboard/assets/audio/subtitles/render/validate with per-unit persistence, desktop timeline and focused iOS editing. Gate: real decoded current1080×1920 30–40s MP4 and audio/cue validation, failures preserve units, never storyboard-ready-video confusion.
+5. Independent review and revision requests: persisted human checklist per revision, format-specific approval, requested-change target/comments without auto-generation. Gate: edited format invalidates approval, shared evidence dependency invalidation, native actual-media review.
+6. Instagram account OAuth/preflight and reservations/calendar: explicit immutable version/account/time authorization, atomic schedule claim/cancel, unknown-outcome reconciliation. Gate: designated test account verification by authorized operator; current fake tests do not establish live success; duplicate final calls prevented under timeout/crash.
+7. Library lifecycle, jobs/notifications, analytics: archive/trash/version export, server heartbeat/cancel, deduplicated in-app/push, real account metrics and export metadata. Gate: missing metrics not zero, push denial nonblocking, secret-free exports, no active reservation purge.
+8. End-to-end and release validation: run A–O acceptance/control tests with web keyboard/reflow and iOS VoiceOver/Dynamic Type/offline/two-device races; production backup/restore/retention monitoring; verify daily operations over multiple days, provider spend/quality and native packaging. Release only after no P0 workflow/access/data-loss/publication defects.
+
+Engineering ownership: web React+Vite, local state Jotai and server query layer; native Expo/React Native upgrade plus native components/secure storage; Python FastAPI services, PostgreSQL production durable state, server workers/providers; API-first contracts before UI actions. UX should not pick cloud pricing, billing plans, live provider access or Meta app approval on engineering’s behalf.
+
+## Required creative-autopilot dependency
+
+Before advertising varied ten-day Instagram output, implement server creative history/reservations,automatic concept planning,full-composition image/video provider generation,similarity validation and budget-scoped alternate concepts. This depends on immutable asset provenance,account-context history and durable per-unit jobs. Validate PC-AI01..09 with a seeded recent/scheduled10postcorpus, near/exactduplicate controls and empty-history case. UI theme tokens never become a mandatory content template. Do not gate delivery on manual art direction.

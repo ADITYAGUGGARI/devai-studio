@@ -1,0 +1,39 @@
+# HOME-01 — Home
+
+Purpose: Choose the next useful editorial action. Web route `/home`; iOS destination `DevAI/HOME-01`. Parent: Home tab; preserve invoker on reusable editor/preview.
+
+## Composition
+
+Desktop: Header greeting, 8/4 column editorial main and activity rail, two primary destinations. At1440px use232px sidebar,32px page gutter and24px gaps; dedicated editors suppress ordinary shell content navigation but retain Done, entity title and Activity status.
+
+iOS: Home tab, single column continue card, review count and activity rows. Physical viewport390×844 with top safe area47 and bottom34; content scrolls between navigation and fixed actions. Body17pt,44pt targets. Native child editor hides tab bar and uses Done/Back; root destinations keep five tabs. Long form continuation is scrolling content, not a tall fictional phone.
+
+Content and focus order: Continue editing → Ready to review → Research status → Recent activity. Read boundary: Proposed /v1 resource matching exact operation index; public auth requires no workspace read. Only the contracts below mutate. All IDs are stable, not row indices.
+
+## Controls — authoritative revision 3
+
+| ID/control | Preconditions/trigger | Action and success | Operation/request | Exact next destination | Failure and recovery |
+|---|---|---|---|---|---|
+|HOME-01-I01 review-count|Read permission for requested entity; public routes exempt; Click/Enter/Space or native tap; drag has Move before/after alternative|Open REVIEW-01 for selected authorized entity; preserve originating route, tab stack and scroll.|None: local UI/navigation; destination resource read only No payload|REVIEW-01|Read failure retains last loaded content labeled stale with Retry; denied/missing target opens SYS-02; offline navigation uses cached authorized content. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+|HOME-01-I02 active-job|Read permission for requested entity; public routes exempt; Click/Enter/Space or native tap; drag has Move before/after alternative|Open ACT-02 for selected authorized entity; preserve originating route, tab stack and scroll.|None: local UI/navigation; destination resource read only No payload|ACT-02|Read failure retains last loaded content labeled stale with Retry; denied/missing target opens SYS-02; offline navigation uses cached authorized content. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+|HOME-01-I03 continue-edit|Read permission for requested entity; public routes exempt; Click/Enter/Space or native tap; drag has Move before/after alternative|Open selected output: Carousel CAR-01/PRE-01 or Reel REEL-01/PRE-02; wizard Edit CREATE-02; publication PUB-02. Read current revision first; unavailable entity SYS-02.|None: local UI/navigation; destination resource read only No payload|/home|Read failure retains last loaded content labeled stale with Retry; denied/missing target opens SYS-02; offline navigation uses cached authorized content. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+|HOME-01-I04 discover|Read permission for requested entity; public routes exempt; Click/Enter/Space or native tap; drag has Move before/after alternative|Open DISC-01 for selected authorized entity; preserve originating route, tab stack and scroll.|None: local UI/navigation; destination resource read only No payload|DISC-01|Read failure retains last loaded content labeled stale with Retry; denied/missing target opens SYS-02; offline navigation uses cached authorized content. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+|HOME-01-I05 run-research|No active research key; online; Click/Enter/Space or native tap; drag has Move before/after alternative|Enqueue fixed rolling24hourdeveloper-focused research; retain current findings; returned runId/jobId links Activity; active intent deduplicates|POST /v1/research/runs {window:last_24_hours,categoryIds,rankingPolicyRevision,sourceCatalogRevision}|ACT-02 job detail; DISC-01?run=:runId for findings|422: attach field errors and retain input;403: read-only permission banner;401: SYS-01 with safe return;409: show current state and retain draft; network: retain buffer and fetch authoritative state before retry. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+|HOME-01-I06 add-topic|Read permission for requested entity; public routes exempt; Click/Enter/Space or native tap; drag has Move before/after alternative|Open IMPORT-01 for selected authorized entity; preserve originating route, tab stack and scroll.|None: local UI/navigation; destination resource read only No payload|IMPORT-01|Read failure retains last loaded content labeled stale with Retry; denied/missing target opens SYS-02; offline navigation uses cached authorized content. Retry safe reads freely; mutation retries reuse same key after status fetch; never retry uncertain external publication. Cancel form keeps acknowledged revision; cancel job only via server checkpoint.|
+
+## State and persistence contract
+
+Applicable states: initial, loading, populated, failure, permission_denied, session_expired, offline, reconnecting. Loading reserves actual layout using skeletons for lists, inline spinner only for submitted control; empty list explains scope and offers Clear filters or relevant create action. Do not show an empty screen while loading. Offline exposes cached timestamp, queues only protected text edits, and disables generation, approval and publication with explanation. Session expiry keeps protected local buffer and returns here after authentication. Permission loss immediately removes mutation actions while preserving permitted read view.
+
+Editors save800ms after idle, ordered per entity with expectedRevision. Saved requires ACK; failure retains buffer and Save now.409 displays field-level base/mine/server comparison; accepting server never silently deletes mine. Back/Done with unacknowledged buffer offers Save, Discard local changes, Stay; selecting Save must succeed before leaving. Navigation never cancels durable jobs. Read-only screens have no autosave, draft, or paid action merely because they share components.
+
+Dialogs follow interactions/dialogs.md; per-control triggers and responses are in interactions.json. Native focus enters screen title; web route title receives focus except returning to original invoker. Preview revision is labeled and retained; latest revision refresh cannot silently swap an approved preview.
+
+## Visuals and tests
+
+Desktop `visuals/desktop/HOME-01-default.svg`; iOS `visuals/ios/HOME-01-default.svg`. Per-control tests: HOME-01-AT01, HOME-01-AT02, HOME-01-AT03, HOME-01-AT04, HOME-01-AT05, HOME-01-AT06. Critical state-specific cases are in acceptance/production-cases.md.
+
+## Authoritative daily editorial behavior
+
+See handoff/product-scope-v3.md. Rolling last24hourdeveloper-focused research, all findings reachable, priority descending with source-backed explanations and explicit independent approval/publication. Earlier undated illustrative topics or broader recency filters must not appear as fresh daily news.
+

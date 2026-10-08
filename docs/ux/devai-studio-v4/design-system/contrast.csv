@@ -1,0 +1,13 @@
+Foreground,Background,Ratio,Use,Result
+text,background,11.2,Body text,Pass
+muted,surface,6.05,Secondary text,Pass
+onForest,forest,11.23,Primary button,Pass
+onForest,forestHover,7.88,Hover button,Pass
+error,surface,6.09,Error text,Pass
+warning,surface,4.95,Warning text,Pass
+controlBorder,surface,4.05,Control boundaries,Pass
+focus,background,7.22,Focus indicator,Pass
+sage,surface,2.83,Decorative accent only,Restricted
+border,surface,1.58,Decorative separators only,Restricted
+text,peach,6.86,Accent label,Pass
+forest,successSurface,9.83,Success label,Pass

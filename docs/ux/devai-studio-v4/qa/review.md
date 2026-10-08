@@ -1,0 +1,27 @@
+# Independent design QA — revision3
+
+This revision responds to the prior readiness gaps rather than treating artifact counts as proof. Inspection found and removed generic API descriptions,incorrect all-Home route parents,authentication workspace preconditions,manual art-direction fields and falsely complete storyboard states. It added exact control contracts,optional creation preferences,URL-only extraction/review,voiceover/subtitle actions,reservation resume,actual iPhone viewport artboards,editor timing/trim/save/conflict rules,and specific recovery designs for stale assets,partial slide failure,MP4validation failure,DSTgap/overlap and uncertain publication.
+
+The latest user requirement is authoritative: AI creates complete Instagram artwork and Reel output autonomously. No manual layout/background prompts. App visual tokens do not force every post into forest/cream. New creative-history/planning/diversity/budget contracts prevent exact duplicates,flag similar imagery,and coordinate recent/scheduled concepts across devices. Initial similarity thresholds require calibration before a reliable automated quality claim; the UX for uncertainty,exhausted budgets and intentional series is fully defined.
+
+Automated package checks verified unique screen/control IDs,all A–O workflow identifiers,existing manifest paths,per-control test references,absence of generic API placeholder rows and absence of manual layout input controls. Dedicated state visuals complement written treatments; no individual image is falsely credited to every state. See validation.json,coverage.csv,state-coverage.csv. Visual review inspected carousel and Reel desktop/native editors,focused copy editing,publication DSTchoice,conflict,retained draft errors,and confirmation sheets; rendered vectors are reference designs,not executable UI or Figma components.
+
+## Readiness verdict
+
+Engineering can use the route,screen,interaction,state,API,editor/autopilot and acceptance specifications to build the defined product. This is not certification of an implemented application. The repository lacks multiple required capabilities,identified as proposed contracts. Live provider calls,Meta permissions/account/version-specific limits,workers andnative behavior have not been exercised here. Existing application test execution was not completed; no live generation credit or real publication was used in the audit. Current Meta documentation fetch was rate-limited; Apple HIGpage was JavaScript-only,so linked guidance is not falsely claimed text-reviewed. W3Cfocus-not-obscured and target-size requirements were checked against primary documentation.
+
+Release gates: implement new models/contracts; validate withfake providers/Meta,then authorizedsandbox integrations; calibrate diversity on representative ten-postsequences; test VoiceOver/largestDynamicType/keyboard/reflow on supported devices; run target-creator usability sessions; verify realmedia export/decoding andworker recovery. These are implementation/validation dependencies,not unmade major UXdecisions. No100%all-possible-scenarios claim is made; coverage includes the specified product scope and known failure/recovery cases. Runtime discoveries must update this versioned handoff.
+
+## Product defaults requiring no further design decision
+
+Personal studio withOwner/Editor/Reviewer,publish permissionexplicit; owner mayself-review. English initialrelease; research daily off,Chicago08:00default. Carousel8slides(6–8reviewgate); Reel35sec(30–40gate),1080×1920validatedMP4. Bothindependentapproval/publication. Optionalpreferences; no visualpromptrequired. Auto draftoff,noauto approval/publishing. Cachedprotectedtext onlyoffline;CASautosave800ms.30dayTrash,7dayaccountdeletioncoolingoff. Initialnativebaseline iOS17+subjecttochosen dependency compatibility and release validation. No pricing/subscriptionorenterprisebilling invented.
+
+
+Revision3 visual QA reconciles the supplied reference with authoritative tokens,adds18premiumrasterreferencesandactualAIartworktotheeditablevectors,andrejectsraster-inventedcontrols/tabcounts/dates/progress. The correcteddailyloopislast24hourdeveloperresearch,prioritydescendingandallfindingswithrunhistory/coverage. Exact next-step indexes and interactive workflow blueprint supplement existing control contracts. Every A–O workflow has desktop/native visual references mapped in workflow-visual-coverage.csv. These checks do not establish runtimebehaviororcertifyallfuturepossiblecases.
+
+
+## Revision 4 visual QA
+
+The refreshed build references replace the sparse visual defaults across all 59 screen contracts. Review covered desktop and native contact sheets, plus focused Home, publishing confirmation, version-history and analytics-comparison views. Corrections include consistent forest surfaces, meaningful icons, readable wrapped titles, contextual media, retained editor panels, native tab-bar clipping, playback-only Reel preview, separate comparison layout and proportional media thumbnails. The gallery defaults to current editable build references; older AI mockups are separately labelled style-only.
+
+25 native continuation/contextual views expose below-fold tools without changing wizard steps or state/permission gates. Current visual geometry is defined in polish-v4.md and the token files. All earlier A–O flows and 359 control contracts are retained. Artifact checks do not substitute for accessibility, usability or live-integration tests on an implemented application.

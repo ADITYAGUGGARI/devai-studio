@@ -106,3 +106,9 @@ See [feature status](docs/features.md) for the implemented product areas, operat
 Official-source identity, AI grounding and vision checks cannot establish every fact or catch every image error. Human approval is enforced. External creator originality, real image quality, multi-day operations and live Meta publishing still need verification. Public deployment also needs account authentication, migration operations, backup/monitoring and asset lifecycle controls. Native mobile packaging and an inherited Expo dependency upgrade remain outstanding.
 
 See [feature status](docs/features.md), [workflow](docs/workflow.md), [architecture](docs/architecture.md), [roadmap](docs/roadmap.md), and [contribution standards](CONTRIBUTING.md).
+
+## Desktop and iOS UX design handoff
+
+The [revision 4 design package](docs/ux/devai-studio-v4/README.md) contains the desktop and native iOS designs, all A–O workflow specifications, interaction contracts, API mappings, design tokens, accessibility requirements, acceptance criteria, and implementation roadmap. Download the [original ZIP and self-contained gallery](docs/ux/devai-studio-v4/downloads/README.md), [visual gallery](docs/ux/devai-studio-v4/DevAI-Studio-UX-Gallery.html), [engineering handoff](docs/ux/devai-studio-v4/DevAI-Studio-Engineering-Handoff.html), or [workflow blueprint](docs/ux/devai-studio-v4/DevAI-Studio-Workflow-Blueprint.html). Download HTML files and open them locally to use their interactive views.
+
+This is a design specification, not an implementation milestone. Existing and proposed capabilities are distinguished in the handoff; built-client, provider, Instagram, native accessibility, and usability validation remain required.
