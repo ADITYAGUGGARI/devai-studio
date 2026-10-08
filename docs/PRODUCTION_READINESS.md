@@ -21,7 +21,7 @@ Monitor `/ready`, authenticated `/ops/summary`, stale job leases, failed jobs, m
 
 ## Acceptance blockers and limits
 
-- Full Xcode/iOS runtime and simulator/device walkthrough are absent locally. Hermes export proves bundling, not native runtime behavior. The Maestro flow is prepared but has not been executed.
+- Xcode 27/iOS 27 and Device Hub are installed. Expo Go runs locally and a native review screenshot was inspected. Standalone native packaging requires CocoaPods; the prepared Maestro flow has not yet been executed. Hermes export and a screenshot do not establish complete native acceptance.
 - Meta token, professional account and public HTTPS origin are absent. Official integration and uncertain-outcome controls are tested with isolated adapters, but permissions, public image fetching, container processing and actual publication require a designated test account.
 - Native dependency audit still reports 35 inherited issues (12 moderate, 23 high). Compatible `npm audit fix` did not resolve them; suggested fixes require incompatible Expo/React Native changes. Do not use forced major changes before a supported SDK migration and simulator testing. This blocks an unconditional production security acceptance claim.
 - Sustained daily operation over multiple days, load/capacity testing and operational alert delivery are not verified. Local daily scheduling is enabled, but the agent session is not a managed always-on hosting service.

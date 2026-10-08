@@ -11,6 +11,7 @@ import { GenerationForm } from '../features/research/GenerationForm';
 import { request } from '../services/api';
 import { JobPanel } from '../features/workflow/JobPanel';
 import { TopicQueue } from '../features/workflow/TopicQueue';
+import { StudioOverview } from '../features/StudioOverview';
 import type {
   Job,
   Topic,
@@ -92,7 +93,11 @@ export function App() {
   const create = () => openDraft('/posts', samplePost);
   const generate = (source: SourceInput) => run(() => request('/topics', 'POST', source));
   const runDaily = () => run(() => request('/research/daily/run', 'POST'));
-  const regenerateResearch = () => run(() => request('/research/refresh', 'POST'));
+  const regenerateResearch = () =>
+    run(async () => {
+      await request('/research/refresh', 'POST');
+      setTab('Activity');
+    });
   const visibleError = error || queryError?.message || jobsError?.message || topicsError?.message;
 
   return (
@@ -103,19 +108,21 @@ export function App() {
         </div>
         <div className="workspace">WORKSPACE</div>
         <nav>
-          {['Overview', 'Library', 'Publishing', 'Operations'].map((name) => (
-            <button
-              key={name}
-              disabled={busy}
-              className={tab === name ? 'nav active' : 'nav'}
-              onClick={() => {
-                setTab(name);
-                setId(null);
-              }}
-            >
-              {name}
-            </button>
-          ))}
+          {['Overview', 'Research', 'Library', 'Publishing', 'Activity', 'Operations'].map(
+            (name) => (
+              <button
+                key={name}
+                disabled={busy}
+                className={tab === name ? 'nav active' : 'nav'}
+                onClick={() => {
+                  setTab(name);
+                  setId(null);
+                }}
+              >
+                {name}
+              </button>
+            ),
+          )}
         </nav>
         <div className="sidefoot">Creator workspace · Private review</div>
       </aside>
@@ -137,19 +144,21 @@ export function App() {
           </button>
         </header>
         <nav className="mobile-nav" aria-label="Workspace navigation">
-          {['Overview', 'Library', 'Publishing', 'Operations'].map((name) => (
-            <button
-              key={name}
-              aria-current={tab === name ? 'page' : undefined}
-              className={tab === name ? 'nav active' : 'nav'}
-              onClick={() => {
-                setTab(name);
-                setId(null);
-              }}
-            >
-              {name}
-            </button>
-          ))}
+          {['Overview', 'Research', 'Library', 'Publishing', 'Activity', 'Operations'].map(
+            (name) => (
+              <button
+                key={name}
+                aria-current={tab === name ? 'page' : undefined}
+                className={tab === name ? 'nav active' : 'nav'}
+                onClick={() => {
+                  setTab(name);
+                  setId(null);
+                }}
+              >
+                {name}
+              </button>
+            ),
+          )}
         </nav>
         <div className="content">
           <div className="topline">
@@ -158,32 +167,48 @@ export function App() {
               <h1>
                 {active ? 'Review content' : tab === 'Overview' ? 'Good morning, creator.' : tab}
               </h1>
-              <p className="subtitle">Turn emerging AI stories into exceptional content.</p>
+              <p className="subtitle">
+                {active
+                  ? 'Review one carousel, one version at a time.'
+                  : tab === 'Overview'
+                    ? 'Your content studio. One clear next step.'
+                    : tab === 'Research'
+                      ? 'Choose a credible story worth explaining.'
+                      : tab === 'Library'
+                        ? 'Pick up a draft where you left off.'
+                        : tab === 'Activity'
+                          ? 'Background progress and recovery, in one place.'
+                          : 'Your developer content workspace.'}
+              </p>
             </div>
-            <button className="primary" onClick={create} disabled={busy}>
-              + New draft
-            </button>
+            {tab === 'Library' && !active && (
+              <button className="primary" onClick={create} disabled={busy}>
+                + New draft
+              </button>
+            )}
           </div>
           {visibleError && (
             <div className="error" role="alert">
               {visibleError}
             </div>
           )}
-          <JobPanel
-            jobs={
-              active
-                ? jobs.filter(
-                    (job) =>
-                      job.payload.post_id === active.id &&
-                      String(job.payload.version) === active.version,
-                  )
-                : jobs
-            }
-            config={config}
-            busy={busy || !canWrite}
-            onAction={run}
-            onOpen={openPost}
-          />
+          {(active || tab === 'Activity') && (
+            <JobPanel
+              jobs={
+                active
+                  ? jobs.filter(
+                      (job) =>
+                        job.payload.post_id === active.id &&
+                        String(job.payload.version) === active.version,
+                    )
+                  : jobs
+              }
+              config={config}
+              busy={busy || !canWrite}
+              onAction={run}
+              onOpen={openPost}
+            />
+          )}
           {active ? (
             <PostEditor
               key={active.id}
@@ -198,34 +223,53 @@ export function App() {
             <PublishingWorkspace posts={data} busy={busy} onAction={run} onOpen={openPost} />
           ) : tab === 'Operations' ? (
             <OperationsWorkspace busy={busy} onAction={run} />
-          ) : (
+          ) : tab === 'Overview' ? (
+            <StudioOverview
+              posts={data}
+              topics={topics}
+              jobs={jobs}
+              onOpen={openPost}
+              onNavigate={(name) => {
+                setTab(name);
+                setId(null);
+              }}
+            />
+          ) : tab === 'Research' ? (
             <>
-              <DailyRunPanel
-                summary={daily}
-                loading={dailyLoading}
-                busy={busy}
-                onRun={runDaily}
-                onRegenerate={regenerateResearch}
-              />
+              <details className="panel research-status">
+                <summary>Daily research status</summary>
+                <DailyRunPanel
+                  summary={daily}
+                  loading={dailyLoading}
+                  busy={busy}
+                  onRun={runDaily}
+                  onRegenerate={regenerateResearch}
+                />
+              </details>
               <TopicQueue
                 topics={topics}
                 busy={busy || !canWrite}
                 onAction={run}
                 onOpen={openPost}
+                onBackgroundWork={() => setTab('Activity')}
               />
-              <GenerationForm busy={busy || !canWrite} onGenerate={generate} />
-              <PostLibrary
-                posts={data}
-                loading={isLoading}
-                busy={busy}
-                onCreate={create}
-                onSelect={(post) => {
-                  setId(post.id);
-                  setTab('Library');
-                }}
-              />
+              <details className="panel">
+                <summary>Add your own source</summary>
+                <GenerationForm busy={busy || !canWrite} onGenerate={generate} />
+              </details>
             </>
-          )}
+          ) : tab === 'Library' ? (
+            <PostLibrary
+              posts={data}
+              loading={isLoading}
+              busy={busy}
+              onCreate={create}
+              onSelect={(post) => {
+                setId(post.id);
+                setTab('Library');
+              }}
+            />
+          ) : null}
         </div>
       </main>
     </div>

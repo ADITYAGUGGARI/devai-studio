@@ -191,12 +191,33 @@ async function mockApi(
   return mutations;
 }
 
+test('focused workspaces keep research, drafts and diagnostics separate', async ({ page }) => {
+  await mockApi(page, { draft: true, warnings: true });
+  await page.goto('/');
+  await expect(
+    page.getByRole('heading', { name: 'Give your next story the final touch.' }),
+  ).toBeVisible();
+  await expect(page.getByLabel('Story headline')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Prioritized topic queue' })).toHaveCount(0);
+  await expect(page.getByText('completed with warnings', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await expect(page.getByRole('heading', { name: 'Prioritized topic queue' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Content library' })).toHaveCount(0);
+  await expect(page.getByLabel('Story headline')).not.toBeVisible();
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
+  await expect(page.getByRole('heading', { name: 'Content library' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Prioritized topic queue' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Activity', exact: true }).first().click();
+  await expect(page.getByText('completed with warnings', { exact: true })).toBeVisible();
+});
+
 test('preserves dashboard and exposes persistent research progress', async ({ page }) => {
   const calls = await mockApi(page);
   await page.goto('/');
   await expect(page.getByText('devai studio')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Overview', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Refresh research' }).click();
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Refresh research', exact: true }).click();
   await expect(page.getByText('Checking primary-source evidence', { exact: false })).toBeVisible();
   await expect(page.getByRole('progressbar', { name: 'research progress' })).toHaveAttribute(
     'value',
@@ -209,6 +230,8 @@ test('preserves dashboard and exposes persistent research progress', async ({ pa
 test('manual evidence must be verified before selecting six-slide generation', async ({ page }) => {
   const calls = await mockApi(page);
   await page.goto('/');
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByText('Add your own source', { exact: true }).click();
   await page.getByLabel('Story headline').fill('Manual source for developers');
   await page.getByLabel('Primary source URL').fill(source);
   await page.getByLabel('Source excerpt (at least 240 characters)').fill(topic.excerpt);
@@ -231,6 +254,7 @@ test('manual evidence must be verified before selecting six-slide generation', a
 test('human review and configuration gate publishing from existing editor', async ({ page }) => {
   const calls = await mockApi(page, { draft: true, publishing: true });
   await page.goto('/');
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
   await page.getByRole('button', { name: /AI \/ ENGINEERING/ }).click();
   await page.getByRole('button', { name: 'Submit for review', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Approve', exact: true })).toBeDisabled();
@@ -250,6 +274,7 @@ test('human review and configuration gate publishing from existing editor', asyn
 test('failed jobs can be retried visibly', async ({ page }) => {
   const calls = await mockApi(page, { failed: true });
   await page.goto('/');
+  await page.getByRole('button', { name: 'Activity', exact: true }).first().click();
   await page.getByRole('button', { name: 'Retry job', exact: true }).click();
   expect(calls[0].path).toBe('/jobs/job-1/retry');
   await expect(page.getByText('queued', { exact: true })).toBeVisible();
@@ -260,6 +285,7 @@ test('partial research shows warning status, topic counts and expandable source 
 }) => {
   await mockApi(page, { warnings: true });
   await page.goto('/');
+  await page.getByRole('button', { name: 'Activity', exact: true }).first().click();
   await expect(page.getByText('completed with warnings', { exact: true })).toBeVisible();
   await expect(
     page.getByText('1 new topics added · 1 sources already queued or used'),
@@ -319,6 +345,8 @@ for (const status of ['completed_with_warnings', 'running', 'failed']) {
       });
     });
     await page.goto('/');
+    await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+    await page.getByText('Daily research status', { exact: true }).click();
     const panel = page.getByRole('region', { name: 'AI news and developer impact' });
     await expect(panel.getByText('Latest research refresh ·', { exact: false })).toBeVisible();
     await expect(
@@ -374,6 +402,7 @@ test('failed grounding jobs show claim-level evidence without exposing an approv
     });
   });
   await page.goto('/');
+  await page.getByRole('button', { name: 'Activity', exact: true }).first().click();
   await page.getByText('Review grounding report', { exact: true }).click();
   await expect(page.getByRole('listitem').filter({ hasText: 'Claim 1:' })).toContainText(
     '99.9% accuracy',

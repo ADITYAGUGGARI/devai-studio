@@ -17,6 +17,19 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   await expect(page.getByText('devai studio')).toBeVisible();
   await page.reload();
   await expect(page.getByText('devai studio')).toBeVisible();
+  await page.screenshot({ path: 'test-results/overview-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    page.getByRole('heading', { name: 'Give your next story the final touch.' }),
+  ).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await page.screenshot({ path: 'test-results/overview-phone.png', fullPage: true });
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByText('Add your own source', { exact: true }).click();
   await page.getByLabel('Story headline').fill('Isolated browser test: source retrieval contract');
   await page.getByLabel('Primary source URL').fill('https://example.test/e2e-source');
   await page

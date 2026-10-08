@@ -8,7 +8,8 @@ appId: com.devai.studio
 - inputText: Isolated-e2e-password-12345
 - hideKeyboard
 - tapOn: Sign in
-- assertVisible: Research
+- assertVisible: Your studio, today
+- tapOn: Discover
 - tapOn: Add source to queue
 - tapOn: Story headline
 - inputText: Isolated native source review test
@@ -20,6 +21,7 @@ appId: com.devai.studio
 - scrollUntilVisible:
     element: Save source
 - tapOn: Save source
+- tapOn: Review saved evidence
 - scrollUntilVisible:
     element: I reviewed and verified this evidence
 - tapOn: I reviewed and verified this evidence
@@ -27,11 +29,14 @@ appId: com.devai.studio
     element: Approve topic
 - tapOn: Approve topic
 - assertVisible: Generate eight-slide carousel
+- back
+- back
 - tapOn: Library
 - assertVisible: Content library
 - tapOn: Publishing
 - assertVisible: Publishing
-- tapOn: Operations
+- tapOn: Today
+- tapOn: Settings
 - assertVisible: 'Database · postgresql'
 - takeScreenshot: native-operations
 - scrollUntilVisible:

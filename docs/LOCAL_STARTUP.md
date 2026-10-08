@@ -26,3 +26,9 @@ Stop API and workers before `PYTHONPATH=api/src .venv/bin/python -m devai.transf
 - For native acceptance: install full Xcode and an iOS runtime; install Maestro. Start `PYTHONPATH=api/src .venv/bin/python scripts/e2e_server.py`, set `EXPO_PUBLIC_API_URL=http://127.0.0.1:8124` for a simulator development build, then run `npx expo run:ios` from `mobile` and `maestro test mobile/.maestro/editorial.yaml` from the root. Use a fresh isolated simulator. Never run these test credentials against production.
 
 Screenshot baselines are platform-specific. Inspect changed images before accepting new baselines. Provider tests incur real usage and must never publish during automated acceptance.
+
+## Focused navigation
+
+On mobile, Today offers your next action. Discover holds ranked stories; tap one to review its saved evidence and approve it. Search and manual source entry are separate screens. Library opens a carousel with Slides/Copy/Approval/History sections. Use Activity for diagnostics and retries; Settings is reached from Today. The web equivalents are Overview, Research, Library, Publishing, Activity and Operations. See `UX_DESIGN.md`.
+
+On Xcode 27, use **Xcode > Open Developer Tool > Device Hub** to view the running iOS simulator. The current SDK 54 app can be opened in a matching Expo Go simulator runtime with `npx expo start --localhost` and `exp://127.0.0.1:8081`; this avoids standalone CocoaPods compilation. The Simulator menu instructions from earlier Xcode versions do not apply to Device Hub.

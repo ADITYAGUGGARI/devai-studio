@@ -2,6 +2,7 @@
 
 ## Implemented in the current workflow
 
+- AI-assisted UX wireframe, focused mobile Today/Discover/Library/Publishing navigation, separate source/job screens and sectioned review; web workspaces separated by purpose.
 - Persistent prioritized research queue and manual topic selection.
 - Complete capped RSS/Atom parsing, full feed evidence, publisher-only redirects and grouped source diagnostics with explicit partial-success status and topic counts.
 - Source-grounded 6–8-slide writing with citations and independent evidence audit.

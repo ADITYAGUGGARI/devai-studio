@@ -9,9 +9,10 @@ interface Props {
   busy: boolean;
   onAction: (operation: () => Promise<unknown>) => Promise<void>;
   onOpen: (id: string) => void;
+  onBackgroundWork: () => void;
 }
 
-export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
+export function TopicQueue({ topics, busy, onAction, onOpen, onBackgroundWork }: Props) {
   const account = useAtomValue(accountAtom);
   const canReview = ['admin', 'reviewer'].includes(account?.role || '');
   const [selected, setSelected] = useState('');
@@ -30,7 +31,12 @@ export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
         <button
           className="secondary"
           disabled={busy}
-          onClick={() => onAction(() => request('/research/refresh', 'POST'))}
+          onClick={() =>
+            onAction(async () => {
+              await request('/research/refresh', 'POST');
+              onBackgroundWork();
+            })
+          }
         >
           Refresh research
         </button>
@@ -43,7 +49,10 @@ export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
         onSubmit={(e) => {
           e.preventDefault();
           const query = new FormData(e.currentTarget).get('query');
-          void onAction(() => request('/research/search', 'POST', { query }));
+          void onAction(async () => {
+            await request('/research/search', 'POST', { query });
+            onBackgroundWork();
+          });
         }}
       >
         <label>
@@ -239,9 +248,13 @@ export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
         className="primary"
         disabled={busy || !eligible}
         onClick={() =>
-          onAction(() =>
-            request(`/topics/${selectedId}/generate`, 'POST', { slide_count: count, artwork }),
-          )
+          onAction(async () => {
+            await request(`/topics/${selectedId}/generate`, 'POST', {
+              slide_count: count,
+              artwork,
+            });
+            onBackgroundWork();
+          })
         }
       >
         Generate selected topic · {count} slides
