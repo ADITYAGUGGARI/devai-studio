@@ -1,3 +1,5 @@
+import { useAtomValue } from 'jotai';
+import { accountAtom } from '../../app/state';
 import { useState } from 'react';
 import type { Topic } from '../../types/posts';
 import { request } from '../../services/api';
@@ -10,6 +12,8 @@ interface Props {
 }
 
 export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
+  const account = useAtomValue(accountAtom);
+  const canReview = ['admin', 'reviewer'].includes(account?.role || '');
   const [selected, setSelected] = useState('');
   const [category, setCategory] = useState('all');
   const [count, setCount] = useState(8);
@@ -17,7 +21,8 @@ export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
   const [showArchived, setShowArchived] = useState(false);
   const selectedId = selected || topics.find((item) => item.selected)?.id || '';
   const topic = topics.find((item) => item.id === selectedId);
-  const eligible = topic?.status === 'queued' && topic.verification !== 'unverified';
+  const eligible =
+    topic?.status === 'queued' && topic.verification !== 'unverified' && topic.approved;
   return (
     <section className="panel" aria-labelledby="topic-heading">
       <div className="sectiontitle">
@@ -34,6 +39,27 @@ export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
         Primary-source excerpts are saved with dates and citations. Rankings favor recent, practical
         engineering stories. Review a topic’s evidence before choosing it.
       </p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const query = new FormData(e.currentTarget).get('query');
+          void onAction(() => request('/research/search', 'POST', { query }));
+        }}
+      >
+        <label>
+          Search current developer news
+          <input
+            name="query"
+            minLength={5}
+            maxLength={300}
+            placeholder="AI coding agents, evaluation, production RAG…"
+            required
+          />
+        </label>
+        <button className="secondary" disabled={busy}>
+          Search primary sources
+        </button>
+      </form>
       <div className="actions">
         <label>
           Category
@@ -108,6 +134,16 @@ export function TopicQueue({ topics, busy, onAction, onOpen }: Props) {
                 <summary>Review saved evidence</summary>
                 <p>{item.excerpt}</p>
               </details>
+              {item.status === 'queued' && item.verification !== 'unverified' && !item.approved && (
+                <button
+                  className="secondary"
+                  disabled={busy || !canReview}
+                  onClick={() => onAction(() => request(`/topics/${item.id}/approve`, 'POST'))}
+                >
+                  Approve topic
+                </button>
+              )}
+              {item.approved && <span className="hint">Topic approved for generation</span>}
               {item.status === 'queued' && item.verification === 'unverified' && (
                 <details>
                   <summary>Update source evidence</summary>

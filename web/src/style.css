@@ -383,3 +383,67 @@ progress {
   width: 100%;
   accent-color: #9d8bff;
 }
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.auth-card {
+  width: min(460px, 100%);
+  gap: 18px;
+}
+.auth-card h1 {
+  font-size: 34px;
+}
+.mobile-nav {
+  display: none;
+}
+.table-scroll {
+  overflow: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #393d5c;
+}
+caption {
+  text-align: left;
+  color: #b6bdd9;
+  margin: 12px 0;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #bbaaff;
+  outline-offset: 3px;
+}
+@media (max-width: 900px) {
+  .mobile-nav {
+    display: flex;
+    gap: 4px;
+    padding: 8px 16px;
+    overflow: auto;
+  }
+  header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

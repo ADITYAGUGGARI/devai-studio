@@ -16,6 +16,14 @@ from devai.services.source_urls import canonical_source_url
 from devai.services.verification import GroundingError, verify_copy
 
 
+class ResearchEvidenceError(ValueError):
+    def __init__(self, report):
+        super().__init__(
+            "No dated primary source with enough readable evidence was found. Retry research or add a verified source manually."
+        )
+        self.report = report
+
+
 def serialise_topic(topic: Topic) -> dict:
     data = {
         k: getattr(topic, k)
@@ -107,10 +115,16 @@ def research_queue(session_factory, *, progress=lambda *_: None, discover_fn=Non
             skipped.append(url)
     progress(len(articles), max(1, len(articles)), "Research saved to topic queue")
     if not created and not skipped:
-        raise ValueError(
-            "No dated primary source with enough readable evidence was found. Retry research or add a verified source manually."
+        raise ResearchEvidenceError(
+            {
+                "warnings": report["errors"],
+                "searched_urls": report.get("searched_urls", []),
+                "created_topic_ids": [],
+                "skipped_urls": [],
+            }
         )
     return {
+        "searched_urls": report.get("searched_urls", []),
         "created_topic_ids": created,
         "skipped_urls": skipped,
         "warnings": [
@@ -131,6 +145,10 @@ def create_from_topic(
             return {"post_id": topic.post_id}
         if topic.verification not in {"primary_source", "human_verified"}:
             raise ValueError("Review and verify the source before generating")
+        from devai.services.operations import approved_topic
+
+        if not approved_topic(db, topic):
+            raise ValueError("Approve the topic before generating")
         if topic.status == "archived" or (topic.job_id and topic.job_id != job_id):
             raise ValueError("Topic is archived or already being generated")
         topic.status, topic.job_id, topic.error = "generating", job_id, None
@@ -180,6 +198,7 @@ def create_from_topic(
                 verification_json=json.dumps(report),
             )
         )
+        db.flush()
         db.add(
             SourceCandidate(
                 id=str(uuid.uuid4()),

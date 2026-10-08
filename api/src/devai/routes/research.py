@@ -37,6 +37,7 @@ def research_draft(data: ResearchDraftInput, session_factory: SessionFactory):
     with session_factory.begin() as db:
         p = Post(id=str(uuid.uuid4()), title=payload["title"], caption=payload["caption"])
         db.add(p)
+        db.flush()
         for i, s in enumerate(payload["slides"], 1):
             db.add(
                 Slide(
@@ -86,6 +87,7 @@ def generate_post(data: GenerateInput, session_factory: SessionFactory):
     with session_factory.begin() as db:
         p = Post(id=str(uuid.uuid4()), title=generated["title"], caption=generated["caption"])
         db.add(p)
+        db.flush()
         db.add(
             SourceCandidate(
                 id=str(uuid.uuid4()),

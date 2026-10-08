@@ -1,0 +1,36 @@
+# Implementation status
+
+Working branch: `feat/complete-product`. Checkpoint: `checkpoint/pre-complete-product-036fb71`.
+The existing app and local SQLite data were preserved; the existing data was backed up and transferred to PostgreSQL. Production publishing/deployment was not performed.
+
+| ID | Requirement | Status | Source files | Verification evidence | Known limits |
+| --- | --- | --- | --- | --- | --- |
+| R01 | Inspect and preserve existing app | Verified | Existing `api/`, `web/`, `mobile/`; `docs/LOCAL_STARTUP.md` | Existing repo inspected; checkpoint retained; SQLite-to-PostgreSQL transfer and disposable restore verified | None |
+| R02 | React/Vite/TypeScript/Jotai web journeys | Verified | `web/src/`, `web/tests/connected/` | `make check`; two real-backend Playwright journeys passed with axe and visual snapshots | Browser visual snapshots are platform-specific |
+| R03 | Expo/React Native/TypeScript/Jotai journeys | Implemented; native run blocked | `mobile/src/`, `mobile/.maestro/` | Typecheck and iOS Expo bundle export passed; Maestro flow is written | Selected Xcode bundle lacks its `Developer/Applications` and iOS Simulator app; CocoaPods unavailable, so native simulator E2E and visual verification could not run |
+| R04 | Authentication and authorization | Verified | `api/src/devai/core/auth.py`, `routes/accounts.py`, web/mobile account UI | 107 API tests; browser session, sign-out, unauthorized request and role-sensitive operations covered | Bootstrap credentials must be changed for deployment; account provisioning is administrator-controlled |
+| R05 | PostgreSQL, schema migration, recovery | Verified | `core/database.py`, `migrations/`, `migrate.py`, `transfer.py`, `docker-compose.yml` | PostgreSQL-backed suite: 107 passed; backup and restore into disposable DB verified | Production backup schedule/restore drill remains an operator task |
+| R06 | Daily/manual research from real sources | Implemented; live run warning-bearing | `services/search.py`, `services/research.py`, `services/daily.py`, `scheduler.py`, research routes | Live sources/search were exercised; failed feeds and insufficient evidence are surfaced without inventing topics | Some publishers are inaccessible or provide parse errors; provider quota/access can limit a run |
+| R07 | Persistent ranked queue, approval, duplicates | Verified | `services/topics.py`, `routes/workflow.py`, web/mobile research screens | API tests and real PostgreSQL Playwright approval journey passed | Novelty checks cannot inspect every private Instagram post |
+| R08 | Original eight-slide copy and individual AI images | Live provider verified | `services/generation.py`, `services/artwork.py`, `services/provider.py` | Live provider generated eight validated images; individual slide regeneration succeeded; real image set reviewed and exported | Requires valid OpenAI project billing/quota and supported image model access |
+| R09 | Captions, hashtags, history, ZIP export | Verified | post routes, rendering/export services, `VersionHistory.tsx`, mobile library | Real image artifact reviewed in browser; ZIP download passed; edit/restore and version invalidation passed | Export is generated on demand; users retain responsibility to review the final asset |
+| R10 | Human approval, schedule, Instagram publishing | Implemented; live external verification blocked | `services/managed_publishing.py`, publishing routes and web/mobile screens | Approval gating and disabled publishing without Meta configuration verified in browser and API tests | Requires Meta app/account permissions and a public HTTPS callback/origin; no live post was published |
+| R11 | Jobs, retries, operations, cost tracking, config | Verified | `services/jobs.py`, `worker.py`, `services/operations.py`, `services/usage.py` | Unit/API suites cover durable jobs, retries and operations; local PostgreSQL app health returned ready | Production telemetry, alert delivery, secret manager and cost budgets need deployment configuration |
+| R12 | Backend/API/integration/recovery tests | Verified | `api/tests/`, `scripts/` | 107 tests passed against PostgreSQL, including recovery and workflow behavior | External providers are not live-tested in ordinary test suite |
+| R13 | Web connected E2E, accessibility, visuals | Verified | `web/tests/connected/`, `playwright.connected.config.ts` | `2 passed`; actual PostgreSQL backend, account, queue, review, approval gating, image review, ZIP, version restore and axe checks | Test artifact is a real provider result isolated in a disposable test schema |
+| R14 | iOS simulator E2E and visual verification | Blocked by installed toolchain | `mobile/.maestro/editorial.yaml` | Expo iOS JS bundle export succeeded; simulator device list was available once | `expo run:ios` cannot proceed: selected Xcode bundle has no Simulator app/developer Applications, CocoaPods install failed; install a complete Xcode/Simulator + CocoaPods to execute Maestro |
+| R15 | Live provider verification | Partially verified | `scripts/live_acceptance.py`, `services/provider.py`, `services/search.py` | Actual research attempts, eight image generations and one image regeneration were performed; provider output passed image validation | A later daily run surfaced OpenAI HTTP 403/quota/access and source warnings; Meta publishing credentials absent |
+| R16 | Reproducible local start and deployment readiness | Verified for local development; production gated | `Makefile`, `docker-compose.yml`, `docs/LOCAL_STARTUP.md`, `docs/PRODUCTION_READINESS.md` | API health returned `ready` on PostgreSQL; web build, lint, TS checks and backend tests passed | Production security review, credential rotation, deployment secrets, HTTPS, Meta approval, and iOS toolchain remain |
+
+## Latest verification
+
+- `make check`: passed (Ruff, formatting, 107 API tests, ESLint, TypeScript for web/mobile, Vite production build).
+- `make test-postgres`: passed, 107 tests against the local PostgreSQL service.
+- `npm run test:e2e:connected` with the real generated-carousel fixture: 2 passed against isolated PostgreSQL; accessibility checks passed.
+- `npx expo export --platform ios`: passed. `npx expo run:ios` stopped before compilation because the installed Xcode bundle has no Simulator app and CocoaPods is unavailable.
+- Real provider use produced eight individually generated/validated images, successful slide regeneration, and a ZIP export. Live provider availability is account/quota-dependent.
+- No secrets or local `.env` files are intended for Git. `.local-data/` and provider artifacts are ignored.
+
+## Resume instructions
+
+From `/Users/aditya/Desktop/local/devai-studio`, run `make dev-api` and `make dev-web`; see `docs/LOCAL_STARTUP.md` for PostgreSQL, scheduler, and worker setup. To finish native verification, install a full Xcode distribution containing `Simulator.app`, install CocoaPods, then run the isolated E2E server and `npx expo run:ios` followed by `maestro test mobile/.maestro/editorial.yaml`. Meta credentials and a publicly reachable HTTPS app origin are required before testing actual Instagram publishing. Never use the isolated browser/native test credentials outside a local disposable test database.

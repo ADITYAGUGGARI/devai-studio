@@ -1,6 +1,7 @@
 """Server-only JSON requests with bounded timeouts and safe provider errors."""
 
 import os
+import time
 
 import httpx
 
@@ -12,6 +13,9 @@ class ProviderError(RuntimeError):
 
 
 def post_json(path: str, payload: dict, *, timeout: int = 180) -> dict:
+    from devai.services.usage import record_usage
+
+    started = time.monotonic()
     key = os.getenv("OPENAI_API_KEY", "").strip()
     if not key:
         raise ProviderError("OPENAI_API_KEY is not configured; set it on the server and restart")
@@ -23,10 +27,24 @@ def post_json(path: str, payload: dict, *, timeout: int = 180) -> dict:
             timeout=timeout,
         )
     except httpx.RequestError as exc:
+        record_usage(
+            path,
+            payload.get("model", "unknown"),
+            {},
+            int((time.monotonic() - started) * 1000),
+            "failed",
+        )
         raise ProviderError(
             "OpenAI request timed out or could not connect", retryable=True
         ) from exc
     if response.is_error:
+        record_usage(
+            path,
+            payload.get("model", "unknown"),
+            {},
+            int((time.monotonic() - started) * 1000),
+            "failed",
+        )
         code = response.status_code
         reason = ""
         try:
@@ -43,4 +61,8 @@ def post_json(path: str, payload: dict, *, timeout: int = 180) -> dict:
             ),
             retryable=(code == 429 and not quota) or code >= 500,
         )
-    return response.json()
+    result = response.json()
+    record_usage(
+        path, payload.get("model", "unknown"), result, int((time.monotonic() - started) * 1000)
+    )
+    return result

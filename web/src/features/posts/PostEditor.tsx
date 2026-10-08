@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useAtomValue } from 'jotai';
+import { accountAtom } from '../../app/state';
 import { downloadPost, request } from '../../services/api';
 import type { Job, Post, ReviewAction, WorkflowConfig } from '../../types/posts';
 import { SlidePreview } from './SlidePreview';
+import { VersionHistory } from './VersionHistory';
 
 interface Props {
   post: Post;
@@ -13,6 +16,8 @@ interface Props {
 }
 
 export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props) {
+  const account = useAtomValue(accountAtom);
+  const canReview = ['admin', 'reviewer'].includes(account?.role || '');
   const [index, setIndex] = useState(0);
   const [title, setTitle] = useState(post.title);
   const [caption, setCaption] = useState(post.caption);
@@ -20,6 +25,15 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
   const [body, setBody] = useState(post.slides[0]?.body || '');
   const [reviewed, setReviewed] = useState(false);
   useEffect(() => setReviewed(false), [post.version]);
+  const previousVersion = useRef(post.version);
+  useEffect(() => {
+    if (previousVersion.current === post.version) return;
+    previousVersion.current = post.version;
+    setTitle(post.title);
+    setCaption(post.caption);
+    setHeadline(post.slides[index]?.headline || '');
+    setBody(post.slides[index]?.body || '');
+  }, [post.version, post.title, post.caption, post.slides, index]);
   const [confirmedPublished, setConfirmedPublished] = useState(false);
   const [externalId, setExternalId] = useState('');
   const [reconcileNote, setReconcileNote] = useState('');
@@ -27,9 +41,15 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
     (job) =>
       job.payload.post_id === post.id && ['queued', 'running', 'retry_wait'].includes(job.status),
   );
-  const locked = busy || jobActive || post.status === 'publishing' || post.status === 'published';
+  const locked =
+    busy ||
+    account?.role === 'viewer' ||
+    jobActive ||
+    post.status === 'publishing' ||
+    post.status === 'published';
   const ready = Boolean(
     post.evidence &&
+    post.verification?.supported &&
     post.caption.includes(post.evidence.source_url) &&
     post.slides.length >= 6 &&
     post.slides.length <= 8 &&
@@ -58,6 +78,19 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
         </button>
         <span className={`pill ${post.status}`}>{post.status.replace('_', ' ')}</span>
       </div>
+      <VersionHistory id={post.id} version={post.version} locked={locked} onAction={onAction} />
+      {!post.verification?.supported && (
+        <div className="panel">
+          <p className="run-warning">Current copy needs source grounding before approval.</p>
+          <button
+            className="secondary"
+            disabled={locked}
+            onClick={() => onAction(() => request(`/posts/${post.id}/verify`, 'POST'))}
+          >
+            Verify current copy against source
+          </button>
+        </div>
+      )}
       <div className="reviewgrid">
         <SlidePreview postId={post.id} slides={post.slides} index={index} onChange={changeSlide} />
         <section className="editor">
@@ -251,14 +284,14 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
                 <>
                   <button
                     className="primary"
-                    disabled={locked || !ready || !reviewed}
+                    disabled={locked || !canReview || !ready || !reviewed}
                     onClick={() => transition('approve')}
                   >
                     Approve
                   </button>
                   <button
                     className="secondary"
-                    disabled={locked}
+                    disabled={locked || !canReview}
                     onClick={() => transition('reject')}
                   >
                     Reject
@@ -274,7 +307,10 @@ export function PostEditor({ post, busy, jobs, config, onBack, onAction }: Props
                 <button
                   className="primary"
                   disabled={
-                    locked || !config?.instagram_configured || !config?.public_media_configured
+                    locked ||
+                    !canReview ||
+                    !config?.instagram_configured ||
+                    !config?.public_media_configured
                   }
                   onClick={() => onAction(() => request(`/posts/${post.id}/publish`, 'POST'))}
                 >

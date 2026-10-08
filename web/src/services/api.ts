@@ -1,11 +1,15 @@
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 // Development-only credential: Vite values are visible in the browser bundle.
-const API_KEY = import.meta.env.VITE_ADMIN_API_KEY || 'local-dev-only';
+const API_KEY =
+  import.meta.env.VITE_DEV_API_KEY_ENABLED === 'true'
+    ? import.meta.env.VITE_ADMIN_API_KEY
+    : undefined;
 
 async function fetchApi(path: string, method = 'GET', body?: unknown): Promise<Response> {
   const response = await fetch(API_URL + path, {
     method,
-    headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+    headers: { 'Content-Type': 'application/json', ...(API_KEY ? { 'X-API-Key': API_KEY } : {}) },
+    credentials: 'include',
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!response.ok) {

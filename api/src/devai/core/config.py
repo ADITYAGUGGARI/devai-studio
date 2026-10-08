@@ -35,6 +35,15 @@ class Settings:
     )
 
     def __post_init__(self):
+        if os.getenv("APP_ENV") == "production":
+            if not self.database_url.startswith("postgresql"):
+                raise ValueError("Production requires PostgreSQL")
+            if os.getenv("ALLOW_DEV_API_KEY", "true").lower() != "false":
+                raise ValueError("Disable development API keys in production")
+            if os.getenv("COOKIE_SECURE", "false").lower() != "true":
+                raise ValueError("Production requires secure cookies")
+            if any(not origin.startswith("https://") for origin in self.cors_origins):
+                raise ValueError("Production CORS origins must use HTTPS")
         if not self.admin_api_key:
             raise ValueError("ADMIN_API_KEY must not be empty")
         if not 0 <= self.daily_hour <= 23:

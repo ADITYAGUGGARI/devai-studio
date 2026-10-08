@@ -15,7 +15,9 @@
 1. Review a real generated carousel across all supported image/vision configurations; measure lettering errors and validation false negatives.
 2. Validate public JPEG retrieval, Meta app permissions, container processing and publication with a designated Instagram test account.
 3. Validate sustained daily operation and feed health over multiple days; add ranking quality feedback from reviewed posts. OpenAI article pages currently return HTTP 403 to the local server; short feed summaries remain excluded rather than treated as sufficient evidence.
-4. Add account-grade authentication and authorization before exposing the dashboard beyond local use.
-5. Add versioned production migration tooling, backups, monitoring, asset retention/cleanup and load testing of concurrent PostgreSQL workers.
-6. Validate the mobile review app on iOS/Android and upgrade inherited Expo dependencies with device tests.
+4. Complete iOS simulator/device acceptance with full Xcode and run the prepared Maestro flow.
+5. Resolve inherited native dependency security advisories with a supported Expo SDK migration and simulator regression.
+6. Verify TLS ingress, operational alerts, storage retention and concurrent-worker capacity before public deployment.
 7. Expand originality comparisons with accessible external content; never claim uniqueness across all Instagram accounts.
+
+Account roles/sessions, PostgreSQL migration/adoption, backups with restore verification, usage/monitoring, publishing schedules, version restore and connected browser tests are implemented. See IMPLEMENTATION_STATUS.md for current evidence.

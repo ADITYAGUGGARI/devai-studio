@@ -72,6 +72,7 @@ def ingest(session_factory, candidate_model, post_model, slide_model, audit_mode
             content = create_editorial_draft(payload)
             post_id = str(uuid.uuid4())
             db.add(post_model(id=post_id, title=content["title"], caption=content["caption"]))
+            db.flush()
             db.add(
                 candidate_model(
                     id=str(uuid.uuid4()),
@@ -356,6 +357,7 @@ def run_daily_pipeline(
             post_id = str(uuid.uuid4())
             post = Post(id=post_id, title=generated["title"], caption=caption)
             db.add(post)
+            db.flush()
             db.add(
                 SourceCandidate(
                     id=str(uuid.uuid4()),
@@ -501,6 +503,7 @@ def create_additional_post(
     post_id = str(uuid.uuid4())
     with session_factory.begin() as db:
         db.add(Post(id=post_id, title=generated["title"], caption=generated["caption"]))
+        db.flush()
         db.add(
             SourceCandidate(
                 id=str(uuid.uuid4()),

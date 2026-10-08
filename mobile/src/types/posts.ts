@@ -1,8 +1,8 @@
-export interface Post {
-  id: string;
-  title: string;
-  caption: string;
-  status: 'draft' | 'pending_review' | 'approved' | 'rejected' | 'publishing' | 'published';
-  version: string;
-  slides: { id: string; headline: string; body: string }[];
-}
+export type {
+  Post,
+  Slide,
+  Topic,
+  Job,
+  WorkflowConfig,
+  ImageValidation,
+} from '../../../web/src/types/posts';

@@ -6,6 +6,7 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 
 from devai.core.auth import require_api_key
@@ -13,6 +14,7 @@ from devai.core.database import SessionFactory
 from devai.models import Audit, Job, Post, SourceCandidate, Topic
 from devai.schemas.workflow import GenerateTopicInput, TopicInput, TopicUpdate
 from devai.services.jobs import ACTIVE, enqueue, insert_job, serialise_job
+from devai.services.operations import approved_topic, settings_values
 from devai.services.source_urls import canonical_source_url
 from devai.services.topics import serialise_topic
 
@@ -33,6 +35,7 @@ def workflow_config(request: Request):
             os.getenv("INSTAGRAM_ACCESS_TOKEN") and os.getenv("INSTAGRAM_ACCOUNT_ID")
         ),
         "public_media_configured": bool(os.getenv("PUBLIC_MEDIA_BASE_URL")),
+        **settings_values(request.app.state.session_factory, config),
     }
 
 
@@ -40,7 +43,7 @@ def workflow_config(request: Request):
 def topics(session_factory: SessionFactory):
     with session_factory() as db:
         return [
-            serialise_topic(t)
+            {**serialise_topic(t), "approved": approved_topic(db, t)}
             for t in db.query(Topic)
             .order_by(Topic.priority.desc(), Topic.published_at.desc())
             .all()
@@ -134,6 +137,8 @@ def generate_topic(id: str, data: GenerateTopicInput, session_factory: SessionFa
             return {"post_id": topic.post_id, "status": "already_generated"}
         if topic.verification == "unverified" or topic.status == "archived":
             raise HTTPException(409, "Verify the evidence and queue the topic before generation")
+        if not approved_topic(db, topic):
+            raise HTTPException(409, "Approve the topic after reviewing its source evidence")
         job = insert_job(db, "generate", {"topic_id": id, **data.model_dump()}, key=f"topic:{id}")
         topic.job_id, topic.status = job.id, "generating"
         return serialise_job(job)
@@ -142,6 +147,15 @@ def generate_topic(id: str, data: GenerateTopicInput, session_factory: SessionFa
 @router.post("/research/refresh", status_code=202)
 def refresh(session_factory: SessionFactory):
     return enqueue(session_factory, "research", {}, key="research")
+
+
+class SearchInput(BaseModel):
+    query: str = Field(min_length=5, max_length=300)
+
+
+@router.post("/research/search", status_code=202)
+def search(data: SearchInput, session_factory: SessionFactory):
+    return enqueue(session_factory, "research", {"query": data.query}, key="research")
 
 
 @router.get("/jobs")

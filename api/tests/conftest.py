@@ -1,8 +1,11 @@
 """Each HTTP test owns its database and never changes process configuration."""
 
+import os
+import uuid
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.pool import StaticPool
 
 from devai.core.config import Settings
@@ -13,15 +16,36 @@ from devai.main import create_app
 def client(monkeypatch):
     monkeypatch.delenv("INSTAGRAM_ACCESS_TOKEN", raising=False)
     monkeypatch.delenv("INSTAGRAM_ACCOUNT_ID", raising=False)
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
+    monkeypatch.setenv("ALLOW_DEV_API_KEY", "true")
+    monkeypatch.delenv("ADMIN_EMAIL", raising=False)
+    monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+    database_url = os.getenv("TEST_DATABASE_URL")
+    admin_engine, schema = None, None
+    if database_url:
+        admin_engine = create_engine(database_url)
+        if admin_engine.dialect.name != "postgresql":
+            raise ValueError("TEST_DATABASE_URL must use PostgreSQL")
+        schema = "devai_test_" + uuid.uuid4().hex
+        with admin_engine.begin() as connection:
+            connection.execute(text(f'CREATE SCHEMA "{schema}"'))
+        engine = create_engine(database_url, connect_args={"options": f"-csearch_path={schema}"})
+    else:
+        engine = create_engine(
+            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+        )
     app = create_app(
         Settings(admin_api_key="test-secret", background_worker_enabled=False, daily_enabled=False),
         engine=engine,
     )
-    with TestClient(app) as test_client:
-        yield test_client
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        engine.dispose()
+        if admin_engine:
+            with admin_engine.begin() as connection:
+                connection.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
+            admin_engine.dispose()
 
 
 @pytest.fixture

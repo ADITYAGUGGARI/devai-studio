@@ -10,6 +10,7 @@ const topic = {
   category: 'architecture',
   priority: 90,
   status: 'queued',
+  approved: false,
   verification: 'primary_source',
   published_at: '2026-10-07T10:00:00Z',
   retrieved_at: '2026-10-07T11:00:00Z',
@@ -103,7 +104,10 @@ async function mockApi(
     }
     let result: unknown = {};
     if (method === 'GET') {
-      if (path === '/posts') result = posts;
+      if (path === '/auth/me')
+        result = { id: 'test-admin', email: 'admin@example.test', role: 'admin' };
+      else if (path.endsWith('/versions')) result = [];
+      else if (path === '/posts') result = posts;
       else if (path === '/topics') result = topics;
       else if (path === '/jobs') result = jobs;
       else if (path === '/research/daily/latest')
@@ -147,6 +151,9 @@ async function mockApi(
       } else if (path.endsWith('/submit')) {
         posts[0].status = 'pending_review';
         result = { status: 'pending_review' };
+      } else if (path.startsWith('/topics/') && path.endsWith('/approve')) {
+        topics[0].approved = true;
+        result = topics[0];
       } else if (path.endsWith('/approve')) {
         posts[0].status = 'approved';
         result = { status: 'approved' };
@@ -209,6 +216,7 @@ test('manual evidence must be verified before selecting six-slide generation', a
   await page.getByRole('radio').check();
   await expect(page.getByRole('button', { name: 'Generate selected topic' })).toBeDisabled();
   await page.getByRole('button', { name: 'I reviewed and verified this evidence' }).click();
+  await page.getByRole('button', { name: 'Approve topic', exact: true }).click();
   await page.getByLabel('Slides', { exact: true }).selectOption('6');
   await page.getByRole('button', { name: 'Generate selected topic' }).click();
   expect(calls.find((call) => call.path.endsWith('/generate'))?.body).toEqual({

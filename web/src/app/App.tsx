@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useAtom, useAtomValue } from 'jotai';
+import { accountAtom, selectedPostAtom, navigationAtom } from './state';
+import { PublishingWorkspace, OperationsWorkspace } from '../features/Workspace';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { samplePost } from '../data/samplePost';
 import { PostEditor } from '../features/posts/PostEditor';
@@ -19,8 +22,10 @@ import type {
 
 export function App() {
   const queryClient = useQueryClient();
-  const [id, setId] = useState<string | null>(null);
-  const [tab, setTab] = useState('Overview');
+  const [id, setId] = useAtom(selectedPostAtom);
+  const [tab, setTab] = useAtom(navigationAtom);
+  const account = useAtomValue(accountAtom);
+  const canWrite = account?.role !== 'viewer';
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const {
@@ -66,6 +71,9 @@ export function App() {
       await queryClient.invalidateQueries({ queryKey: ['daily-run'] });
       await queryClient.invalidateQueries({ queryKey: ['jobs'] });
       await queryClient.invalidateQueries({ queryKey: ['topics'] });
+      await queryClient.invalidateQueries({ queryKey: ['schedules'] });
+      await queryClient.invalidateQueries({ queryKey: ['operations'] });
+      await queryClient.invalidateQueries({ queryKey: ['versions'] });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Something went wrong');
     } finally {
@@ -95,7 +103,7 @@ export function App() {
         </div>
         <div className="workspace">WORKSPACE</div>
         <nav>
-          {['Overview', 'Library'].map((name) => (
+          {['Overview', 'Library', 'Publishing', 'Operations'].map((name) => (
             <button
               key={name}
               disabled={busy}
@@ -115,7 +123,34 @@ export function App() {
         <header>
           <span>Workspace / {tab}</span>
           <span>✓ Approval required</span>
+          <span className="hint">
+            {account?.email} · {account?.role}
+          </span>
+          <button
+            className="ghost"
+            onClick={async () => {
+              await request('/auth/logout', 'POST');
+              window.location.reload();
+            }}
+          >
+            Sign out
+          </button>
         </header>
+        <nav className="mobile-nav" aria-label="Workspace navigation">
+          {['Overview', 'Library', 'Publishing', 'Operations'].map((name) => (
+            <button
+              key={name}
+              aria-current={tab === name ? 'page' : undefined}
+              className={tab === name ? 'nav active' : 'nav'}
+              onClick={() => {
+                setTab(name);
+                setId(null);
+              }}
+            >
+              {name}
+            </button>
+          ))}
+        </nav>
         <div className="content">
           <div className="topline">
             <div>
@@ -134,7 +169,21 @@ export function App() {
               {visibleError}
             </div>
           )}
-          <JobPanel jobs={jobs} config={config} busy={busy} onAction={run} onOpen={openPost} />
+          <JobPanel
+            jobs={
+              active
+                ? jobs.filter(
+                    (job) =>
+                      job.payload.post_id === active.id &&
+                      String(job.payload.version) === active.version,
+                  )
+                : jobs
+            }
+            config={config}
+            busy={busy || !canWrite}
+            onAction={run}
+            onOpen={openPost}
+          />
           {active ? (
             <PostEditor
               key={active.id}
@@ -145,6 +194,10 @@ export function App() {
               jobs={jobs}
               config={config}
             />
+          ) : tab === 'Publishing' ? (
+            <PublishingWorkspace posts={data} busy={busy} onAction={run} onOpen={openPost} />
+          ) : tab === 'Operations' ? (
+            <OperationsWorkspace busy={busy} onAction={run} />
           ) : (
             <>
               <DailyRunPanel
@@ -154,8 +207,13 @@ export function App() {
                 onRun={runDaily}
                 onRegenerate={regenerateResearch}
               />
-              <TopicQueue topics={topics} busy={busy} onAction={run} onOpen={openPost} />
-              <GenerationForm busy={busy} onGenerate={generate} />
+              <TopicQueue
+                topics={topics}
+                busy={busy || !canWrite}
+                onAction={run}
+                onOpen={openPost}
+              />
+              <GenerationForm busy={busy || !canWrite} onGenerate={generate} />
               <PostLibrary
                 posts={data}
                 loading={isLoading}

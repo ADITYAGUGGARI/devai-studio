@@ -16,7 +16,45 @@ def build_engine(database_url: str):
     return create_engine(database_url, connect_args=options, pool_pre_ping=True)
 
 
+def prepare_database(engine):
+    import os
+
+    from alembic.runtime.migration import MigrationContext
+    from alembic.script import ScriptDirectory
+
+    from devai.migrate import migration_config
+
+    auto = os.getenv("AUTO_MIGRATE", "false" if os.getenv("APP_ENV") == "production" else "true")
+    if auto == "true":
+        initialize_database(engine)
+    else:
+        with engine.connect() as connection:
+            head = ScriptDirectory.from_config(migration_config(connection)).get_current_head()
+            if MigrationContext.configure(connection).get_current_revision() != head:
+                raise RuntimeError(
+                    "Database migrations are pending; run python -m devai.migrate upgrade head"
+                )
+
+
 def initialize_database(engine):
+    from alembic import command
+
+    from devai.migrate import migration_config, run
+
+    tables = inspect(engine).get_table_names()
+    if (
+        set(tables) & {"posts", "article_evidence", "slides", "editorial_topics"}
+        and "alembic_version" not in tables
+    ):
+        # Adopt the original local database without discarding any rows or assets.
+        initialize_legacy_database(engine)
+        with engine.begin() as connection:
+            command.stamp(migration_config(connection), "0001")
+    run(engine)
+    migrate_editorial_topics(engine)
+
+
+def initialize_legacy_database(engine):
     # Import all models before creating the development schema.
     import devai.models  # noqa: F401
 

@@ -9,6 +9,7 @@ from devai.models import Audit, Job, Post, Slide
 from devai.schemas.posts import PostInput, SlideUpdate, UpdateInput
 from devai.services.jobs import assert_idle, insert_job, serialise_job
 from devai.services.managed_publishing import validate_ready
+from devai.services.operations import capture_revision
 from devai.services.posts import serialize
 
 router = APIRouter(dependencies=[Depends(require_api_key)])
@@ -28,6 +29,7 @@ def queue_artwork(id: str, session_factory, slide_id: str | None = None):
         selected = [s for s in slides if not slide_id or s.id == slide_id]
         if not selected:
             raise HTTPException(404, "No matching slides")
+        capture_revision(db, post, "Before artwork regeneration")
         post.version, post.status = str(int(post.version) + 1), "draft"
         for slide in selected:
             slide.content_hash, slide.validation_json = None, None
@@ -99,6 +101,7 @@ def update(id: str, data: UpdateInput, session_factory: SessionFactory):
             assert_idle(db, id)
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from exc
+        capture_revision(db, p, "Before copy edit")
         p.verification_json = None
         if data.title is not None:
             p.title = data.title
@@ -163,6 +166,7 @@ def update_slide(id: str, slide_id: str, data: SlideUpdate, session_factory: Ses
             assert_idle(db, id)
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from exc
+        capture_revision(db, p, "Before slide edit")
         s.content_hash, s.validation_json = None, None
         p.verification_json = None
         if data.headline is not None:
