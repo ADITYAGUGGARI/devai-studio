@@ -17,7 +17,8 @@ export default defineConfig({
       command: 'npm --prefix web run dev -- --port 5182 --strictPort',
       url: 'http://127.0.0.1:5182',
       reuseExistingServer: false,
-      env: { VITE_API_URL: 'http://127.0.0.1:8124' },
+      // Deliberately differ from the UI's loopback host to guard cookie auth.
+      env: { VITE_API_URL: 'http://localhost:8124' },
     },
   ],
 });

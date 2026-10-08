@@ -1,4 +1,14 @@
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+const apiOrigin = new URL(import.meta.env.VITE_API_URL || 'http://localhost:8000');
+// Keep local cookie sessions same-site whichever loopback URL opens the dashboard.
+const loopbackHosts = ['localhost', '127.0.0.1', '[::1]'];
+if (
+  import.meta.env.DEV &&
+  loopbackHosts.includes(apiOrigin.hostname) &&
+  loopbackHosts.includes(window.location.hostname)
+) {
+  apiOrigin.hostname = window.location.hostname;
+}
+const API_URL = apiOrigin.toString().replace(/\/$/, '');
 // Development-only credential: Vite values are visible in the browser bundle.
 const API_KEY =
   import.meta.env.VITE_DEV_API_KEY_ENABLED === 'true'

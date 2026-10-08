@@ -15,6 +15,8 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByText('devai studio')).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('devai studio')).toBeVisible();
   await page.getByLabel('Story headline').fill('Isolated browser test: source retrieval contract');
   await page.getByLabel('Primary source URL').fill('https://example.test/e2e-source');
   await page
