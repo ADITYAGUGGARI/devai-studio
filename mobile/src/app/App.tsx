@@ -1,3 +1,4 @@
+import { ProfileSettings } from '../features/ProfileSettings';
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Pressable, ScrollView, Image, Switch, Linking, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -641,6 +642,7 @@ function AdminControls({
   );
 }
 function Operations() {
+  const navigation = useNavigation<NavigationProp<Routes>>();
   const session = useAtomValue(sessionAtom);
   const { error, run } = useWork();
   const [ops, setOps] = useState<Ops | null>(null);
@@ -656,6 +658,11 @@ function Operations() {
   }, []);
   return (
     <Screen title="Settings">
+      <Button
+        title="Profile & preferences"
+        secondary
+        onPress={() => navigation.navigate('Profile')}
+      />
       <ErrorText value={error} />
       <Text style={styles.muted}>
         {session?.user.email} · {session?.user.role}
@@ -834,6 +841,11 @@ export default function App() {
               name="Publishing"
               component={Publishing}
               options={{ title: 'Publishing' }}
+            />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileSettings}
+              options={{ title: 'Profile & preferences' }}
             />
             <Stack.Screen name="Review" component={Review} options={{ title: 'Review carousel' }} />
             <Stack.Screen

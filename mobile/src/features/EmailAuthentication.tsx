@@ -4,7 +4,7 @@ import {
   createNativeStackNavigator,
   type NativeStackScreenProps,
 } from '@react-navigation/native-stack';
-import { request, saveSession } from '../services/api';
+import { ApiError, request, saveSession } from '../services/api';
 import type { Session } from '../app/state';
 import { Screen, Card, Field, Button, ErrorText, styles } from '../components/ui';
 
@@ -44,6 +44,7 @@ function SignIn({ navigation }: NativeStackScreenProps<AuthenticationRoutes, 'Si
         navigation.navigate('Verify', { email, challenge });
       }
     } catch (cause) {
+      if (cause instanceof ApiError) pendingKey.current = '';
       setError(cause instanceof Error ? cause.message : 'Sign-in failed. Your input is preserved.');
     } finally {
       setBusy(false);
@@ -67,8 +68,8 @@ function SignIn({ navigation }: NativeStackScreenProps<AuthenticationRoutes, 'Si
         <ErrorText value={error} />
         {!local && configured === false && (
           <Text style={styles.warning}>
-            Email delivery is not configured. An administrator needs to configure SMTP and
-            APP_SECRET on the server. Existing local accounts can use password sign-in.
+            Email sign-in is unavailable. Ask your studio administrator to enable it, or use an
+            existing local account.
           </Text>
         )}
         <Button
@@ -113,6 +114,7 @@ function Verify({ route, navigation }: NativeStackScreenProps<AuthenticationRout
         }),
       );
     } catch (cause) {
+      if (cause instanceof ApiError) pendingKey.current = '';
       setError(
         cause instanceof Error ? cause.message : 'Verification failed. Check the code and retry.',
       );
@@ -137,6 +139,7 @@ function Verify({ route, navigation }: NativeStackScreenProps<AuthenticationRout
       setCode('');
       setNow(Date.now());
     } catch (cause) {
+      if (cause instanceof ApiError) pendingKey.current = '';
       setError(cause instanceof Error ? cause.message : 'The code could not be resent. Try again.');
     } finally {
       setBusy(false);

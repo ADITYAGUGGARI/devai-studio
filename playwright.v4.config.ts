@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
+  outputDir: 'test-results/v4',
   testDir: './web/tests/v4',
   fullyParallel: false,
   timeout: 45000,

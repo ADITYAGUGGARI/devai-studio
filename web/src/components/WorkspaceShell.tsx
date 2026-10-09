@@ -36,7 +36,9 @@ export function WorkspaceShell({
           {entries.slice(0, 4).map(([id, label, icon]) => (
             <button
               key={id}
-              aria-current={tab === id ? 'page' : undefined}
+              aria-current={
+                tab === id || (id === 'Operations' && tab === 'Profile') ? 'page' : undefined
+              }
               className={tab === id ? 'nav active' : 'nav'}
               onClick={() => onNavigate(id)}
             >
@@ -52,7 +54,9 @@ export function WorkspaceShell({
             {entries.slice(4).map(([id, label, icon]) => (
               <button
                 key={id}
-                aria-current={tab === id ? 'page' : undefined}
+                aria-current={
+                  tab === id || (id === 'Operations' && tab === 'Profile') ? 'page' : undefined
+                }
                 className={tab === id ? 'nav active' : 'nav'}
                 onClick={() => onNavigate(id)}
               >
@@ -96,7 +100,9 @@ export function WorkspaceShell({
           {entries.map(([id, label]) => (
             <button
               key={id}
-              aria-current={tab === id ? 'page' : undefined}
+              aria-current={
+                tab === id || (id === 'Operations' && tab === 'Profile') ? 'page' : undefined
+              }
               className={tab === id ? 'nav active' : 'nav'}
               onClick={() => onNavigate(id)}
             >

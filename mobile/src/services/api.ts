@@ -1,3 +1,14 @@
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly detail: unknown,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 import { getDefaultStore } from 'jotai';
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
@@ -26,9 +37,16 @@ export async function request<T>(
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
-    if (response.status === 401 && path != '/auth/login') await saveSession(null);
-    throw new Error(
-      typeof data?.detail === 'string' ? data.detail : `Request failed (${response.status})`,
+    if (response.status === 401 && !path.startsWith('/auth/') && !path.startsWith('/v1/auth/'))
+      await saveSession(null);
+    throw new ApiError(
+      typeof data?.detail === 'string'
+        ? data.detail
+        : typeof data?.detail?.message === 'string'
+          ? data.detail.message
+          : `Request failed (${response.status})`,
+      response.status,
+      data?.detail,
     );
   }
   return response.json() as Promise<T>;

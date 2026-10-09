@@ -7,6 +7,7 @@ import {
   ScrollView,
   RefreshControl,
   StyleSheet,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -68,10 +69,13 @@ export function Field({
       <Text style={styles.muted}>{label}</Text>
       <TextInput
         accessibilityLabel={label}
+        testID={`field-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
         value={value}
         onChangeText={onChange}
         multiline={multiline}
         secureTextEntry={secure}
+        returnKeyType={multiline ? 'default' : 'done'}
+        onSubmitEditing={multiline ? undefined : Keyboard.dismiss}
         keyboardType={oneTimeCode ? 'number-pad' : 'default'}
         textContentType={oneTimeCode ? 'oneTimeCode' : secure ? 'password' : undefined}
         maxLength={oneTimeCode ? 6 : undefined}
@@ -108,6 +112,7 @@ export function Screen({
       <ScrollView
         contentContainerStyle={styles.screen}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         refreshControl={
           onRefresh ? (
             <RefreshControl

@@ -255,6 +255,7 @@ export function OperationsWorkspace({
             </div>
             <div className="source-evidence">
               <strong>Background work</strong>
+              {Object.keys(ops.jobs).length === 0 && <span>No active jobs</span>}
               {Object.entries(ops.jobs).map(([s, n]) => (
                 <span key={s}>
                   {s.replaceAll('_', ' ')}: {n}

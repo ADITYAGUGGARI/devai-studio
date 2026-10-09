@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { request } from '../../services/api';
 
 interface Run {
@@ -31,22 +32,46 @@ interface Page {
 
 export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
   const cache = useQueryClient();
-  const [selectedRun, setSelectedRun] = useState('');
-  const [query, setQuery] = useState('');
-  const [disposition, setDisposition] = useState('usable');
-  const [cursors, setCursors] = useState<string[]>(['']);
-  const cursor = cursors[cursors.length - 1];
+  const [params, setParams] = useSearchParams();
+  const selectedRun = params.get('run') || '';
+  const query = params.get('q') || '';
+  const disposition = params.get('disposition') ?? 'usable';
+  const cursor = params.get('cursor') || '';
+  function changeFilters(values: Record<string, string>, replace = false) {
+    setParams(
+      (previous) => {
+        const next = new URLSearchParams(previous);
+        next.delete('cursor');
+        for (const [key, value] of Object.entries(values)) next.set(key, value);
+        return next;
+      },
+      { replace },
+    );
+  }
   function setCursor(value: string) {
-    setCursors(value ? [...cursors, value] : ['']);
+    changeFilters({ cursor: value });
   }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const history = useQuery({
+  const history = useInfiniteQuery({
     queryKey: ['research-runs'],
-    queryFn: () => request<{ items: Run[] }>('/v1/research/runs'),
+    initialPageParam: '',
+    queryFn: ({ pageParam }) =>
+      request<{ items: Run[]; nextCursor?: string | null }>(
+        `/v1/research/runs?${new URLSearchParams({ cursor: pageParam })}`,
+      ),
+    getNextPageParam: (page) => page.nextCursor || undefined,
     refetchInterval: 3000,
   });
-  const run = history.data?.items.find((item) => item.id === selectedRun) || history.data?.items[0];
+  const runs = history.data?.pages.flatMap((page) => page.items) || [];
+  const selected = useQuery({
+    queryKey: ['research-run', selectedRun],
+    retry: false,
+    enabled: Boolean(selectedRun),
+    queryFn: () => request<Run>(`/v1/research/runs/${encodeURIComponent(selectedRun)}`),
+    refetchInterval: 3000,
+  });
+  const run = selectedRun ? selected.data : runs[0];
   const results = useQuery({
     queryKey: ['research-findings', run?.id, query, disposition, cursor],
     enabled: Boolean(run),
@@ -64,8 +89,7 @@ export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
         'Idempotency-Key': crypto.randomUUID(),
       });
       if (result.runId) {
-        setSelectedRun(result.runId);
-        setCursor('');
+        changeFilters({ run: result.runId });
       }
       await cache.invalidateQueries({ queryKey: ['research-runs'] });
     } catch (cause) {
@@ -92,15 +116,24 @@ export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
           Run research
         </button>
       </div>
-      {(error || history.error || results.error) && (
+      {(error || history.error || selected.error || results.error) && (
         <p className="error" role="alert">
-          {error || history.error?.message || results.error?.message}
+          {error || history.error?.message || selected.error?.message || results.error?.message}
         </p>
       )}
-      {history.isPending ? (
+      {history.isPending || (selectedRun && selected.isPending) ? (
         <p role="status">Loading research history…</p>
       ) : !run ? (
-        <p>No research runs yet. Start a run to collect findings from configured sources.</p>
+        <p>
+          {selectedRun
+            ? 'This research run is unavailable. It may belong to another workspace.'
+            : 'No research runs yet. Start a run to collect findings from configured sources.'}
+          {selectedRun && (
+            <button className="secondary" onClick={() => changeFilters({ run: '' })}>
+              Return to latest research
+            </button>
+          )}
+        </p>
       ) : (
         <>
           <label>
@@ -108,17 +141,30 @@ export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
             <select
               value={run.id}
               onChange={(event) => {
-                setSelectedRun(event.target.value);
-                setCursor('');
+                changeFilters({ run: event.target.value });
               }}
             >
-              {history.data?.items.map((item) => (
+              {selectedRun && !runs.some((item) => item.id === selectedRun) && (
+                <option value={run.id}>
+                  {new Date(run.windowEndUTC).toLocaleString()} · {run.status}
+                </option>
+              )}
+              {runs.map((item) => (
                 <option key={item.id} value={item.id}>
                   {new Date(item.windowEndUTC).toLocaleString()} · {item.status}
                 </option>
               ))}
             </select>
           </label>
+          {history.hasNextPage && (
+            <button
+              className="secondary"
+              disabled={history.isFetchingNextPage}
+              onClick={() => void history.fetchNextPage()}
+            >
+              {history.isFetchingNextPage ? 'Loading earlier runs…' : 'Load earlier research runs'}
+            </button>
+          )}
           <p className="muted">
             Window: {new Date(run.windowStartUTC).toLocaleString()} —{' '}
             {new Date(run.windowEndUTC).toLocaleString()}
@@ -152,8 +198,7 @@ export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
                 type="search"
                 value={query}
                 onChange={(event) => {
-                  setQuery(event.target.value);
-                  setCursor('');
+                  changeFilters({ q: event.target.value }, true);
                 }}
                 placeholder="Search titles"
               />
@@ -163,8 +208,7 @@ export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
               <select
                 value={disposition}
                 onChange={(event) => {
-                  setDisposition(event.target.value);
-                  setCursor('');
+                  changeFilters({ disposition: event.target.value });
                 }}
               >
                 <option value="usable">Current opportunities</option>
@@ -220,12 +264,8 @@ export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
             ))
           )}
           <div className="actions">
-            <button
-              className="secondary"
-              disabled={cursors.length === 1}
-              onClick={() => setCursors(cursors.slice(0, -1))}
-            >
-              Previous
+            <button className="secondary" disabled={!cursor} onClick={() => setCursor('')}>
+              First page
             </button>
             <button
               className="secondary"

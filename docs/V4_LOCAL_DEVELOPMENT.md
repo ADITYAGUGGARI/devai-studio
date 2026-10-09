@@ -58,3 +58,7 @@ PLAYWRIGHT_CHROMIUM_CHANNEL=chrome npx playwright test -c playwright.v4.config.t
 ```
 
 The dedicated v4 browser check requires the isolated preview above; other browser tests use isolated fixtures. PostgreSQL tests create disposable schemas when `TEST_DATABASE_URL` is set. Codec integration needs FFmpeg configured; without it the actual-render test is explicitly skipped. iOS TypeScript is checked by `npm run check`; native simulator/VoiceOver/DynamicType acceptance remains separate.
+
+Revision4 personal preferences use migration0004 (`user_profiles`) and `/v1/me`. These routes require a real signed-in personal account; the development API header has no personal identity. Email delivery requires the SMTP settings below, or configure the preserved bootstrap local account before first startup. There is no default personal password. Profile changes do not reinterpret any stored publication reservation.
+
+Native acceptance can use `PYTHONPATH=api/src .venv/bin/python scripts/e2e_server.py` (isolated PostgreSQL schema/API8124) and `EXPO_PUBLIC_API_URL=http://127.0.0.1:8124 npm --prefix mobile start -- --localhost --port 8086`. With the installed ExpoGo54 container, run `MAESTRO_CLI_NO_ANALYTICS=1 maestro --device <simulator-id> test mobile/.maestro/v4-profile-expo.yaml`. This uses explicit test-only credentials; it is separate from previewAPI8125 and normal Metro8085. The flow is being verified; native acceptance is not complete.

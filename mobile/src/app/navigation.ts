@@ -16,4 +16,5 @@ export type Routes = {
   Activity: undefined;
   Operations: undefined;
   Publishing: undefined;
+  Profile: undefined;
 };

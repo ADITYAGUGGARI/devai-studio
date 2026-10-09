@@ -60,6 +60,7 @@ def initialize_legacy_database(engine):
 
     studio_tables = {
         "email_challenges",
+        "user_profiles",
         "workspaces",
         "workspace_members",
         "studio_documents",

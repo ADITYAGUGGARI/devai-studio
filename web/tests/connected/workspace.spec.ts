@@ -8,10 +8,13 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   request,
 }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Welcome back.' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Your next great story starts here.' }),
+  ).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await expect(page).toHaveScreenshot('login.png');
-  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByRole('button', { name: 'Use an existing local account' }).click();
+  await page.getByLabel('Email address', { exact: true }).fill(email);
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByText('devai studio')).toBeVisible();
@@ -29,6 +32,7 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   await page.screenshot({ path: 'test-results/overview-phone.png', fullPage: true });
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
   await page.getByText('Add your own source', { exact: true }).click();
   await page.getByLabel('Story headline').fill('Isolated browser test: source retrieval contract');
   await page.getByLabel('Primary source URL').fill('https://example.test/e2e-source');
@@ -95,7 +99,9 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await expect(page).toHaveScreenshot('operations.png', { fullPage: true });
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Welcome back.' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Your next great story starts here.' }),
+  ).toBeVisible();
   expect((await page.request.get('http://127.0.0.1:8124/posts')).status()).toBe(401);
 });
 
@@ -107,7 +113,8 @@ test('real generated eight-image artifact can be reviewed, exported and invalida
     'Requires a real provider artifact created by scripts/live_acceptance.py',
   );
   await page.goto('/');
-  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByRole('button', { name: 'Use an existing local account' }).click();
+  await page.getByLabel('Email address', { exact: true }).fill(email);
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.getByRole('button', { name: 'Library', exact: true }).first().click();
@@ -154,7 +161,8 @@ test('real settings persist and administrator-created viewer cannot create draft
   page,
 }) => {
   await page.goto('/');
-  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByRole('button', { name: 'Use an existing local account' }).click();
+  await page.getByLabel('Email address', { exact: true }).fill(email);
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.getByRole('button', { name: 'Settings', exact: true }).first().click();
@@ -175,14 +183,61 @@ test('real settings persist and administrator-created viewer cannot create draft
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
   await expect(page.getByText('Account created.', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await page.getByLabel('Email', { exact: true }).fill('viewer-ux@devai.test');
+  await page.getByRole('button', { name: 'Use an existing local account' }).click();
+  await page.getByLabel('Email address', { exact: true }).fill('viewer-ux@devai.test');
   await page.getByLabel('Password', { exact: true }).fill('Isolated-viewer-password-12345');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.getByRole('button', { name: 'Library', exact: true }).first().click();
   await expect(page.getByRole('button', { name: '+ New draft', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
   await expect(
     page.getByRole('button', { name: 'Add your own source', exact: true }),
   ).toBeDisabled();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
+test('profile saves across reload and competing device edits require explicit conflict resolution', async ({
+  page,
+  request,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Use an existing local account' }).click();
+  await page.getByLabel('Email address', { exact: true }).fill(email);
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Profile & preferences', exact: true }).click();
+  await expect(page).toHaveURL(/\/settings\/profile$/);
+  await page.getByLabel('Display name', { exact: true }).fill('Studio engineer');
+  await page.getByLabel('Personal timezone', { exact: true }).fill('Asia/Kolkata');
+  await page.getByRole('button', { name: 'Save profile', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save profile', exact: true })).toBeDisabled();
+  await page.reload();
+  await expect(page.getByLabel('Display name', { exact: true })).toHaveValue('Studio engineer');
+  await page.getByLabel('Display name', { exact: true }).fill('My local edits');
+  const login = await request.post('http://127.0.0.1:8124/auth/login', {
+    data: { email, password },
+  });
+  const headers = { Authorization: `Bearer ${(await login.json()).token}` };
+  const profile = await request.get('http://127.0.0.1:8124/v1/me', { headers });
+  const current = await profile.json();
+  const changed = await request.patch('http://127.0.0.1:8124/v1/me', {
+    headers: { ...headers, 'Idempotency-Key': 'browser-second-device-profile' },
+    data: {
+      displayName: 'Other device edits',
+      timeZone: 'UTC',
+      locale: 'en',
+      expectedRevision: current.revision,
+    },
+  });
+  expect(changed.ok()).toBeTruthy();
+  await page.getByRole('button', { name: 'Save profile', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Profile conflict' })).toBeVisible();
+  await expect(page.getByLabel('Display name', { exact: true })).toHaveValue('My local edits');
+  await page.getByRole('button', { name: 'Keep my changes for a new save' }).click();
+  await page.getByRole('button', { name: 'Save profile', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save profile', exact: true })).toBeDisabled();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: 'test-results/profile-desktop.png', fullPage: true });
 });

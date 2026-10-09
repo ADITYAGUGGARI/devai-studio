@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import and_, func, or_
 
 from devai.core.auth import require_api_key
@@ -59,6 +59,7 @@ def cancel_job(job_id: str, request: Request, session_factory: SessionFactory):
 
 
 class ResearchInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     window: Literal["last_24_hours"] = "last_24_hours"
     rankingPolicyRevision: Literal["developer-24h-v1"] = "developer-24h-v1"
     sourceCatalogRevision: Literal["official-feeds-v1"] = "official-feeds-v1"
@@ -92,7 +93,9 @@ def start_research(
 ):
     require_editor(request)
     actor = request.state.principal["id"]
-    digest = hashlib.sha256(json.dumps(data.model_dump(), sort_keys=True).encode()).hexdigest()
+    digest = hashlib.sha256(
+        json.dumps([request.method, request.url.path, data.model_dump()], sort_keys=True).encode()
+    ).hexdigest()
     with session_factory.begin() as db:
         # Serialize paid/action reservations per studio; unrelated studios remain independent.
         db.query(Workspace).filter_by(id=request.state.workspace_id).with_for_update().one()
@@ -141,14 +144,43 @@ def start_research(
 
 
 @router.get("/research/runs")
-def list_runs(session_factory: SessionFactory):
+def list_runs(session_factory: SessionFactory, cursor: str = ""):
     with session_factory() as db:
-        return {
-            "items": [
-                run_snapshot(db, run)
-                for run in db.query(ResearchRun).order_by(ResearchRun.created_at.desc()).limit(24)
-            ]
-        }
+        query = db.query(ResearchRun)
+        if cursor:
+            try:
+                if len(cursor) > 1000:
+                    raise ValueError()
+                payload = json.loads(base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)))
+                created = datetime.fromisoformat(payload["created"])
+                identifier = payload["id"]
+                if not isinstance(identifier, str):
+                    raise ValueError()
+            except (ValueError, TypeError, KeyError):
+                raise HTTPException(422, "Invalid research history cursor") from None
+            query = query.filter(
+                or_(
+                    ResearchRun.created_at < created,
+                    and_(ResearchRun.created_at == created, ResearchRun.id < identifier),
+                )
+            )
+        rows = query.order_by(ResearchRun.created_at.desc(), ResearchRun.id.desc()).limit(25).all()
+        next_cursor = None
+        if len(rows) > 24:
+            last = rows[23]
+            next_cursor = (
+                base64.urlsafe_b64encode(
+                    json.dumps(
+                        {
+                            "created": last.created_at.isoformat(),
+                            "id": last.id,
+                        }
+                    ).encode()
+                )
+                .decode()
+                .rstrip("=")
+            )
+        return {"items": [run_snapshot(db, run) for run in rows[:24]], "nextCursor": next_cursor}
 
 
 @router.get("/research/runs/{run_id}")

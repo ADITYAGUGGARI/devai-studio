@@ -1,0 +1,58 @@
+# Real PostgreSQL API, isolated e2e_server.py schema. No simulated provider calls.
+# Metro must use EXPO_PUBLIC_API_URL=http://127.0.0.1:8124 on port8086.
+appId: host.exp.Exponent
+---
+- stopApp: host.exp.Exponent
+- openLink: exp://127.0.0.1:8086
+- runFlow:
+    when:
+      visible: Your studio, today
+    commands:
+      - tapOn: Settings
+      - scrollUntilVisible:
+          element: Sign out
+      - tapOn: Sign out
+- tapOn: Use an existing local account
+- tapOn:
+    id: field-email-address
+- inputText: e2e@devai.test
+- tapOn:
+    id: field-password
+- inputText: Isolated-e2e-password-12345
+- pressKey: Enter
+- tapOn: Sign in
+- tapOn:
+    text: Not Now
+    optional: true
+- assertVisible: Your studio, today
+- tapOn: Settings
+- tapOn: Profile & preferences
+- tapOn:
+    id: field-display-name
+- inputText: Native studio engineer
+- tapOn:
+    id: field-personal-timezone
+- eraseText: 100
+- inputText: Asia/Kolkata
+- pressKey: Enter
+- scrollUntilVisible:
+    element: Save profile
+- tapOn: Save profile
+- assertVisible: Saved
+- takeScreenshot: native-v4-profile
+- back
+- tapOn: Profile & preferences
+- assertVisible: Native studio engineer
+- assertVisible: Asia/Kolkata
+- tapOn:
+    id: field-display-name
+- inputText: unsaved
+- pressKey: Enter
+- back
+- assertVisible: Keep your changes?
+- tapOn: Stay
+- assertVisible: Unsaved changes
+- back
+- tapOn: Discard local changes
+- tapOn: Profile & preferences
+- assertVisible: Native studio engineer

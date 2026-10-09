@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import event
 from sqlalchemy.orm import Session, sessionmaker, with_loader_criteria
 
+from devai.models import User
 from devai.models.studio import LEGACY_WORKSPACE, Membership, Workspace
 
 
@@ -21,6 +22,12 @@ def resolve_workspace(request, principal):
                 raise HTTPException(404, "Workspace not found")
             role, publish = "owner", True
         else:
+            # Concurrent first-page requests must adopt an account exactly once.
+            # Lock its global identity before checking memberships; do not retry a
+            # failed insert inside an aborted PostgreSQL transaction.
+            user = db.query(User).filter_by(id=principal["id"]).with_for_update().first()
+            if not user or not user.active:
+                raise HTTPException(401, "Session expired; sign in again")
             memberships = db.query(Membership).filter_by(user_id=principal["id"]).all()
             if not memberships:
                 # Users provisioned by the preserved local account API join the original studio.

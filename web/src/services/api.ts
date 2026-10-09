@@ -1,3 +1,14 @@
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly detail: unknown,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 const apiOrigin = new URL(import.meta.env.VITE_API_URL || 'http://localhost:8000');
 // Keep local cookie sessions same-site whichever loopback URL opens the dashboard.
 const loopbackHosts = ['localhost', '127.0.0.1', '[::1]'];
@@ -42,13 +53,16 @@ async function fetchApi(
           )
           .join('; ')
       : null;
-    throw new Error(
+    throw new ApiError(
       typeof detail === 'string'
         ? detail
-        : validation ||
+        : (typeof detail?.message === 'string' ? detail.message : null) ||
+            validation ||
             (response.status === 401
               ? 'Your session expired. Sign in again to continue; saved work is safe.'
               : `Request failed (${response.status}). Please try again.`),
+      response.status,
+      detail,
     );
   }
   return response;

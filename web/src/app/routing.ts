@@ -8,6 +8,7 @@ const routes: Record<string, string> = {
   Publishing: '/calendar',
   Activity: '/activity',
   Operations: '/settings',
+  Profile: '/settings/profile',
 };
 
 export function useStudioRouting() {

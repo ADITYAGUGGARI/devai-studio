@@ -50,3 +50,44 @@ def test_conflict_and_restore_preserve_history(client):
         assert restored.revision == 3
         assert restored.data_json == '{"title": "Original"}'
         assert db.query(StudioVersion).filter_by(document_id=identifier).count() == 3
+
+
+def test_parallel_first_requests_adopt_membership_once(client):
+    from concurrent.futures import ThreadPoolExecutor
+    from datetime import UTC, datetime, timedelta
+
+    from devai.core.auth import token_hash
+    from devai.models import AuthSession, User
+    from devai.models.studio import Membership
+
+    factory = client.app.state.session_factory
+    if factory.kw["bind"].dialect.name != "postgresql":
+        pytest.skip("Concurrent row-lock acceptance requires PostgreSQL")
+    with factory.begin() as db:
+        db.add(
+            User(
+                id="parallel-user",
+                email="parallel@example.test",
+                password_hash="unused",
+                role="viewer",
+            )
+        )
+        db.flush()
+        db.add(
+            AuthSession(
+                token_hash=token_hash("parallel-session"),
+                user_id="parallel-user",
+                expires_at=datetime.now(UTC) + timedelta(hours=1),
+            )
+        )
+    headers = {"Authorization": "Bearer parallel-session"}
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(
+            pool.map(lambda _: client.get("/v1/research/runs", headers=headers), range(8))
+        )
+    assert all(response.status_code == 200 for response in results)
+    with factory() as db:
+        members = db.query(Membership).filter_by(user_id="parallel-user").all()
+        assert len(members) == 1
+        assert members[0].role == "viewer"
+        assert not members[0].publish_permission

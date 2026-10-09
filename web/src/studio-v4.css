@@ -306,3 +306,26 @@ progress {
     scroll-behavior: auto !important;
   }
 }
+
+.auth-card .eyebrow,
+.auth-card label {
+  color: var(--color-text);
+}
+.auth-card .run-warning {
+  background: var(--color-surface);
+  color: var(--color-warning);
+}
+.artwork-canvas .canvas-toolbar,
+.artwork-canvas .canvas-toolbar .hint {
+  color: var(--color-onForest);
+}
+
+.desktop-studio .source-evidence {
+  background: var(--color-secondarySurface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+.desktop-studio .source-link {
+  color: var(--color-forest);
+  text-decoration: underline;
+}

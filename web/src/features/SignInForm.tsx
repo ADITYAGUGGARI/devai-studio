@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import type { Account } from '../app/state';
-import { request } from '../services/api';
+import { ApiError, request } from '../services/api';
 
 interface Challenge {
   challengeId: string;
@@ -53,6 +53,8 @@ export function SignInForm({ onSignedIn }: { onSignedIn: (account: Account) => v
       setCode('');
       setNow(Date.now());
     } catch (cause) {
+      // A received failure is a completed action; network uncertainty retains the retry key.
+      if (cause instanceof ApiError) pendingKey.current = '';
       setError(cause instanceof Error ? cause.message : 'The code could not be sent. Try again.');
     } finally {
       setBusy(false);
@@ -101,7 +103,10 @@ export function SignInForm({ onSignedIn }: { onSignedIn: (account: Account) => v
             autoComplete="username"
             required
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              pendingKey.current = '';
+              setEmail(event.target.value);
+            }}
           />
         </label>
       )}
@@ -145,8 +150,8 @@ export function SignInForm({ onSignedIn }: { onSignedIn: (account: Account) => v
       )}
       {method === 'email' && capabilities && !capabilities.emailConfigured && (
         <p className="run-warning">
-          Email delivery is not configured on this server. An administrator needs to configure SMTP
-          and APP_SECRET. Use an existing local account below.
+          Email sign-in is unavailable. Ask your studio administrator to enable it, or use an
+          existing local account below.
         </p>
       )}
       <button

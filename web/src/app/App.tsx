@@ -1,3 +1,4 @@
+import { ProfileSettings } from '../features/ProfileSettings';
 import { useState, useEffect } from 'react';
 import { useBlocker } from 'react-router-dom';
 import { useAtomValue } from 'jotai';
@@ -265,8 +266,15 @@ export function App() {
           onAction={run}
           onOpen={openPost}
         />
+      ) : tab === 'Profile' ? (
+        <ProfileSettings onDirtyChange={setDirty} />
       ) : tab === 'Operations' ? (
-        <OperationsWorkspace busy={busy} onAction={run} />
+        <>
+          <button className="secondary" onClick={() => setTab('Profile')}>
+            Profile & preferences
+          </button>
+          <OperationsWorkspace busy={busy} onAction={run} />
+        </>
       ) : tab === 'Overview' ? (
         <StudioOverview
           posts={data}

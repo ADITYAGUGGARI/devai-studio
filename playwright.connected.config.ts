@@ -1,5 +1,6 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
+  outputDir: 'test-results/connected',
   testDir: './web/tests/connected',
   workers: 1,
   use: {
