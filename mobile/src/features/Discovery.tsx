@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Text, View, Pressable, Linking } from 'react-native';
 import { useAtomValue } from 'jotai';
 import {
   useNavigation,
   useRoute,
+  useFocusEffect,
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
@@ -276,16 +277,48 @@ export function TopicDetail() {
   const topic = useAtomValue(topicsAtom).find((t) => t.id === route.params.id);
   const session = useAtomValue(sessionAtom);
   const navigation = useNavigation<NavigationProp<Routes>>();
-  const { busy, error, run } = useWork();
+  const { busy, error, run, refresh } = useWork();
+  const [loading, setLoading] = useState(true);
+  const [readError, setReadError] = useState('');
+  const [retry, setRetry] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      setLoading(true);
+      setReadError('');
+      void refresh().then(
+        () => {
+          if (active) setLoading(false);
+        },
+        (cause) => {
+          if (active) {
+            setLoading(false);
+            setReadError(cause instanceof Error ? cause.message : 'Could not refresh this story');
+          }
+        },
+      );
+      return () => {
+        active = false;
+      };
+      // A retry explicitly restarts the focused read and cleans up the previous response.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [refresh, retry]),
+  );
   const [evidence, setEvidence] = useState(false),
     [tools, setTools] = useState(false);
   if (!topic)
     return (
-      <Screen title="Story unavailable">
-        <Text style={styles.muted}>Return to Discover and refresh your queue.</Text>
+      <Screen title={loading ? 'Loading story…' : 'Story unavailable'}>
+        <ErrorText value={readError} />
+        {!loading && (
+          <Button title="Refresh story" onPress={() => setRetry((value) => value + 1)} />
+        )}
+        {!loading && (
+          <Text style={styles.muted}>Return to Discover if this story is no longer available.</Text>
+        )}
       </Screen>
     );
-  const locked = busy || session?.user.role === 'viewer';
+  const locked = busy || loading || Boolean(readError) || session?.user.role === 'viewer';
   const reviewer = ['admin', 'reviewer'].includes(session?.user.role || '');
   const action =
     topic.status === 'queued' ? (
@@ -343,6 +376,15 @@ export function TopicDetail() {
       subtitle={`${topic.category} · ${topic.status.replaceAll('_', ' ')} · priority ${topic.priority}`}
       footer={action}
     >
+      {readError && (
+        <Card>
+          <Text style={styles.text}>
+            Showing the last saved story. Reconnect to refresh before making changes.
+          </Text>
+          <ErrorText value={readError} />
+          <Button title="Retry refresh" onPress={() => setRetry((value) => value + 1)} />
+        </Card>
+      )}
       <Button
         secondary
         title="Open primary source"

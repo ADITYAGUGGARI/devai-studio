@@ -13,7 +13,7 @@ from pathlib import Path
 def binary(name):
     configured = os.getenv(name.upper() + "_BIN")
     path = configured or shutil.which(name)
-    if not path:
+    if not path or not shutil.which(path):
         raise ValueError(f"{name} is unavailable on the worker; install FFmpeg before rendering")
     return path
 
@@ -84,8 +84,8 @@ def validate_mp4(path, *, require_audio=True):
         "passed": not issues,
         "issues": issues,
         "duration_seconds": duration,
-        "width": 1080 if videos else None,
-        "height": 1920 if videos else None,
+        "width": videos[0].get("width") if videos else None,
+        "height": videos[0].get("height") if videos else None,
         "decoded": not issues,
         "audio_present": bool(audios),
     }

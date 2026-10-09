@@ -122,7 +122,7 @@ def test_idempotent_run_retains_all_dispositions(client):
     def fetch(url):
         if url == "failed":
             raise TimeoutError("offline")
-        return captured
+        return captured + [captured[0]]  # Repeated entries must not inflate source coverage.
 
     factory = scoped_factory(client.app.state.session_factory, LEGACY_WORKSPACE)
     result = collect_run(

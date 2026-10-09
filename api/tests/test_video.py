@@ -6,7 +6,34 @@ import shutil
 import pytest
 from PIL import Image
 
-from devai.services.video import render_video, validate_mp4
+from devai.services.video import binary, render_video, validate_mp4
+
+
+def test_missing_configured_codec_has_actionable_error(monkeypatch):
+    monkeypatch.setenv("FFMPEG_BIN", "/definitely/unavailable/devai-ffmpeg")
+    with pytest.raises(ValueError, match="unavailable on the worker"):
+        binary("ffmpeg")
+
+
+def test_rejected_video_reports_actual_dimensions(monkeypatch):
+    monkeypatch.setattr(
+        "devai.services.video.probe",
+        lambda _: {
+            "streams": [
+                {
+                    "codec_type": "video",
+                    "codec_name": "h264",
+                    "width": 640,
+                    "height": 360,
+                    "avg_frame_rate": "30/1",
+                }
+            ],
+            "format": {"duration": "35", "format_name": "mov,mp4"},
+        },
+    )
+    report = validate_mp4("test-only-fixture", require_audio=False)
+    assert not report["passed"]
+    assert (report["width"], report["height"]) == (640, 360)
 
 
 @pytest.mark.skipif(
