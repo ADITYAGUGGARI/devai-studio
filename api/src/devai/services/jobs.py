@@ -20,6 +20,19 @@ logger = logging.getLogger(__name__)
 ACTIVE = {"queued", "running", "retry_wait"}
 
 
+class JobCancelled(Exception):
+    """Stopped at a safe unit boundary, preserving successfully persisted units."""
+
+
+def scoped_key(db, key):
+    from devai.models.studio import LEGACY_WORKSPACE
+
+    workspace = db.info.get("workspace_id", LEGACY_WORKSPACE)
+    if key is None or workspace == LEGACY_WORKSPACE or key.startswith(f"{workspace}:"):
+        return key
+    return f"{workspace}:{key}"
+
+
 def serialise_job(job: Job) -> dict:
     data = {
         key: getattr(job, key)
@@ -36,6 +49,8 @@ def serialise_job(job: Job) -> dict:
             "available_at",
             "created_at",
             "finished_at",
+            "heartbeat_at",
+            "cancel_requested",
         )
     }
     for key in ("available_at", "created_at", "finished_at"):
@@ -50,6 +65,7 @@ def serialise_job(job: Job) -> dict:
 def insert_job(
     db, kind: str, payload: dict, *, key: str | None = None, schedule_key: str | None = None
 ) -> Job:
+    key, schedule_key = scoped_key(db, key), scoped_key(db, schedule_key)
     existing = db.query(Job).filter(Job.active_key == key).first() if key else None
     if schedule_key and not existing:
         existing = db.query(Job).filter_by(schedule_key=schedule_key).first()
@@ -74,6 +90,7 @@ def enqueue(session_factory, kind: str, payload: dict, *, key=None, schedule_key
             return serialise_job(insert_job(db, kind, payload, key=key, schedule_key=schedule_key))
     except IntegrityError:
         with session_factory() as db:
+            key, schedule_key = scoped_key(db, key), scoped_key(db, schedule_key)
             job = (
                 db.query(Job)
                 .filter(
@@ -105,7 +122,7 @@ def enqueue_daily(session_factory, timezone: str, *, now=None, generate_carousel
 
 
 def assert_idle(db, post_id: str):
-    if db.query(Job).filter_by(active_key=f"post:{post_id}").first():
+    if db.query(Job).filter_by(active_key=scoped_key(db, f"post:{post_id}")).first():
         raise ValueError("Wait for this post's active job to finish before editing or approving")
 
 
@@ -153,6 +170,7 @@ def _claim(session_factory, *, now=None) -> dict | None:
                 attempts=Job.attempts + 1,
                 lease_token=token,
                 lease_until=now + timedelta(seconds=120),
+                heartbeat_at=now,
                 error=None,
             )
         )
@@ -164,6 +182,7 @@ def _claim(session_factory, *, now=None) -> dict | None:
             "kind": job.kind,
             "payload": json.loads(job.payload_json),
             "token": token,
+            "workspace_id": job.workspace_id,
         }
 
 
@@ -187,6 +206,10 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
     from devai.services.topics import create_from_topic, research_queue
 
     kind, payload = claim["kind"], claim["payload"]
+    if kind == "research_v4":
+        from devai.services.research_runs import collect_run
+
+        return collect_run(session_factory, payload["run_id"], progress)
     if kind == "verify":
         from devai.models import ArticleEvidence, Slide
         from devai.services.verification import verify_copy
@@ -328,7 +351,9 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
         session_factory,
         claim,
         result_json=json.dumps(result),
-        active_key=f"post:{result['post_id']}",
+        active_key=f"{claim['workspace_id']}:post:{result['post_id']}"
+        if claim["workspace_id"] != "00000000-0000-4000-8000-000000000001"
+        else f"post:{result['post_id']}",
     )
     with session_factory() as db:
         payload["post_id"] = result["post_id"]
@@ -381,7 +406,10 @@ def work_once(session_factory, *, handler=None) -> bool:
 
                 record_worker_heartbeat(session_factory)
                 _update(
-                    session_factory, claim, lease_until=datetime.now(UTC) + timedelta(seconds=120)
+                    session_factory,
+                    claim,
+                    lease_until=datetime.now(UTC) + timedelta(seconds=120),
+                    heartbeat_at=datetime.now(UTC),
                 )
             except Exception:
                 logger.exception("Job lease renewal failed")
@@ -391,19 +419,33 @@ def work_once(session_factory, *, handler=None) -> bool:
     heartbeat_thread.start()
 
     def progress(done, total, step):
+        with session_factory() as db:
+            if db.get(Job, claim["id"]).cancel_requested:
+                raise JobCancelled()
         _update(session_factory, claim, progress=done, total=max(1, total), step=step)
 
     try:
+        from devai.core.workspaces import scoped_factory
         from devai.services.usage import usage_scope
 
-        with usage_scope(session_factory, claim["id"]):
-            result = (handler or dispatch)(session_factory, claim, progress)
+        workspace_factory = scoped_factory(session_factory, claim["workspace_id"])
+        with usage_scope(workspace_factory, claim["id"]):
+            result = (handler or dispatch)(workspace_factory, claim, progress)
         _update(
             session_factory,
             claim,
             status="completed_with_warnings" if result.get("warnings") else "completed",
             result_json=json.dumps(result),
             step="Completed with source warnings" if result.get("warnings") else "Completed",
+            active_key=None,
+            finished_at=datetime.now(UTC),
+        )
+    except JobCancelled:
+        _update(
+            session_factory,
+            claim,
+            status="cancelled",
+            step="Cancelled; completed work preserved",
             active_key=None,
             finished_at=datetime.now(UTC),
         )

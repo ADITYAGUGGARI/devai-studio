@@ -17,6 +17,9 @@ def utc_now() -> datetime:
 
 class Post(Base):
     __tablename__ = "posts"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
@@ -29,6 +32,9 @@ class Post(Base):
 
 class Slide(Base):
     __tablename__ = "slides"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     post_id: Mapped[str | None] = mapped_column(String, ForeignKey("posts.id"))
@@ -44,6 +50,9 @@ class Slide(Base):
 
 class PublishAttempt(Base):
     __tablename__ = "publish_attempts"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     post_id: Mapped[str] = mapped_column(String, nullable=False)
@@ -56,6 +65,9 @@ class PublishAttempt(Base):
 
 class Audit(Base):
     __tablename__ = "audit"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     post_id: Mapped[str | None] = mapped_column(String)
@@ -65,9 +77,15 @@ class Audit(Base):
 
 class SourceCandidate(Base):
     __tablename__ = "source_candidates"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "url", name="uq_source_candidates_workspace_url"),
+    )
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    url: Mapped[str] = mapped_column(String(2048), nullable=False, unique=True)
+    url: Mapped[str] = mapped_column(String(2048), nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     source: Mapped[str] = mapped_column(String(200), nullable=False)
     post_id: Mapped[str] = mapped_column(String, nullable=False)
@@ -78,10 +96,16 @@ class ArticleEvidence(Base):
     """A bounded plain-text source snapshot used to ground one editorial draft."""
 
     __tablename__ = "article_evidence"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "source_url", name="uq_article_evidence_workspace_url"),
+    )
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     post_id: Mapped[str] = mapped_column(String, ForeignKey("posts.id"), nullable=False)
-    source_url: Mapped[str] = mapped_column(String(2048), nullable=False, unique=True)
+    source_url: Mapped[str] = mapped_column(String(2048), nullable=False)
     source_title: Mapped[str] = mapped_column(String(500), nullable=False)
     source_name: Mapped[str] = mapped_column(String(200), nullable=False)
     excerpt: Mapped[str] = mapped_column(Text, nullable=False)
@@ -96,6 +120,9 @@ class DailyRun(Base):
     """Durable per-local-day claim and outcome for the one-post editorial cadence."""
 
     __tablename__ = "daily_runs"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
     __table_args__ = (
         UniqueConstraint("local_date", "timezone", name="uq_daily_runs_date_timezone"),
     )

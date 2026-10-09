@@ -1,5 +1,26 @@
 # Implementation status
 
+## Revision 4 redesign — active implementation
+
+Branch: `feat/devai-studio-ux-v4`, isolated worktree `/Users/aditya/Desktop/local/devai-studio-ux-v4`, based on latest fetched `origin/main` (`cc8fd36`). Existing complete-product implementation preserved by merge `4f5d545`. Original worktree, configuration and data are untouched. The historical verification below describes the previous product, **not revision 4 acceptance**.
+
+| Requirement                   | Status                                          | Implementation / evidence                                                                                                                                         | Remaining verification                                                                             |
+| ----------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| V4-PRESERVE                   | Verified                                        | Main/design handoff merged with existing complete-product code; separate worktree                                                                                 | No remote push or PR yet                                                                           |
+| V4-PERSIST                    | In progress                                     | `models/studio.py`, `migrations/versions/v0002_studio.py`, `services/studio_documents.py`: relational workspaces, immutable revisions, CAS save/restore           | PostgreSQL migration/restore and client integration                                                |
+| V4-ISOLATION                  | In progress                                     | `core/workspaces.py`; request/worker scope; content-related ORM tables scoped                                                                                     | Membership API, role enforcement, URL uniqueness and worker key audit                              |
+| V4-FOUNDATION-TEST            | Verified subset                                 | 112 backend tests passed against PostgreSQL: isolation, CAS/history, 24-hour snapshots/replay, cancellation and preserved regressions                             | Browser/native/live provider verification                                                          |
+| V4-RESEARCH                   | In progress                                     | `routes/studio.py`, `services/research_runs.py`, `ResearchDiscovery.tsx`: explicit window, retained findings, frozen rank dimensions, coverage, safe cancellation | Actual web search/extraction/claim review, saved findings, opaque cursors, live browser acceptance |
+| V4-WEB / V4-IOS               | Pending                                         | Existing clients preserved; authoritative tokens and home artboard inspected                                                                                      | All screen/control implementation and visual/device verification                                   |
+| V4-CAROUSEL                   | Existing implementation retained                | Whole-image AI composition, validation, individual regeneration and exports                                                                                       | Revision 4 editor, similarity safeguards and current-provider acceptance                           |
+| V4-REEL                       | In progress                                     | `services/video.py`: real assembly/decode checks; `provider.speech_audio`: real speech adapter; Docker FFmpeg dependency                                          | Real audio/assets/render/validation/editor and recovery tests                                      |
+| V4-APPROVAL / V4-PUBLISH      | Existing safeguards retained; extension pending | Prior version approval/invalidation and unknown-outcome reconciliation                                                                                            | Independent output approvals, account/version authorization, schedules                             |
+| V4-OPERATIONS / V4-ACCEPTANCE | Pending                                         | Prior jobs/tests/docs retained                                                                                                                                    | A–O traceability, native/browser/visual/live-provider verification, PR                             |
+
+Per-screen tracking: `docs/ux/V4_IMPLEMENTATION_COVERAGE.csv`. Web lint/build and native TypeScript passed. This is partial implementation; no screen is marked fully accepted.
+
+No real Instagram publishing or public deployment is authorized. No revision 4 production-readiness claim is made.
+
 Working branch: `feat/complete-product`. Checkpoint: `checkpoint/pre-complete-product-036fb71`.
 The existing app and local SQLite data were preserved; the existing data was backed up and transferred to PostgreSQL. Production publishing/deployment was not performed.
 

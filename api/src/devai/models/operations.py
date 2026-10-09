@@ -36,6 +36,9 @@ class LoginAttempt(Base):
 
 class TopicApproval(Base):
     __tablename__ = "topic_approvals"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
     topic_id: Mapped[str] = mapped_column(ForeignKey("topics.id"), primary_key=True)
     fingerprint: Mapped[str] = mapped_column(String(64))
     approved_by: Mapped[str] = mapped_column(String)
@@ -44,6 +47,9 @@ class TopicApproval(Base):
 
 class PostRevision(Base):
     __tablename__ = "post_revisions"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
     __table_args__ = (UniqueConstraint("post_id", "version", name="uq_post_revision"),)
     id: Mapped[str] = mapped_column(String, primary_key=True)
     post_id: Mapped[str] = mapped_column(ForeignKey("posts.id"), index=True)
@@ -55,6 +61,9 @@ class PostRevision(Base):
 
 class PublishSchedule(Base):
     __tablename__ = "publish_schedules"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
     id: Mapped[str] = mapped_column(String, primary_key=True)
     post_id: Mapped[str] = mapped_column(ForeignKey("posts.id"), index=True)
     version: Mapped[str] = mapped_column(String)
@@ -69,6 +78,9 @@ class PublishSchedule(Base):
 
 class UsageEvent(Base):
     __tablename__ = "usage_events"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
     id: Mapped[str] = mapped_column(String, primary_key=True)
     job_id: Mapped[str | None] = mapped_column(String, index=True)
     provider: Mapped[str] = mapped_column(String, default="openai")

@@ -8,22 +8,6 @@ from devai.models.content import (
     SourceCandidate,
 )
 from devai.models.editorial import EditorialTopic
-from devai.models.workflow import Job, MediaAsset, Topic
-
-__all__ = [
-    "EditorialTopic",
-    "ArticleEvidence",
-    "Audit",
-    "DailyRun",
-    "Post",
-    "PublishAttempt",
-    "Slide",
-    "SourceCandidate",
-    "Job",
-    "MediaAsset",
-    "Topic",
-]
-
 from devai.models.operations import (
     AuthSession,
     LoginAttempt,
@@ -34,8 +18,29 @@ from devai.models.operations import (
     User,
     WorkspaceSetting,
 )
+from devai.models.studio import (
+    ActionReceipt,
+    Finding,
+    Membership,
+    ResearchRun,
+    StudioDocument,
+    StudioVersion,
+    Workspace,
+)
+from devai.models.workflow import Job, MediaAsset, Topic
 
-__all__ += [
+__all__ = [
+    "ArticleEvidence",
+    "Audit",
+    "DailyRun",
+    "Post",
+    "PublishAttempt",
+    "Slide",
+    "SourceCandidate",
+    "EditorialTopic",
+    "Job",
+    "MediaAsset",
+    "Topic",
     "AuthSession",
     "LoginAttempt",
     "PostRevision",
@@ -44,4 +49,11 @@ __all__ += [
     "UsageEvent",
     "User",
     "WorkspaceSetting",
+    "ActionReceipt",
+    "Finding",
+    "Membership",
+    "ResearchRun",
+    "StudioDocument",
+    "StudioVersion",
+    "Workspace",
 ]

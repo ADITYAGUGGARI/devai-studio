@@ -7,7 +7,7 @@ from devai.core.auth import require_api_key
 from devai.core.database import SessionFactory
 from devai.models import Audit, Job, Post, Slide
 from devai.schemas.posts import PostInput, SlideUpdate, UpdateInput
-from devai.services.jobs import assert_idle, insert_job, serialise_job
+from devai.services.jobs import assert_idle, insert_job, scoped_key, serialise_job
 from devai.services.managed_publishing import validate_ready
 from devai.services.operations import capture_revision
 from devai.services.posts import serialize
@@ -22,7 +22,7 @@ def queue_artwork(id: str, session_factory, slide_id: str | None = None):
             raise HTTPException(404, "Post not found")
         if post.status in {"publishing", "published"}:
             raise HTTPException(409, "Post cannot be changed")
-        existing = db.query(Job).filter_by(active_key=f"post:{id}").first()
+        existing = db.query(Job).filter_by(active_key=scoped_key(db, f"post:{id}")).first()
         if existing:
             return serialise_job(existing)
         slides = db.query(Slide).filter_by(post_id=id).all()

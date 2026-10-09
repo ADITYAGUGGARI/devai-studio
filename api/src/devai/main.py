@@ -21,6 +21,7 @@ from devai.routes import (
     posts,
     publishing,
     research,
+    studio,
     workflow,
 )
 from devai.services.jobs import run_worker
@@ -56,8 +57,15 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
         CORSMiddleware,
         allow_origins=list(config.cors_origins),
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PATCH"],
-        allow_headers=["Content-Type", "X-API-Key", "Authorization"],
+        allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
+        allow_headers=[
+            "Content-Type",
+            "X-API-Key",
+            "Authorization",
+            "X-Workspace-ID",
+            "Idempotency-Key",
+            "If-Match",
+        ],
     )
 
     @app.get("/health", tags=["health"])
@@ -98,6 +106,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     app.include_router(research.router, tags=["research"])
     app.include_router(workflow.router, tags=["workflow"])
     app.include_router(editorial.router, tags=["editorial"])
+    app.include_router(studio.router, tags=["studio"])
     return app
 
 

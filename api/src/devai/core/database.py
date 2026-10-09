@@ -58,7 +58,19 @@ def initialize_legacy_database(engine):
     # Import all models before creating the development schema.
     import devai.models  # noqa: F401
 
-    Base.metadata.create_all(engine)
+    studio_tables = {
+        "workspaces",
+        "workspace_members",
+        "studio_documents",
+        "studio_versions",
+        "research_runs",
+        "research_findings",
+        "action_receipts",
+    }
+    Base.metadata.create_all(
+        engine,
+        tables=[table for table in Base.metadata.sorted_tables if table.name not in studio_tables],
+    )
     # `create_all` does not add columns to existing development databases. Keep
     # this narrowly scoped compatibility migration until versioned migrations
     # replace startup schema creation.
@@ -109,7 +121,12 @@ def initialize_legacy_database(engine):
 
 
 def get_session_factory(request: Request) -> sessionmaker:
-    return request.app.state.session_factory
+    from devai.core.workspaces import scoped_factory
+    from devai.models.studio import LEGACY_WORKSPACE
+
+    return scoped_factory(
+        request.app.state.session_factory, getattr(request.state, "workspace_id", LEGACY_WORKSPACE)
+    )
 
 
 SessionFactory = Annotated[sessionmaker, Depends(get_session_factory)]

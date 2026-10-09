@@ -33,7 +33,13 @@ def token_hash(token: str) -> str:
 
 
 def authorize(request: Request, principal: dict) -> dict:
+    from devai.core.workspaces import resolve_workspace
+
+    principal = resolve_workspace(request, principal)
     method, path, role = request.method, request.url.path, principal["role"]
+    if path.startswith("/v1/"):
+        request.state.principal = principal
+        return principal
     if method not in {"GET", "HEAD", "OPTIONS"}:
         if role == "viewer":
             raise HTTPException(403, "Viewer access is read-only")
