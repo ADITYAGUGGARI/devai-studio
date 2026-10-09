@@ -58,6 +58,38 @@ def test_large_feed_is_complete_and_prefers_full_rss_content(monkeypatch):
     assert research.clean_excerpt(items[0]["summary"]).startswith("Official evidence.")
 
 
+def test_all_bounded_feed_entries_are_retained(monkeypatch):
+    xml = (
+        "<rss><channel>"
+        + "".join(
+            f"<item><title>AI code {index}</title><link>https://github.blog/story-{index}</link></item>"
+            for index in range(75)
+        )
+        + "</channel></rss>"
+    )
+    mock_transport(
+        monkeypatch,
+        lambda request: httpx.Response(
+            200, text=xml, headers={"content-type": "application/rss+xml"}
+        ),
+    )
+    assert len(research.fetch_feed("https://github.blog/feed/")) == 75
+
+
+def test_rdf_feed_is_supported(monkeypatch):
+    rdf = '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://purl.org/rss/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/"><item><title>AI developer paper</title><link>https://arxiv.org/abs/2610.12345</link><description>Source excerpt</description><dc:date>2026-10-08T00:00:00Z</dc:date></item></rdf:RDF>'
+    mock_transport(
+        monkeypatch,
+        lambda request: httpx.Response(
+            200, text=rdf, headers={"content-type": "application/rss+xml"}
+        ),
+    )
+    item = research.fetch_feed("https://rss.arxiv.org/rss/cs.SE")[0]
+    assert item["title"] == "AI developer paper"
+    assert item["summary"] == "Source excerpt"
+    assert item["published"] == "2026-10-08T00:00:00Z"
+
+
 def test_atom_escaped_html_is_readable_evidence(monkeypatch):
     xml = """<feed xmlns="http://www.w3.org/2005/Atom"><entry>
     <title>AI developer tools</title><link href="https://github.com/openai/codex/releases/tag/v1"/>

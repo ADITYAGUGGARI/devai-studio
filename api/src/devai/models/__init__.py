@@ -1,3 +1,4 @@
+from devai.models.authentication import EmailChallenge
 from devai.models.content import (
     ArticleEvidence,
     Audit,
@@ -30,6 +31,7 @@ from devai.models.studio import (
 from devai.models.workflow import Job, MediaAsset, Topic
 
 __all__ = [
+    "EmailChallenge",
     "ArticleEvidence",
     "Audit",
     "DailyRun",

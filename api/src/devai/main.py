@@ -22,6 +22,7 @@ from devai.routes import (
     publishing,
     research,
     studio,
+    studio_auth,
     workflow,
 )
 from devai.services.jobs import run_worker
@@ -107,6 +108,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     app.include_router(workflow.router, tags=["workflow"])
     app.include_router(editorial.router, tags=["editorial"])
     app.include_router(studio.router, tags=["studio"])
+    app.include_router(studio_auth.router, tags=["authentication"])
     return app
 
 

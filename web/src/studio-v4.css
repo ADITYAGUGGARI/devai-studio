@@ -1,0 +1,308 @@
+/* Revision 4 application tokens. Media pixels remain their original composition. */
+.desktop-studio .task-dock {
+  background: var(--color-successSurface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+.desktop-studio .task-summary span {
+  color: var(--color-muted);
+}
+.desktop-studio .library-filters button,
+.desktop-studio button[role='tab'] {
+  color: var(--color-text);
+}
+.desktop-studio button[role='tab'][aria-selected='true'] {
+  color: var(--color-onForest);
+  background: var(--color-forest);
+}
+.desktop-studio label,
+.desktop-studio summary {
+  color: var(--color-text);
+}
+.desktop-studio input,
+.desktop-studio textarea,
+.desktop-studio select {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-controlBorder);
+}
+:root {
+  --studio-bg: var(--color-background);
+  --studio-surface: var(--color-surface);
+  --studio-border: var(--color-border);
+  --studio-muted: var(--color-muted);
+  --studio-accent: var(--color-forest);
+  color-scheme: light;
+}
+body,
+.desktop-studio {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.desktop-studio {
+  padding: 16px;
+  gap: 24px;
+}
+.desktop-studio .studio-sidebar {
+  width: 232px;
+  height: calc(100vh - 32px);
+  top: 16px;
+  background: var(--color-forest);
+  border: 0;
+  border-radius: 20px;
+  padding: 28px 18px;
+  color: var(--color-onForest);
+}
+.desktop-studio .brandmark,
+.desktop-studio .brand small,
+.workspace-note span {
+  color: var(--color-onForest);
+}
+.desktop-studio .nav {
+  color: var(--color-onForest);
+  font-size: 16px;
+  min-height: 48px;
+  border-radius: var(--radius-control);
+}
+.desktop-studio .nav.active,
+.desktop-studio .nav:hover {
+  background: var(--color-forestHover);
+  color: var(--color-onForest);
+}
+.desktop-studio main {
+  min-width: 0;
+  flex: 1;
+}
+.desktop-studio .content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+.desktop-studio .studio-topbar {
+  background: transparent;
+  font-size: 16px;
+  min-height: 72px;
+  border-color: var(--color-border);
+  padding: 12px 24px;
+}
+.desktop-studio h1,
+.auth-card h1 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(32px, 3vw, 40px);
+  line-height: 1.15;
+  color: var(--color-text);
+}
+.desktop-studio h2 {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--color-text);
+}
+.desktop-studio h3 {
+  font-size: 19px;
+  color: var(--color-text);
+}
+.muted,
+.hint,
+.subtitle,
+.desktop-studio .eyebrow,
+.desktop-studio .kicker,
+.desktop-studio .account-label small {
+  color: var(--color-muted);
+}
+.panel,
+.stat,
+.postcard,
+.empty,
+.auth-card,
+.desktop-studio .panel,
+.desktop-studio .postcard,
+.desktop-studio .next-step,
+.desktop-studio .daily-run {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+.primary,
+.desktop-studio .primary {
+  background: var(--color-forest);
+  color: var(--color-onForest);
+  border: 1px solid var(--color-forest);
+  min-height: 48px;
+  border-radius: var(--radius-control);
+}
+.primary:hover:not(:disabled) {
+  background: var(--color-forestHover);
+}
+.secondary,
+.desktop-studio .secondary,
+.ghost,
+.desktop-studio .ghost {
+  background: transparent;
+  color: var(--color-text);
+  min-height: 48px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-controlBorder);
+}
+input,
+textarea,
+select {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-controlBorder);
+  border-radius: var(--radius-control);
+  min-height: 52px;
+  padding: 12px 14px;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-muted);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+a {
+  color: var(--color-forest);
+  text-underline-offset: 3px;
+}
+.error {
+  background: var(--color-errorSurface);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+.run-warning,
+.warning {
+  background: var(--color-warningSurface);
+  color: var(--color-warning);
+}
+.account-avatar,
+.desktop-studio .account-avatar {
+  background: var(--color-secondarySurface);
+  color: var(--color-text);
+  width: 44px;
+  height: 44px;
+}
+.action-feedback {
+  background: var(--color-successSurface);
+  color: var(--color-forest);
+  border-color: var(--color-border);
+}
+.discovery-workspace {
+  padding: 28px;
+  margin-bottom: 24px;
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 24px;
+}
+.section-head h2 {
+  margin-top: 0;
+}
+.discovery-filters {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  margin: 24px 0;
+  flex-wrap: wrap;
+}
+.discovery-filters label {
+  flex: 1;
+  min-width: 180px;
+}
+.discovery-workspace label {
+  display: grid;
+  gap: 8px;
+}
+.finding-card {
+  border-top: 1px solid var(--color-border);
+  padding: 24px 0;
+}
+.finding-card h3 {
+  margin: 8px 0;
+}
+.finding-card summary {
+  min-height: 44px;
+  padding: 10px 0;
+  cursor: pointer;
+}
+.finding-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.finding-card dd {
+  margin: 0;
+  font-weight: 600;
+}
+progress {
+  accent-color: var(--color-forest);
+  width: min(100%, 480px);
+}
+@media (max-width: 1000px) {
+  .desktop-studio {
+    gap: 12px;
+  }
+  .desktop-studio .studio-sidebar {
+    width: 200px;
+  }
+  .desktop-studio .content {
+    padding: 24px 12px;
+  }
+}
+@media (max-width: 760px) {
+  .desktop-studio {
+    padding: 0;
+    display: block;
+  }
+  .desktop-studio .studio-sidebar {
+    display: none;
+  }
+  .desktop-studio .content {
+    padding: 24px 16px;
+  }
+  .desktop-studio .studio-topbar {
+    padding: 12px 16px;
+  }
+  .discovery-workspace {
+    padding: 20px;
+  }
+  .section-head {
+    flex-direction: column;
+  }
+  .finding-card dl {
+    grid-template-columns: 1fr 1fr;
+  }
+  .mobile-nav {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+  .desktop-studio .mobile-nav .nav {
+    color: var(--color-text);
+  }
+  .desktop-studio .mobile-nav .nav.active {
+    color: var(--color-onForest);
+    background: var(--color-forest);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -2,13 +2,17 @@
 
 import json
 import uuid
+import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
+
+import httpx
 
 from devai.models import Topic
 from devai.models.studio import Finding, ResearchRun
 from devai.services.research import (
     FEEDS,
     RELEVANT_TITLE,
+    classify_topic,
     clean_excerpt,
     fetch_feed,
     parse_published,
@@ -60,7 +64,7 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
     with factory() as db:
         run = db.get(ResearchRun, run_id)
         start, end = aware(run.window_start), aware(run.window_end)
-    coverage = {}
+        coverage = json.loads(run.coverage_json)
     for index, (source, url) in enumerate(catalog.items()):
         progress(index, len(catalog), f"Collecting {source}")
         try:
@@ -74,6 +78,7 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
                 title = str(item.get("title", ""))[:500]
                 excerpt = clean_excerpt(item.get("summary", ""))
                 published = parse_published(item.get("published", ""))
+                category = classify_topic(title, excerpt)
                 relevant = bool(RELEVANT_TITLE.search(title))
                 disposition = "usable"
                 if not published:
@@ -100,7 +105,7 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
                             title=title,
                             source=source,
                             excerpt=excerpt,
-                            category="news",
+                            category=category,
                             priority=score,
                             published_at=published,
                             verification="unverified",
@@ -115,7 +120,7 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
                             topic_id=topic.id if topic else None,
                             title=title,
                             source=source,
-                            category="news",
+                            category=category,
                             published_at=published,
                             disposition=disposition,
                             duplicate_group_id=topic.id if duplicate else None,
@@ -134,7 +139,7 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
                     )
                 captured += 1
             coverage[source] = {"status": "collected", "captured": captured}
-        except Exception as exc:
+        except (httpx.HTTPError, ET.ParseError, ValueError, TimeoutError) as exc:
             coverage[source] = {"status": "unavailable", "error": source_error(exc)}
         with factory.begin() as db:
             db.get(ResearchRun, run_id).coverage_json = json.dumps(coverage)
@@ -143,9 +148,19 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
         counts = {}
         for finding in db.query(Finding).filter_by(run_id=run_id):
             counts[finding.disposition] = counts.get(finding.disposition, 0) + 1
-    return {
+    result = {
         "run_id": run_id,
         "counts": counts,
         "coverage": coverage,
         "coverage_limit": "Configured source feeds only; this is not exhaustive internet coverage.",
+        "warnings": [
+            f"{name}: {item['error']}"
+            for name, item in coverage.items()
+            if item["status"] == "unavailable"
+        ],
     }
+    if coverage and all(item["status"] == "unavailable" for item in coverage.values()):
+        from devai.services.topics import ResearchEvidenceError
+
+        raise ResearchEvidenceError(result)
+    return result

@@ -21,6 +21,18 @@ Per-screen tracking: `docs/ux/V4_IMPLEMENTATION_COVERAGE.csv`. Web lint/build an
 
 No real Instagram publishing or public deployment is authorized. No revision 4 production-readiness claim is made.
 
+### Current revision 4 verification checkpoint
+
+- Combined PostgreSQL + real FFmpeg regression: 121 passed; no skipped tests. SQLite regression: 120 passed, one explicit codec skip when media tools are not configured.
+- Actual FFmpeg integration: two tests passed with the compiled ARM FFmpeg 8.0 binaries; a 35-second H.264 1080×1920 MP4 was assembled and decoded. A failed subsequent render preserved the prior file. Synthetic images were confined to test fixtures. Reel script/storyboard/artwork/voiceover orchestration and editor are not yet complete.
+- Web: lint, TypeScript and production build passed; 17 preserved mocked regressions passed. One real-PostgreSQL discovery test passed at 1440px and 390px with axe scanning; screenshots were inspected. After newer API changes, populated discovery acceptance still needs verification.
+- Native: cream/forest tokens, five primary tabs, separate discovery/queue, real email-code authentication stack and numeric autofill input are implemented; TypeScript passed. No revision 4 simulator acceptance yet; no simulator is currently booted.
+- Research: all bounded feed entries retained, RSS/RDF/Atom supported, official arXiv endpoint updated. Live read-only checks retrieved 62 arXiv SE and 10 GitHub entries. This is configured-feed coverage, not exhaustive web coverage. Live search/extraction/claim-verification orchestration is pending.
+- Email: real TLS SMTP adapter, HMAC-protected code, expiration, resend/IP/identity limits, attempt persistence, single-use consumption and idempotent delivery tests pass. SMTP credentials and APP_SECRET are required; live email delivery has not been tested. Apple sign-in, refresh sessions, onboarding and recovery contracts remain incomplete.
+- Startup and server-only environment details: `docs/V4_LOCAL_DEVELOPMENT.md`.
+- Worktree preview: PostgreSQL `devai_v4_local`, API8125, web5185. Existing database and original worktree remain preserved. Current long-running API must be restarted to load new migration0003 and latest routes. The preview uses an explicitly enabled loopback-only development API key.
+- Meta official publishing documentation was inaccessible through the web tool; current permission/account/version requirements remain unverified. No real Instagram publishing occurred.
+
 Working branch: `feat/complete-product`. Checkpoint: `checkpoint/pre-complete-product-036fb71`.
 The existing app and local SQLite data were preserved; the existing data was backed up and transferred to PostgreSQL. Production publishing/deployment was not performed.
 

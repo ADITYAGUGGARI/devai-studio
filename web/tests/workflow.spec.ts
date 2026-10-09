@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 const source = 'https://example.com/primary-source';
 const topic = {
-  id: 'topic-1',
+  id: '22222222-2222-4222-8222-222222222222',
   title: 'AI engineering workflows',
   url: source,
   source: 'Primary publisher',
@@ -19,7 +19,7 @@ const topic = {
   error: null,
 };
 const post = {
-  id: 'post-1',
+  id: '11111111-1111-4111-8111-111111111111',
   title: 'Original developer analysis',
   caption: `Practical engineering guidance. Source: ${source}`,
   status: 'draft',
@@ -85,7 +85,7 @@ async function mockApi(
             status: 'completed_with_warnings',
             step: 'Completed with source warnings',
             result: {
-              created_topic_ids: ['topic-1'],
+              created_topic_ids: ['22222222-2222-4222-8222-222222222222'],
               skipped_urls: ['https://example.com/existing'],
               warnings: [
                 'OpenAI News: article HTTP 403; insufficient readable source evidence (3 stories)',
@@ -108,6 +108,7 @@ async function mockApi(
       if (path === '/auth/me')
         result = { id: 'test-admin', email: 'admin@example.test', role: 'admin' };
       else if (path.endsWith('/versions')) result = [];
+      else if (path === '/v1/research/runs') result = { items: [] };
       else if (path === '/posts') result = posts;
       else if (path === '/topics') result = topics;
       else if (path === '/jobs') result = jobs;
@@ -145,7 +146,7 @@ async function mockApi(
             status: 'completed',
             progress: 6,
             step: 'Completed',
-            result: { post_id: 'post-1' },
+            result: { post_id: '11111111-1111-4111-8111-111111111111' },
           },
         ];
         result = jobs[0];
@@ -159,7 +160,13 @@ async function mockApi(
         posts[0].status = 'approved';
         result = { status: 'approved' };
       } else if (path.endsWith('/publish')) {
-        jobs = [{ ...blankJob, kind: 'publish', payload: { post_id: 'post-1', version: '1' } }];
+        jobs = [
+          {
+            ...blankJob,
+            kind: 'publish',
+            payload: { post_id: '11111111-1111-4111-8111-111111111111', version: '1' },
+          },
+        ];
         result = jobs[0];
       } else if (path.endsWith('/retry')) {
         jobs = [{ ...blankJob, kind: 'artwork', status: 'queued' }];
@@ -202,6 +209,7 @@ test('focused workspaces keep research, drafts and diagnostics separate', async 
   await expect(page.getByRole('heading', { name: 'Prioritized topic queue' })).toHaveCount(0);
   await expect(page.getByText('completed with warnings', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
   await expect(page.getByRole('heading', { name: 'Prioritized topic queue' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Content library' })).toHaveCount(0);
   await expect(page.getByLabel('Story headline')).not.toBeVisible();
@@ -218,6 +226,7 @@ test('preserves dashboard and exposes persistent research progress', async ({ pa
   await expect(page.getByText('devai studio')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Today', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
   await page.getByRole('button', { name: 'Refresh research', exact: true }).click();
   await expect(page.getByText('Checking primary-source evidence', { exact: false })).toBeVisible();
   await expect(
@@ -231,6 +240,7 @@ test('manual evidence must be verified before selecting six-slide generation', a
   const calls = await mockApi(page);
   await page.goto('/');
   await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
   await page.getByText('Add your own source', { exact: true }).click();
   await page.getByLabel('Story headline').fill('Manual source for developers');
   await page.getByLabel('Primary source URL').fill(source);
@@ -265,9 +275,9 @@ test('human review and configuration gate publishing from existing editor', asyn
   await page.getByRole('button', { name: 'Approve', exact: true }).click();
   await page.getByRole('button', { name: 'Publish approved carousel to Instagram' }).click();
   expect(calls.map((call) => call.path)).toEqual([
-    '/posts/post-1/submit',
-    '/posts/post-1/approve',
-    '/posts/post-1/publish',
+    '/posts/11111111-1111-4111-8111-111111111111/submit',
+    '/posts/11111111-1111-4111-8111-111111111111/approve',
+    '/posts/11111111-1111-4111-8111-111111111111/publish',
   ]);
   await page.getByRole('tab', { name: 'Copy', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Save post', exact: true })).toBeDisabled();
@@ -337,7 +347,7 @@ for (const status of ['completed_with_warnings', 'running', 'failed']) {
             result:
               status === 'completed_with_warnings'
                 ? {
-                    created_topic_ids: ['topic-1'],
+                    created_topic_ids: ['22222222-2222-4222-8222-222222222222'],
                     skipped_urls: [],
                     warnings: ['OpenAI News: article HTTP 403'],
                   }
@@ -348,6 +358,7 @@ for (const status of ['completed_with_warnings', 'running', 'failed']) {
     });
     await page.goto('/');
     await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+    await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
     await page.getByText('Daily research status', { exact: true }).click();
     const panel = page.getByRole('region', { name: 'AI news and developer impact' });
     await expect(panel.getByText('Latest research refresh ·', { exact: false })).toBeVisible();
@@ -422,6 +433,7 @@ test('desktop research filters and source dialog preserve a focused workspace', 
   await mockApi(page);
   await page.goto('/');
   await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
   await page.getByLabel('Search topics', { exact: true }).fill('no matching story');
   await expect(page.getByRole('radio')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Approve topic', exact: true })).toHaveCount(0);
@@ -492,8 +504,9 @@ test('background work remains visible across navigation and completion opens the
           kind: 'artwork',
           step: status === 'running' ? 'Creating slide 3 of 6' : 'Artwork completed',
           progress: status === 'running' ? 3 : 6,
-          payload: { post_id: 'post-1' },
-          result: status === 'completed' ? { post_id: 'post-1' } : null,
+          payload: { post_id: '11111111-1111-4111-8111-111111111111' },
+          result:
+            status === 'completed' ? { post_id: '11111111-1111-4111-8111-111111111111' } : null,
         },
       ],
     }),
@@ -549,20 +562,23 @@ test('publishing schedules approved versions and exposes cancellation', async ({
   await page.route('http://127.0.0.1:8123/publishing/schedules', (route) =>
     route.fulfill({ json: schedules }),
   );
-  await page.route('http://127.0.0.1:8123/posts/post-1/schedule', async (route) => {
-    const due = route.request().postDataJSON().due_at;
-    schedules = [
-      {
-        id: 'schedule-1',
-        post_id: 'post-1',
-        version: '1',
-        due_at: due,
-        status: 'scheduled',
-        error: null,
-      },
-    ];
-    await route.fulfill({ status: 201, json: schedules[0] });
-  });
+  await page.route(
+    'http://127.0.0.1:8123/posts/11111111-1111-4111-8111-111111111111/schedule',
+    async (route) => {
+      const due = route.request().postDataJSON().due_at;
+      schedules = [
+        {
+          id: 'schedule-1',
+          post_id: '11111111-1111-4111-8111-111111111111',
+          version: '1',
+          due_at: due,
+          status: 'scheduled',
+          error: null,
+        },
+      ];
+      await route.fulfill({ status: 201, json: schedules[0] });
+    },
+  );
   await page.route(
     'http://127.0.0.1:8123/publishing/schedules/schedule-1/cancel',
     async (route) => {
@@ -598,6 +614,7 @@ test('input validation returns useful field errors without losing manual source 
   });
   await page.goto('/');
   await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
   await page.getByRole('button', { name: 'Add your own source', exact: true }).click();
   await page.getByLabel('Story headline').fill('Preserved source input');
   await page.getByLabel('Primary source URL').fill(source);

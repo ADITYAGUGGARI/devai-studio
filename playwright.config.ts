@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './web/tests',
-  testIgnore: '**/connected/**',
+  testIgnore: ['**/connected/**', '**/v4/**'],
   fullyParallel: true,
   use: {
     baseURL: 'http://127.0.0.1:5181',

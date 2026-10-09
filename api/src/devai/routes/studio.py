@@ -1,5 +1,6 @@
 """Revision 4 workspace-scoped API; legacy contracts remain available."""
 
+import base64
 import hashlib
 import json
 import uuid
@@ -8,6 +9,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
+from sqlalchemy import and_, func, or_
 
 from devai.core.auth import require_api_key
 from devai.core.database import SessionFactory
@@ -166,27 +168,65 @@ def findings(
     disposition: str | None = None,
     category: str | None = None,
     priorityMin: int = 0,
-    cursor: int = 0,
+    cursor: str = "",
 ):
-    if cursor < 0 or not 0 <= priorityMin <= 100:
+    if len(cursor) > 2000 or not 0 <= priorityMin <= 100:
         raise HTTPException(422, "Invalid cursor or priority")
     with session_factory() as db:
         if not db.get(ResearchRun, run_id):
             raise HTTPException(404, "Research run not found")
         query = db.query(Finding).filter(Finding.run_id == run_id, Finding.score >= priorityMin)
         if q:
-            query = query.filter(Finding.title.ilike(f"%{q}%"))
+            query = query.filter(Finding.title.icontains(q, autoescape=True))
         if disposition:
             query = query.filter_by(disposition=disposition)
         if category:
             query = query.filter_by(category=category)
         total = query.count()
-        rows = (
-            query.order_by(Finding.score.desc(), Finding.published_at.desc(), Finding.id)
-            .offset(cursor)
-            .limit(24)
-            .all()
-        )
+        date = func.coalesce(Finding.published_at, datetime(1970, 1, 1, tzinfo=UTC))
+        scope = hashlib.sha256(
+            json.dumps([run_id, q, disposition, category, priorityMin]).encode()
+        ).hexdigest()
+        if cursor:
+            try:
+                payload = json.loads(base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)))
+                if payload["scope"] != scope:
+                    raise ValueError()
+                score, published, identifier = (
+                    int(payload["score"]),
+                    datetime.fromisoformat(payload["date"]),
+                    payload["id"],
+                )
+                if not isinstance(identifier, str) or not 0 <= score <= 100:
+                    raise ValueError()
+            except (ValueError, TypeError, KeyError):
+                raise HTTPException(422, "Invalid cursor for these filters") from None
+            query = query.filter(
+                or_(
+                    Finding.score < score,
+                    and_(Finding.score == score, date < published),
+                    and_(Finding.score == score, date == published, Finding.id > identifier),
+                )
+            )
+        rows = query.order_by(Finding.score.desc(), date.desc(), Finding.id).limit(25).all()
+        next_cursor = None
+        if len(rows) > 24:
+            last = rows[23]
+            published = last.published_at or datetime(1970, 1, 1, tzinfo=UTC)
+            next_cursor = (
+                base64.urlsafe_b64encode(
+                    json.dumps(
+                        {
+                            "scope": scope,
+                            "score": last.score,
+                            "date": published.isoformat(),
+                            "id": last.id,
+                        }
+                    ).encode()
+                )
+                .decode()
+                .rstrip("=")
+            )
         return {
             "items": [
                 {
@@ -203,8 +243,8 @@ def findings(
                     "dimensions": json.loads(row.dimensions_json),
                     "evidence": json.loads(row.evidence_json),
                 }
-                for row in rows
+                for row in rows[:24]
             ],
             "total": total,
-            "nextCursor": cursor + 24 if cursor + 24 < total else None,
+            "nextCursor": next_cursor,
         }

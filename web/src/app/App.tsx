@@ -1,12 +1,15 @@
-import { useState } from 'react';
-import { useAtom, useAtomValue } from 'jotai';
-import { accountAtom, selectedPostAtom, navigationAtom } from './state';
+import { useState, useEffect } from 'react';
+import { useBlocker } from 'react-router-dom';
+import { useAtomValue } from 'jotai';
+import { accountAtom } from './state';
+import { useStudioRouting } from './routing';
 import { PublishingWorkspace, OperationsWorkspace } from '../features/Workspace';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { samplePost } from '../data/samplePost';
 import { PostEditor } from '../features/posts/PostEditor';
 import { PostLibrary } from '../features/posts/PostLibrary';
 import { DailyRunPanel } from '../features/research/DailyRunPanel';
+import { ResearchDiscovery } from '../features/research/ResearchDiscovery';
 import { GenerationForm } from '../features/research/GenerationForm';
 import { request } from '../services/api';
 import { TaskDock } from '../features/workflow/TaskDock';
@@ -26,8 +29,7 @@ import type {
 
 export function App() {
   const queryClient = useQueryClient();
-  const [id, setId] = useAtom(selectedPostAtom);
-  const [tab, setTab] = useAtom(navigationAtom);
+  const { id, tab, navigateWorkspace: setTab, openPost } = useStudioRouting();
   const account = useAtomValue(accountAtom);
   const canWrite = account?.role !== 'viewer';
   const [busy, setBusy] = useState(false);
@@ -35,12 +37,27 @@ export function App() {
   const [notice, setNotice] = useState('');
   const [dirty, setDirty] = useState(false);
   const [leaveAction, setLeaveAction] = useState<(() => void) | null>(null);
-  function navigate(action: () => void) {
+  const blocker = useBlocker(dirty);
+  useEffect(() => {
+    function beforeUnload(event: BeforeUnloadEvent) {
+      if (dirty) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    }
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [dirty]);
+  function keepEditing() {
+    if (blocker.state === 'blocked') blocker.reset();
+    setLeaveAction(null);
+  }
+  function navigate(action: () => void, confirmLocalAction = false) {
     const next = () => {
       setNotice('');
       action();
     };
-    if (dirty) setLeaveAction(() => next);
+    if (dirty && confirmLocalAction) setLeaveAction(() => next);
     else next();
   }
   const [manualSource, setManualSource] = useState(false);
@@ -72,10 +89,6 @@ export function App() {
     queryKey: ['workflow-config'],
     queryFn: () => request<WorkflowConfig>('/workflow/config'),
   });
-  function openPost(postId: string) {
-    setId(postId);
-    setTab('Library');
-  }
   const active = data.find((post) => post.id === id);
 
   async function run(operation: () => Promise<unknown>): Promise<void> {
@@ -100,8 +113,7 @@ export function App() {
   async function openDraft(path: string, payload: unknown) {
     await run(async () => {
       const draft = await request<{ id: string }>(path, 'POST', payload);
-      setId(draft.id);
-      setTab('Library');
+      openPost(draft.id);
     });
   }
 
@@ -129,7 +141,6 @@ export function App() {
       onNavigate={(name) =>
         navigate(() => {
           setTab(name);
-          setId(null);
         })
       }
       onLogout={() =>
@@ -137,7 +148,7 @@ export function App() {
           void request('/auth/logout', 'POST')
             .then(() => window.location.reload())
             .catch((cause) => setError(cause instanceof Error ? cause.message : 'Sign out failed'));
-        })
+        }, true)
       }
     >
       {(busy || notice) && (
@@ -163,13 +174,11 @@ export function App() {
           onOpen={(id) => navigate(() => openPost(id))}
           onActivity={() =>
             navigate(() => {
-              setId(null);
               setTab('Activity');
             })
           }
           onResearch={() =>
             navigate(() => {
-              setId(null);
               setTab('Research');
             })
           }
@@ -225,14 +234,21 @@ export function App() {
           onOpen={openPost}
         />
       )}
-      {active ? (
+      {tab === 'Not found' || (id && !active && !isLoading) ? (
+        <section className="panel">
+          <h2>This destination is unavailable</h2>
+          <p>The content may have been removed or you may not have access.</p>
+          <button className="primary" onClick={() => setTab('Library')}>
+            Open content library
+          </button>
+        </section>
+      ) : active ? (
         <PostEditor
           key={active.id}
           post={active}
           busy={busy}
           onBack={() =>
             navigate(() => {
-              setId(null);
               setTab('Library');
             })
           }
@@ -259,10 +275,16 @@ export function App() {
           onOpen={openPost}
           onNavigate={(name) => {
             setTab(name);
-            setId(null);
           }}
         />
       ) : tab === 'Research' ? (
+        <>
+          <ResearchDiscovery canWrite={canWrite} />
+          <button className="secondary" onClick={() => setTab('Queue')}>
+            Open editorial topic queue
+          </button>
+        </>
+      ) : tab === 'Queue' ? (
         <>
           <TopicQueue
             topics={topics}
@@ -271,7 +293,6 @@ export function App() {
             onOpen={openPost}
             onViewActivity={() => {
               setTab('Activity');
-              setId(null);
             }}
             onBackgroundWork={() =>
               setNotice('Task started. Progress stays visible while you work.')
@@ -296,25 +317,25 @@ export function App() {
           busy={busy}
           onCreate={create}
           onSelect={(post) => {
-            setId(post.id);
-            setTab('Library');
+            openPost(post.id);
           }}
         />
       ) : null}
-      {leaveAction && (
-        <Modal title="You have unsaved edits" onClose={() => setLeaveAction(null)}>
+      {(leaveAction || blocker.state === 'blocked') && (
+        <Modal title="You have unsaved edits" onClose={keepEditing}>
           <p>
             Save your copy or slide changes before leaving, or discard these edits. Saved drafts and
             artwork will remain intact.
           </p>
           <div className="actions">
-            <button className="primary" onClick={() => setLeaveAction(null)}>
+            <button className="primary" onClick={keepEditing}>
               Keep editing
             </button>
             <button
               className="secondary"
               onClick={() => {
-                leaveAction();
+                if (blocker.state === 'blocked') blocker.proceed();
+                else leaveAction?.();
                 setDirty(false);
                 setLeaveAction(null);
               }}

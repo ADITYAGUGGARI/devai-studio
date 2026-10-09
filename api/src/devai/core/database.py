@@ -59,6 +59,7 @@ def initialize_legacy_database(engine):
     import devai.models  # noqa: F401
 
     studio_tables = {
+        "email_challenges",
         "workspaces",
         "workspace_members",
         "studio_documents",

@@ -8,13 +8,19 @@ export const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:800
   /\/$/,
   '',
 );
-export async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
+export async function request<T>(
+  path: string,
+  method = 'GET',
+  body?: unknown,
+  headers: Record<string, string> = {},
+): Promise<T> {
   const session = getDefaultStore().get(sessionAtom);
   const response = await fetch(API_URL + path, {
     method,
     headers: {
       'Content-Type': 'application/json',
       ...(session ? { Authorization: `Bearer ${session.token}` } : {}),
+      ...headers,
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
@@ -38,13 +44,16 @@ export async function restoreSession() {
   if (Platform.OS === 'web') return;
   const raw = await SecureStore.getItemAsync('devai-session');
   if (raw) {
+    let session: Session;
     try {
-      const session = JSON.parse(raw) as Session;
-      getDefaultStore().set(sessionAtom, session);
-      await request('/auth/me');
+      session = JSON.parse(raw) as Session;
     } catch {
       await saveSession(null);
+      return;
     }
+    getDefaultStore().set(sessionAtom, session);
+    // Only an explicit 401 revokes the local session. Offline launch must retain it.
+    await request('/auth/me').catch(() => {});
   }
 }
 export async function exportPost(id: string) {

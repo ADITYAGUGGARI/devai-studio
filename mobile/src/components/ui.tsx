@@ -11,13 +11,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const palette = {
-  bg: '#0c101b',
-  card: '#171e2b',
-  border: '#2c3546',
-  text: '#f4f4ff',
-  muted: '#adb8ce',
-  accent: '#c5b4ff',
-  warning: '#ffd192',
+  bg: '#F2EDE5',
+  card: '#FAF7F2',
+  border: '#82786B',
+  text: '#20352D',
+  muted: '#615E57',
+  accent: '#173D32',
+  warning: '#966000',
 };
 export function Button({
   title,
@@ -54,12 +54,14 @@ export function Field({
   onChange,
   multiline = false,
   secure = false,
+  oneTimeCode = false,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   multiline?: boolean;
   secure?: boolean;
+  oneTimeCode?: boolean;
 }) {
   return (
     <View style={styles.field}>
@@ -70,6 +72,9 @@ export function Field({
         onChangeText={onChange}
         multiline={multiline}
         secureTextEntry={secure}
+        keyboardType={oneTimeCode ? 'number-pad' : 'default'}
+        textContentType={oneTimeCode ? 'oneTimeCode' : secure ? 'password' : undefined}
+        maxLength={oneTimeCode ? 6 : undefined}
         autoCapitalize="none"
         placeholderTextColor={palette.muted}
         style={[styles.input, multiline && { minHeight: 120, textAlignVertical: 'top' }]}
@@ -169,10 +174,10 @@ export function Segments<T extends string>({
 }
 export const styles = StyleSheet.create({
   screen: { padding: 22, gap: 18, paddingBottom: 36, backgroundColor: palette.bg },
-  title: { fontSize: 30, fontWeight: '800', letterSpacing: -0.8, color: palette.text },
+  title: { fontSize: 34, fontFamily: 'Georgia', fontWeight: '400', color: palette.text },
   heading: { fontSize: 19, fontWeight: '700', color: palette.text, lineHeight: 26 },
-  text: { color: palette.text, fontSize: 15, lineHeight: 23, flexShrink: 1 },
-  muted: { color: palette.muted, fontSize: 13, lineHeight: 20 },
+  text: { color: palette.text, fontSize: 17, lineHeight: 24, flexShrink: 1 },
+  muted: { color: palette.muted, fontSize: 15, lineHeight: 22 },
   warning: { color: palette.warning, fontSize: 14, lineHeight: 21 },
   card: {
     padding: 18,
@@ -201,7 +206,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonText: { color: palette.bg, fontSize: 14, fontWeight: '700' },
+  buttonText: { color: palette.bg, fontSize: 17, fontWeight: '700' },
   secondaryButton: { backgroundColor: palette.card, borderWidth: 1, borderColor: palette.border },
   row: { flexDirection: 'row', gap: 10, alignItems: 'center', flexWrap: 'wrap' },
   artwork: { width: '100%', aspectRatio: 0.8, borderRadius: 16, backgroundColor: palette.card },

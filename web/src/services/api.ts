@@ -15,10 +15,19 @@ const API_KEY =
     ? import.meta.env.VITE_ADMIN_API_KEY
     : undefined;
 
-async function fetchApi(path: string, method = 'GET', body?: unknown): Promise<Response> {
+async function fetchApi(
+  path: string,
+  method = 'GET',
+  body?: unknown,
+  headers: Record<string, string> = {},
+): Promise<Response> {
   const response = await fetch(API_URL + path, {
     method,
-    headers: { 'Content-Type': 'application/json', ...(API_KEY ? { 'X-API-Key': API_KEY } : {}) },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(API_KEY ? { 'X-API-Key': API_KEY } : {}),
+      ...headers,
+    },
     credentials: 'include',
     body: body === undefined ? undefined : JSON.stringify(body),
   });
@@ -45,8 +54,13 @@ async function fetchApi(path: string, method = 'GET', body?: unknown): Promise<R
   return response;
 }
 
-export async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
-  const response = await fetchApi(path, method, body);
+export async function request<T>(
+  path: string,
+  method = 'GET',
+  body?: unknown,
+  headers: Record<string, string> = {},
+): Promise<T> {
+  const response = await fetchApi(path, method, body, headers);
   return response.json() as Promise<T>;
 }
 

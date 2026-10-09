@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   NavigationContainer,
-  DarkTheme,
+  DefaultTheme,
   type NavigationProp,
   useNavigation,
   useRoute,
@@ -36,40 +36,11 @@ import {
   Activity,
 } from '../features/Discovery';
 
+import { ResearchDiscovery } from '../features/ResearchDiscovery';
+import { EmailAuthentication } from '../features/EmailAuthentication';
+
 const Stack = createNativeStackNavigator<Routes>();
 const Tabs = createBottomTabNavigator<WorkspaceTabs>();
-function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  return (
-    <Screen title="DevAI Studio" safeTop>
-      <Text style={styles.muted}>Your developer content workspace</Text>
-      <Card>
-        <Text style={styles.heading}>Welcome back</Text>
-        <Field label="Email" value={email} onChange={setEmail} />
-        <Field label="Password" value={password} onChange={setPassword} secure />
-        <ErrorText value={error} />
-        <Button
-          title="Sign in"
-          disabled={busy || !email || !password}
-          onPress={() => {
-            setBusy(true);
-            void request<{ token: string; user: { id: string; email: string; role: string } }>(
-              '/auth/login',
-              'POST',
-              { email, password },
-            )
-              .then(saveSession)
-              .catch((e) => setError(String(e.message)))
-              .finally(() => setBusy(false));
-          }}
-        />
-      </Card>
-    </Screen>
-  );
-}
 function Library() {
   const posts = useAtomValue(postsAtom);
   const session = useAtomValue(sessionAtom);
@@ -91,6 +62,11 @@ function Library() {
       subtitle="Your stories, from first draft to final carousel."
       onRefresh={() => run(refresh)}
     >
+      <Button
+        title="Publishing workspace"
+        secondary
+        onPress={() => navigation.navigate('Publishing')}
+      />
       <Segments
         items={['All', 'Drafts', 'Review', 'Approved'] as const}
         value={filter}
@@ -679,7 +655,7 @@ function Operations() {
     return () => clearInterval(timer);
   }, []);
   return (
-    <Screen title="Operations">
+    <Screen title="Settings">
       <ErrorText value={error} />
       <Text style={styles.muted}>
         {session?.user.email} · {session?.user.role}
@@ -789,7 +765,11 @@ function Workspace() {
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <Text accessibilityElementsHidden style={{ color, fontSize: 23 }}>
-              {{ Today: '⌂', Research: '⌕', Library: '▤', Publishing: '↗' }[route.name]}
+              {
+                { Today: '⌂', Research: '⌕', Library: '▤', Activity: '◷', Settings: '⚙' }[
+                  route.name
+                ]
+              }
             </Text>
           ),
           tabBarStyle: { backgroundColor: palette.card, borderTopColor: palette.border },
@@ -797,10 +777,15 @@ function Workspace() {
           tabBarInactiveTintColor: palette.muted,
         })}
       >
-        <Tabs.Screen name="Today" component={Today} />
-        <Tabs.Screen name="Research" component={Research} options={{ title: 'Discover' }} />
-        <Tabs.Screen name="Library" component={Library} />
-        <Tabs.Screen name="Publishing" component={Publishing} />
+        <Tabs.Screen name="Today" component={Today} options={{ title: 'Home' }} />
+        <Tabs.Screen
+          name="Research"
+          component={ResearchDiscovery}
+          options={{ title: 'Discover' }}
+        />
+        <Tabs.Screen name="Library" component={Library} options={{ title: 'Content' }} />
+        <Tabs.Screen name="Activity" component={Activity} />
+        <Tabs.Screen name="Settings" component={Operations} />
       </Tabs.Navigator>
     </>
   );
@@ -813,12 +798,12 @@ export default function App() {
   }, []);
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <NavigationContainer
         theme={{
-          ...DarkTheme,
+          ...DefaultTheme,
           colors: {
-            ...DarkTheme.colors,
+            ...DefaultTheme.colors,
             background: palette.bg,
             card: palette.card,
             text: palette.text,
@@ -845,7 +830,17 @@ export default function App() {
               component={Workspace}
               options={{ title: 'DevAI Studio' }}
             />
+            <Stack.Screen
+              name="Publishing"
+              component={Publishing}
+              options={{ title: 'Publishing' }}
+            />
             <Stack.Screen name="Review" component={Review} options={{ title: 'Review carousel' }} />
+            <Stack.Screen
+              name="Queue"
+              component={Research}
+              options={{ title: 'Editorial queue' }}
+            />
             <Stack.Screen
               name="Topic"
               component={TopicDetail}
@@ -869,7 +864,7 @@ export default function App() {
             />
           </Stack.Navigator>
         ) : (
-          <Login />
+          <EmailAuthentication />
         )}
       </NavigationContainer>
     </SafeAreaProvider>

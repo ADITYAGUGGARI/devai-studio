@@ -38,6 +38,41 @@ def test_queued_cancellation_never_runs(client):
     assert not work_once(client.app.state.session_factory)
 
 
+def test_opaque_cursor_has_stable_order_and_rejects_changed_filters(client):
+    run = client.post("/v1/research/runs", headers=HEADERS, json={}).json()
+    now = datetime.now(UTC)
+    records = [
+        {
+            "url": f"https://github.blog/developer-{index}",
+            "title": f"AI developer code release {index}",
+            "summary": "Available API integration" * 40,
+            "published": (now - timedelta(hours=1)).isoformat(),
+        }
+        for index in range(30)
+    ]
+    factory = scoped_factory(client.app.state.session_factory, LEGACY_WORKSPACE)
+    collect_run(
+        factory,
+        run["runId"],
+        lambda *args: None,
+        feeds={"fixture": "okay"},
+        fetch=lambda url: records,
+    )
+    url = f"/v1/research/runs/{run['runId']}/findings"
+    first = client.get(url, headers=HEADERS).json()
+    assert len(first["items"]) == 24
+    cursor = first["nextCursor"]
+    assert isinstance(cursor, str)
+    second = client.get(url, headers=HEADERS, params={"cursor": cursor}).json()
+    assert len(second["items"]) == 6
+    assert not set(row["id"] for row in first["items"]) & set(row["id"] for row in second["items"])
+    assert (
+        client.get(url, headers=HEADERS, params={"cursor": cursor, "q": "changed"}).status_code
+        == 422
+    )
+    assert client.get(url, headers=HEADERS, params={"cursor": "invalid"}).status_code == 422
+
+
 def test_idempotent_run_retains_all_dispositions(client):
     first = client.post("/v1/research/runs", headers=HEADERS, json={})
     assert first.status_code == 202, first.text

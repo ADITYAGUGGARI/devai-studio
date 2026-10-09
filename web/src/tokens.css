@@ -1,0 +1,28 @@
+:root {
+  --color-background: #f2ede5;
+  --color-surface: #faf7f2;
+  --color-secondarySurface: #e8e0d5;
+  --color-forest: #173d32;
+  --color-forestHover: #245646;
+  --color-sage: #6e9f83;
+  --color-peach: #e7b095;
+  --color-text: #20352d;
+  --color-muted: #615e57;
+  --color-border: #cfc6ba;
+  --color-controlBorder: #82786b;
+  --color-error: #b42332;
+  --color-warning: #966000;
+  --color-onForest: #faf7f2;
+  --color-successSurface: #e2ebe1;
+  --color-errorSurface: #f6e1de;
+  --color-warningSurface: #f3e6ce;
+  --color-focus: #245646;
+  --radius-control: 12px;
+  --radius-panel: 18px;
+  --radius-sheet: 24px;
+  --radius-pill: 999px;
+  --radius-feature: 20px;
+  --radius-thumbnail: 10px;
+  --shadow-panel: 0 5px 20px rgba(32, 53, 45, 0.065);
+  --shadow-overlay: 0 12px 40px rgba(32, 53, 45, 0.12);
+}
