@@ -1,10 +1,12 @@
 import { useAtomValue } from 'jotai';
 import { accountAtom } from '../../app/state';
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { Topic } from '../../types/posts';
 import { request } from '../../services/api';
 interface Props {
   topics: Topic[];
+  loading?: boolean;
   busy: boolean;
   onAction: (op: () => Promise<unknown>) => Promise<void>;
   onOpen: (id: string) => void;
@@ -14,6 +16,7 @@ interface Props {
 }
 export function TopicQueue({
   topics,
+  loading = false,
   busy,
   onAction,
   onOpen,
@@ -23,8 +26,16 @@ export function TopicQueue({
 }: Props) {
   const account = useAtomValue(accountAtom),
     canReview = ['admin', 'reviewer'].includes(account?.role || '');
-  const [selected, setSelected] = useState(''),
-    [category, setCategory] = useState('all'),
+  const [params, setParams] = useSearchParams();
+  const selected = params.get('topic') || '';
+  const setSelected = (id: string) =>
+    setParams((previous) => {
+      const next = new URLSearchParams(previous);
+      if (id) next.set('topic', id);
+      else next.delete('topic');
+      return next;
+    });
+  const [category, setCategory] = useState('all'),
     [query, setQuery] = useState('');
   const [count, setCount] = useState(8),
     [artwork, setArtwork] = useState(true),
@@ -35,13 +46,25 @@ export function TopicQueue({
       (showArchived || t.status !== 'archived') &&
       `${t.title} ${t.source}`.toLowerCase().includes(query.toLowerCase()),
   );
-  const selectedId =
-    visible.find((t) => t.id === selected)?.id ||
-    visible.find((t) => t.selected)?.id ||
-    visible[0]?.id ||
-    '';
+  const selectedId = selected || visible.find((t) => t.selected)?.id || visible[0]?.id || '';
   const topic = topics.find((t) => t.id === selectedId),
     eligible = topic?.status === 'queued' && topic.verification !== 'unverified' && topic.approved;
+  if (loading)
+    return (
+      <section className="panel">
+        <p role="status">Loading editorial topics…</p>
+      </section>
+    );
+  if (selected && !topics.some((item) => item.id === selected))
+    return (
+      <section className="panel">
+        <h2>This topic is unavailable</h2>
+        <p>It may have been removed or belong to another workspace.</p>
+        <button className="secondary" onClick={() => setSelected('')}>
+          Return to topic queue
+        </button>
+      </section>
+    );
   return (
     <section className="research-workbench" aria-labelledby="topic-heading">
       <div className="research-toolbar">

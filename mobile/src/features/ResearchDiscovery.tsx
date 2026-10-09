@@ -16,6 +16,7 @@ interface Run {
 }
 interface Finding {
   id: string;
+  topicId: string | null;
   title: string;
   source: string;
   score: number;
@@ -195,6 +196,13 @@ export function ResearchDiscovery() {
                   {name.replaceAll('_', ' ')}: {Math.round(value * 100)}%
                 </Text>
               ))}
+              {finding.topicId && (
+                <Button
+                  title="Review this topic"
+                  secondary
+                  onPress={() => navigation.navigate('Topic', { id: finding.topicId! })}
+                />
+              )}
               <Button
                 title="Open original source"
                 secondary

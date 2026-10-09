@@ -81,7 +81,11 @@ export function App() {
     queryFn: () => request<Job[]>('/jobs'),
     refetchInterval: 2000,
   });
-  const { data: topics = [], error: topicsError } = useQuery({
+  const {
+    data: topics = [],
+    error: topicsError,
+    isPending: topicsLoading,
+  } = useQuery({
     queryKey: ['topics'],
     queryFn: () => request<Topic[]>('/topics'),
     refetchInterval: 3000,
@@ -296,6 +300,7 @@ export function App() {
         <>
           <TopicQueue
             topics={topics}
+            loading={topicsLoading}
             busy={busy || !canWrite}
             onAction={run}
             onOpen={openPost}

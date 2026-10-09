@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { request } from '../../services/api';
 
@@ -14,6 +14,7 @@ interface Run {
 }
 interface Finding {
   id: string;
+  topicId: string | null;
   title: string;
   url: string;
   source: string;
@@ -32,6 +33,7 @@ interface Page {
 
 export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
   const cache = useQueryClient();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const selectedRun = params.get('run') || '';
   const query = params.get('q') || '';
@@ -243,6 +245,16 @@ export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
                       : 'Publication date unverified'}
                   </p>
                 </div>
+                {finding.topicId && (
+                  <button
+                    className="secondary"
+                    onClick={() =>
+                      navigate(`/discover/queue?topic=${encodeURIComponent(finding.topicId!)}`)
+                    }
+                  >
+                    Review this topic
+                  </button>
+                )}
                 <details>
                   <summary>Why ranked here & source evidence</summary>
                   <dl>

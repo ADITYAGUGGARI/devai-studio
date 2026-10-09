@@ -23,6 +23,10 @@ export function WorkspaceShell({
   activeCount: number;
   children: ReactNode;
 }) {
+  const active = (id: string) =>
+    tab === id ||
+    (id === 'Operations' && tab === 'Profile') ||
+    (id === 'Research' && tab === 'Queue');
   return (
     <div className="shell desktop-studio">
       <aside className="studio-sidebar">
@@ -36,10 +40,8 @@ export function WorkspaceShell({
           {entries.slice(0, 4).map(([id, label, icon]) => (
             <button
               key={id}
-              aria-current={
-                tab === id || (id === 'Operations' && tab === 'Profile') ? 'page' : undefined
-              }
-              className={tab === id ? 'nav active' : 'nav'}
+              aria-current={active(id) ? 'page' : undefined}
+              className={active(id) ? 'nav active' : 'nav'}
               onClick={() => onNavigate(id)}
             >
               <span aria-hidden="true" className="nav-icon">
@@ -54,10 +56,8 @@ export function WorkspaceShell({
             {entries.slice(4).map(([id, label, icon]) => (
               <button
                 key={id}
-                aria-current={
-                  tab === id || (id === 'Operations' && tab === 'Profile') ? 'page' : undefined
-                }
-                className={tab === id ? 'nav active' : 'nav'}
+                aria-current={active(id) ? 'page' : undefined}
+                className={active(id) ? 'nav active' : 'nav'}
                 onClick={() => onNavigate(id)}
               >
                 <span aria-hidden="true" className="nav-icon">
@@ -100,10 +100,8 @@ export function WorkspaceShell({
           {entries.map(([id, label]) => (
             <button
               key={id}
-              aria-current={
-                tab === id || (id === 'Operations' && tab === 'Profile') ? 'page' : undefined
-              }
-              className={tab === id ? 'nav active' : 'nav'}
+              aria-current={active(id) ? 'page' : undefined}
+              className={active(id) ? 'nav active' : 'nav'}
               onClick={() => onNavigate(id)}
             >
               {label}

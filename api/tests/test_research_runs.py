@@ -13,6 +13,26 @@ from devai.services.research_runs import collect_run
 HEADERS = {"x-api-key": "test-secret", "Idempotency-Key": "research-one"}
 
 
+def test_research_retry_retains_active_resource_lock(client):
+    run = client.post("/v1/research/runs", headers=HEADERS, json={}).json()
+    with client.app.state.session_factory.begin() as db:
+        job = db.get(Job, run["jobId"])
+        expected_key = job.active_key
+        job.status, job.active_key, job.cancel_requested = "failed", None, True
+    response = client.post(f"/jobs/{run['jobId']}/retry", headers=HEADERS)
+    assert response.status_code == 202, response.text
+    with client.app.state.session_factory() as db:
+        job = db.get(Job, run["jobId"])
+        assert job.active_key == expected_key
+        assert not job.cancel_requested
+    # A second action must join the active resource rather than enqueue duplicate work.
+    second = client.post(
+        "/v1/research/runs", headers={**HEADERS, "Idempotency-Key": "research-two"}, json={}
+    )
+    assert second.status_code == 202
+    assert second.json()["jobId"] == run["jobId"]
+
+
 def test_running_cancellation_keeps_completed_work(client):
     result = client.post("/v1/research/runs", headers=HEADERS, json={}).json()
     identifier = result["jobId"]
@@ -120,9 +140,10 @@ def test_idempotent_run_retains_all_dispositions(client):
     }
     assert result["coverage"]["unavailable"]["status"] == "unavailable"
     # A recovered worker replay retains the same identities instead of duplicating topics.
-    collect_run(
+    replay = collect_run(
         factory, first.json()["runId"], lambda *args: None, feeds={"fixture": "okay"}, fetch=fetch
     )
+    assert replay["coverage"]["fixture"]["captured"] == 4
     response = client.get(f"/v1/research/runs/{first.json()['runId']}/findings", headers=HEADERS)
     assert response.status_code == 200, response.text
     assert response.json()["total"] == 4

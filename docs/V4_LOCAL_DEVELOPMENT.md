@@ -27,7 +27,7 @@ Migration0002 adopts existing content into the original studio and adds isolatio
 With server environment values loaded, run:
 
 ```sh
-CORS_ORIGINS=http://127.0.0.1:5185 PYTHONPATH=api/src .venv/bin/python -m uvicorn devai.main:app --host 127.0.0.1 --port 8125
+CORS_ORIGINS=http://127.0.0.1:5185,http://127.0.0.1:5187 PYTHONPATH=api/src .venv/bin/python -m uvicorn devai.main:app --host 127.0.0.1 --port 8125
 VITE_API_URL=http://127.0.0.1:8125 npm --prefix web run dev -- --port 5185 --strictPort
 EXPO_PUBLIC_API_URL=http://127.0.0.1:8125 npm --prefix mobile start
 ```
@@ -62,3 +62,5 @@ The dedicated v4 browser check requires the isolated preview above; other browse
 Revision4 personal preferences use migration0004 (`user_profiles`) and `/v1/me`. These routes require a real signed-in personal account; the development API header has no personal identity. Email delivery requires the SMTP settings below, or configure the preserved bootstrap local account before first startup. There is no default personal password. Profile changes do not reinterpret any stored publication reservation.
 
 Native acceptance can use `PYTHONPATH=api/src .venv/bin/python scripts/e2e_server.py` (isolated PostgreSQL schema/API8124) and `EXPO_PUBLIC_API_URL=http://127.0.0.1:8124 npm --prefix mobile start -- --localhost --port 8086`. With the installed ExpoGo54 container, run `MAESTRO_CLI_NO_ANALYTICS=1 maestro --device <simulator-id> test mobile/.maestro/v4-profile-expo.yaml`. This uses explicit test-only credentials; it is separate from previewAPI8125 and normal Metro8085. The flow is being verified; native acceptance is not complete.
+
+Authenticated review preview: start Vite with `VITE_API_URL=http://127.0.0.1:8125 VITE_DEV_API_KEY_ENABLED=false npm --prefix web run dev -- --port 5187 --strictPort`. The backend must allow both preview origins, as shown above; missing5187 causes browser sign-in to fail despite a valid account. Personal accounts are provisioned with the existing administrator account endpoint or bootstrap configuration; no password is stored in this documentation. The actual review-origin browser test reads `LOCAL_REVIEW_EMAIL` and `LOCAL_REVIEW_PASSWORD` from its environment.

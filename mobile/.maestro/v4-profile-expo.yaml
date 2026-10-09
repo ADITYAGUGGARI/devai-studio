@@ -29,6 +29,7 @@ appId: host.exp.Exponent
 - tapOn: Profile & preferences
 - tapOn:
     id: field-display-name
+- eraseText: 100
 - inputText: Native studio engineer
 - tapOn:
     id: field-personal-timezone
@@ -40,7 +41,8 @@ appId: host.exp.Exponent
 - tapOn: Save profile
 - assertVisible: Saved
 - takeScreenshot: native-v4-profile
-- back
+- tapOn:
+    id: BackButton
 - tapOn: Profile & preferences
 - assertVisible: Native studio engineer
 - assertVisible: Asia/Kolkata
@@ -48,11 +50,13 @@ appId: host.exp.Exponent
     id: field-display-name
 - inputText: unsaved
 - pressKey: Enter
-- back
+- tapOn:
+    id: BackButton
 - assertVisible: Keep your changes?
 - tapOn: Stay
 - assertVisible: Unsaved changes
-- back
+- tapOn:
+    id: BackButton
 - tapOn: Discard local changes
 - tapOn: Profile & preferences
 - assertVisible: Native studio engineer

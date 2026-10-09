@@ -13,7 +13,7 @@ from devai.core.auth import require_api_key
 from devai.core.database import SessionFactory
 from devai.models import Audit, Job, Post, SourceCandidate, Topic
 from devai.schemas.workflow import GenerateTopicInput, TopicInput, TopicUpdate
-from devai.services.jobs import ACTIVE, enqueue, insert_job, serialise_job
+from devai.services.jobs import ACTIVE, enqueue, insert_job, scoped_key, serialise_job
 from devai.services.operations import approved_topic, settings_values
 from devai.services.source_urls import canonical_source_url
 from devai.services.topics import serialise_topic
@@ -190,8 +190,10 @@ def retry_job(id: str, session_factory: SessionFactory):
             if payload.get("post_id")
             else f"topic:{payload['topic_id']}"
             if payload.get("topic_id")
-            else job.schedule_key or "research"
+            else job.schedule_key
+            or (f"{job.workspace_id}:research-v4" if job.kind == "research_v4" else "research")
         )
+        key = scoped_key(db, key)
         if (
             db.query(Job)
             .filter(Job.active_key == key, Job.id != id, Job.status.in_(ACTIVE))
@@ -213,5 +215,6 @@ def retry_job(id: str, session_factory: SessionFactory):
             if topic and not topic.post_id:
                 topic.status, topic.job_id = "generating", id
         job.status, job.active_key, job.attempts = "queued", key, 0
+        job.cancel_requested = False
         job.error, job.finished_at, job.available_at = None, None, datetime.now(UTC)
         return serialise_job(job)

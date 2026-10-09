@@ -1,6 +1,27 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
+test('a captured finding opens its exact persisted editorial topic across reload', async ({
+  page,
+}) => {
+  await page.goto('/discover?disposition=duplicate');
+  const card = page
+    .locator('article.finding-card')
+    .filter({
+      has: page.getByRole('button', { name: 'Review this topic' }),
+    })
+    .first();
+  await expect(card).toBeVisible();
+  const title = await card.getByRole('heading', { level: 3 }).innerText();
+  await card.getByRole('button', { name: 'Review this topic' }).click();
+  await expect(page).toHaveURL(/\/discover\/queue\?topic=/);
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+  await page.goto('/discover/queue?topic=unavailable-topic');
+  await expect(page.getByRole('heading', { name: 'This topic is unavailable' })).toBeVisible();
+});
+
 test('real PostgreSQL discovery preview is responsive and accessible', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/');

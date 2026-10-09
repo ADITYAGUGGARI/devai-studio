@@ -70,11 +70,15 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
         try:
             items = fetch(url)
             captured = 0
+            seen = set()
             for item in items:
                 try:
                     canonical = canonical_source_url(item["url"])
                 except (ValueError, KeyError):
                     continue
+                if canonical in seen:
+                    continue
+                seen.add(canonical)
                 title = str(item.get("title", ""))[:500]
                 excerpt = clean_excerpt(item.get("summary", ""))
                 published = parse_published(item.get("published", ""))
@@ -92,6 +96,8 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
                         db.query(Finding).filter_by(run_id=run_id, canonical_url=canonical).first()
                     )
                     if existing:
+                        if existing.source == source:
+                            captured += 1
                         continue  # Same URL in two feeds is one captured identity.
                     topic = db.query(Topic).filter_by(url=canonical).first()
                     duplicate = topic is not None
