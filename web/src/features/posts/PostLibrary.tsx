@@ -1,63 +1,91 @@
+import { useState } from 'react';
 import type { Post } from '../../types/posts';
-
-interface Props {
+import { ArtworkImage } from './SlidePreview';
+export function PostLibrary({
+  posts,
+  loading,
+  busy,
+  onSelect,
+  onCreate,
+}: {
   posts: Post[];
   loading: boolean;
   busy: boolean;
   onSelect: (post: Post) => void;
   onCreate: () => void;
-}
-
-export function PostLibrary({ posts, loading, busy, onSelect, onCreate }: Props) {
+}) {
+  const [filter, setFilter] = useState('All'),
+    [search, setSearch] = useState('');
+  const visible = posts.filter(
+    (p) =>
+      p.title.toLowerCase().includes(search.toLowerCase()) &&
+      (filter === 'All' ||
+        (filter === 'Drafts'
+          ? ['draft', 'rejected'].includes(p.status)
+          : filter === 'Review'
+            ? p.status === 'pending_review'
+            : p.status === 'approved')),
+  );
   return (
-    <>
-      <div className="stats">
-        <div className="stat">
-          <span>Total posts</span>
-          <strong>{posts.length}</strong>
+    <section aria-label="Content library">
+      <div className="library-toolbar">
+        <div className="view-tabs" role="tablist" aria-label="Library filters">
+          {['All', 'Drafts', 'Review', 'Approved'].map((f) => (
+            <button role="tab" aria-selected={filter === f} key={f} onClick={() => setFilter(f)}>
+              {f}
+            </button>
+          ))}
         </div>
-        <div className="stat">
-          <span>Needs review</span>
-          <strong>{posts.filter((post) => post.status === 'pending_review').length}</strong>
-        </div>
-        <div className="stat">
-          <span>Approved</span>
-          <strong>{posts.filter((post) => post.status === 'approved').length}</strong>
-        </div>
+        <label className="library-search">
+          Search drafts
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Find a carousel…"
+          />
+        </label>
       </div>
-      <h2>Content library</h2>
+      <h2 className="library-count">
+        Your carousels <span className="hint">{visible.length} carousels</span>
+      </h2>
       {loading ? (
-        <p>Loading…</p>
-      ) : posts.length === 0 ? (
-        <div className="empty">
-          <h3>Your next great post starts here.</h3>
-          <button className="primary" disabled={busy} onClick={onCreate}>
-            Create first draft
-          </button>
-        </div>
-      ) : (
+        <p role="status">Loading your carousels…</p>
+      ) : visible.length ? (
         <div className="cards">
-          {posts.map((post) => (
+          {visible.map((post) => (
             <button
               key={post.id}
               className="postcard"
               disabled={busy}
+              aria-label={`Open carousel: ${post.title}`}
               onClick={() => onSelect(post)}
             >
               <div className="cardart">
-                <span>AI / ENGINEERING</span>
-                <strong>{post.slides[0]?.headline || post.title}</strong>
-                <small>{post.slides.length} SLIDES</small>
+                <ArtworkImage postId={post.id} slide={post.slides[0]} alt="" />
               </div>
               <div className="cardinfo">
-                <span className={`pill ${post.status}`}>{post.status.replace('_', ' ')}</span>
+                <span className={`pill ${post.status}`}>{post.status.replaceAll('_', ' ')}</span>
                 <h3>{post.title}</h3>
-                <p>{new Date(post.created).toLocaleDateString()}</p>
+                <p>
+                  {post.slides.length} slides · Version {post.version}
+                </p>
               </div>
             </button>
           ))}
         </div>
+      ) : (
+        <div className="empty">
+          <h3>
+            {search || filter !== 'All'
+              ? 'No matching carousels'
+              : 'Your next great post starts here.'}
+          </h3>
+          <p className="hint">Choose an approved story in Research or start an editable draft.</p>
+          <button className="primary" disabled={busy} onClick={onCreate}>
+            Create first draft
+          </button>
+        </div>
       )}
-    </>
+    </section>
   );
 }

@@ -20,6 +20,15 @@ services:
     build: ./api
     environment: &api-environment
       DATABASE_URL: postgresql+psycopg://devai:devai_local_only@postgres:5432/devai
+      ALLOW_DEV_API_KEY: ${ALLOW_DEV_API_KEY:-false}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@devai.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in the server .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      APP_ENV: ${APP_ENV:-development}
+      AUTO_MIGRATE: ${AUTO_MIGRATE:-true}
+      OPENAI_SEARCH_MODEL: ${OPENAI_SEARCH_MODEL:-gpt-4.1-mini}
+      DAILY_WEB_SEARCH: ${DAILY_WEB_SEARCH:-false}
+      PROVIDER_PRICE_RATES_JSON: ${PROVIDER_PRICE_RATES_JSON:-{}}
       ADMIN_API_KEY: ${ADMIN_API_KEY:-local-dev-only}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
@@ -55,7 +64,7 @@ services:
           'CMD',
           'python',
           '-c',
-          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')",
         ]
       interval: 5s
       timeout: 5s
@@ -64,7 +73,7 @@ services:
     build: ./web
     environment:
       VITE_API_URL: http://localhost:8000
-      VITE_ADMIN_API_KEY: ${ADMIN_API_KEY:-local-dev-only}
+      VITE_DEV_API_KEY_ENABLED: 'false'
     ports:
       - '127.0.0.1:5173:5173'
     depends_on:

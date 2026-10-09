@@ -54,7 +54,18 @@ class ArticleText(HTMLParser):
             self._skip_depth += 1
         if tag == "meta":
             key = (attributes.get("property") or attributes.get("name") or "").lower()
-            if key in {"og:title", "og:description", "description", "article:published_time"}:
+            if key in {
+                "og:title",
+                "og:description",
+                "description",
+                "article:published_time",
+                "citation_title",
+                "citation_date",
+                "citation_publication_date",
+                "date",
+                "dc.date",
+                "datepublished",
+            }:
                 self.metadata[key] = attributes.get("content", "")
 
     def handle_endtag(self, tag):
@@ -82,7 +93,10 @@ def parse_published(value):
         try:
             parsed = parsedate_to_datetime(value)
         except (TypeError, ValueError, OverflowError):
-            return None
+            try:
+                parsed = datetime.strptime(value.strip(), "%Y/%m/%d")
+            except ValueError:
+                return None
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)
     return parsed.astimezone(UTC)

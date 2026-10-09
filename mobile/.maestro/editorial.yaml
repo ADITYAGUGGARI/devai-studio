@@ -1,0 +1,45 @@
+# Real API acceptance. Use scripts/e2e_server.py and a fresh simulator development build.
+appId: com.devai.studio
+---
+- launchApp
+- tapOn: Email
+- inputText: e2e@devai.test
+- tapOn: Password
+- inputText: Isolated-e2e-password-12345
+- hideKeyboard
+- tapOn: Sign in
+- assertVisible: Your studio, today
+- tapOn: Discover
+- tapOn: Add source to queue
+- tapOn: Story headline
+- inputText: Isolated native source review test
+- tapOn: Primary source URL
+- inputText: https://example.test/native-source
+- tapOn: Source excerpt
+- inputText: This is explicitly isolated test evidence for native source review and topic approval. It is not a live news story or generated provider output. This test checks durable persistence, navigation, approval controls and accessible input fields against the real PostgreSQL backend.
+- hideKeyboard
+- scrollUntilVisible:
+    element: Save source
+- tapOn: Save source
+- tapOn: Review saved evidence
+- scrollUntilVisible:
+    element: I reviewed and verified this evidence
+- tapOn: I reviewed and verified this evidence
+- scrollUntilVisible:
+    element: Approve topic
+- tapOn: Approve topic
+- assertVisible: Generate eight-slide carousel
+- back
+- back
+- tapOn: Library
+- assertVisible: Content library
+- tapOn: Publishing
+- assertVisible: Publishing
+- tapOn: Today
+- tapOn: Settings
+- assertVisible: 'Database · postgresql'
+- takeScreenshot: native-operations
+- scrollUntilVisible:
+    element: Sign out
+- tapOn: Sign out
+- assertVisible: Welcome back

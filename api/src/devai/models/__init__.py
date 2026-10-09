@@ -23,3 +23,25 @@ __all__ = [
     "MediaAsset",
     "Topic",
 ]
+
+from devai.models.operations import (
+    AuthSession,
+    LoginAttempt,
+    PostRevision,
+    PublishSchedule,
+    TopicApproval,
+    UsageEvent,
+    User,
+    WorkspaceSetting,
+)
+
+__all__ += [
+    "AuthSession",
+    "LoginAttempt",
+    "PostRevision",
+    "PublishSchedule",
+    "TopicApproval",
+    "UsageEvent",
+    "User",
+    "WorkspaceSetting",
+]

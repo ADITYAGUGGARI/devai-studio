@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import threading
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -186,8 +187,48 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
     from devai.services.topics import create_from_topic, research_queue
 
     kind, payload = claim["kind"], claim["payload"]
+    if kind == "verify":
+        from devai.models import ArticleEvidence, Slide
+        from devai.services.verification import verify_copy
+
+        with session_factory() as db:
+            post = db.get(Post, payload["post_id"])
+            evidence = db.query(ArticleEvidence).filter_by(post_id=post.id).first()
+            if not evidence:
+                raise ValueError("Saved source evidence is required")
+            content = {
+                "title": post.title,
+                "caption": post.caption,
+                "slides": [
+                    {"headline": s.headline, "body": s.body}
+                    for s in db.query(Slide).filter_by(post_id=post.id).order_by(Slide.position)
+                ],
+            }
+            excerpt, source_url = evidence.excerpt, evidence.source_url
+        report = verify_copy(excerpt, content, source_url)
+        if not report["supported"]:
+            raise GroundingError(report)
+        with session_factory.begin() as db:
+            post = db.query(Post).filter_by(id=payload["post_id"]).with_for_update().first()
+            if post.version != payload["version"] or post.status in {"published", "publishing"}:
+                raise ValueError("Post changed during copy verification")
+            lease = db.get(Job, claim["id"])
+            if lease.status != "running" or lease.lease_token != claim["token"]:
+                raise RuntimeError("Worker lost its job lease")
+            post.verification_json = json.dumps(report)
+        return {"post_id": post.id, "grounding": report}
     if kind in {"research", "daily_research"}:
-        result = research_queue(session_factory, progress=progress)
+        discover_fn = None
+        query = payload.get("query")
+        if kind == "daily_research" and os.getenv("DAILY_WEB_SEARCH", "false").lower() == "true":
+            query = "AI coding agents, developer tools, models and production AI engineering announcements"
+        if query:
+            from devai.services.search import search_web
+
+            def discover_fn(**kwargs):
+                return search_web(query, **kwargs)
+
+        result = research_queue(session_factory, progress=progress, discover_fn=discover_fn)
         if kind == "daily_research":
             with session_factory.begin() as db:
                 run = (
@@ -263,11 +304,14 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
                 if kind == "daily"
                 else None
             )
-            topic = candidates.filter(Topic.category == desired).first() if desired else None
-            topic = topic or candidates.first()
+            from devai.services.operations import approved_topic
+
+            approved = [t for t in candidates.all() if approved_topic(db, t)]
+            topic = next((t for t in approved if t.category == desired), None)
+            topic = topic or (approved[0] if approved else None)
             if not topic:
                 raise ValueError(
-                    "No verified unused topic is available; refresh research or verify a manual topic"
+                    "No approved unused topic is available; review and approve a verified topic"
                 )
             payload["topic_id"] = topic.id
             topic.status, topic.job_id = "generating", claim["id"]
@@ -333,6 +377,9 @@ def work_once(session_factory, *, handler=None) -> bool:
     def heartbeat():
         while not stop_heartbeat.wait(20):
             try:
+                from devai.services.operations import record_worker_heartbeat
+
+                record_worker_heartbeat(session_factory)
                 _update(
                     session_factory, claim, lease_until=datetime.now(UTC) + timedelta(seconds=120)
                 )
@@ -347,7 +394,10 @@ def work_once(session_factory, *, handler=None) -> bool:
         _update(session_factory, claim, progress=done, total=max(1, total), step=step)
 
     try:
-        result = (handler or dispatch)(session_factory, claim, progress)
+        from devai.services.usage import usage_scope
+
+        with usage_scope(session_factory, claim["id"]):
+            result = (handler or dispatch)(session_factory, claim, progress)
         _update(
             session_factory,
             claim,
@@ -358,11 +408,15 @@ def work_once(session_factory, *, handler=None) -> bool:
             finished_at=datetime.now(UTC),
         )
     except Exception as exc:
+        from devai.services.topics import ResearchEvidenceError
+
         message = safe_error(exc)
         with session_factory.begin() as db:
             job = db.get(Job, claim["id"])
             if job.lease_token != claim["token"]:
                 return True
+            if isinstance(exc, ResearchEvidenceError):
+                job.result_json = json.dumps(exc.report)
             retryable = (
                 (isinstance(exc, ProviderError) and exc.retryable)
                 or isinstance(exc, httpx.RequestError)
@@ -410,14 +464,23 @@ def work_once(session_factory, *, handler=None) -> bool:
 def run_worker(session_factory, stop: threading.Event, settings=None):
     while not stop.is_set():
         try:
-            if settings and settings.daily_enabled:
-                now = datetime.now(ZoneInfo(settings.daily_timezone))
-                if now.hour >= settings.daily_hour:
+            from devai.services.operations import (
+                dispatch_schedules,
+                record_worker_heartbeat,
+                settings_values,
+            )
+
+            record_worker_heartbeat(session_factory)
+            dispatch_schedules(session_factory)
+            schedule = settings_values(session_factory, settings) if settings else {}
+            if schedule.get("daily_enabled"):
+                now = datetime.now(ZoneInfo(schedule["timezone"]))
+                if now.hour >= schedule["daily_hour"]:
                     enqueue_daily(
                         session_factory,
-                        settings.daily_timezone,
+                        schedule["timezone"],
                         now=now,
-                        generate_carousel=settings.daily_generate_carousel,
+                        generate_carousel=schedule["daily_generate_carousel"],
                     )
             if not work_once(session_factory):
                 stop.wait(1)

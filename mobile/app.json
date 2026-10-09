@@ -4,6 +4,10 @@
     "slug": "devai-studio",
     "scheme": "devai",
     "orientation": "portrait",
-    "ios": { "supportsTablet": true, "bundleIdentifier": "com.devai.studio" }
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.devai.studio"
+    },
+    "plugins": ["expo-secure-store"]
   }
 }

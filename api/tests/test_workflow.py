@@ -66,6 +66,7 @@ def test_topic_selection_complete_images_validation_review_and_export(
         == 409
     )
     client.post(f"/topics/{topic_id}/verify", headers=HEADERS)
+    client.post(f"/topics/{topic_id}/approve", headers=HEADERS)
     monkeypatch.setenv("CAROUSEL_ARTWORK_DIR", str(tmp_path))
 
     def generate(title, url, excerpt, **options):
@@ -322,6 +323,7 @@ def test_interrupted_publish_is_not_claimed_again(client, ready_post):
 def test_unsupported_copy_never_saves_post(client, monkeypatch):
     topic_id = add_topic(client)
     client.post(f"/topics/{topic_id}/verify", headers=HEADERS)
+    client.post(f"/topics/{topic_id}/approve", headers=HEADERS)
     monkeypatch.setattr(topics, "generate", lambda *_args, **_kwargs: {"title": "Invented fact"})
     monkeypatch.setattr(
         topics, "verify_copy", lambda *_: {"supported": False, "issues": ["Invented benchmark"]}
