@@ -329,3 +329,40 @@ progress {
   color: var(--color-forest);
   text-decoration: underline;
 }
+
+.desktop-studio .research-settings {
+  max-width: 640px;
+}
+.research-settings form,
+.research-settings fieldset {
+  display: grid;
+  gap: 16px;
+}
+.research-settings fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.research-settings label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  font-size: 16px;
+}
+.research-settings input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  margin: 0;
+  accent-color: var(--color-forest);
+}
+.research-settings legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.research-settings p {
+  margin-block: 0 8px;
+}

@@ -4,20 +4,31 @@ import base64
 import hashlib
 import json
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Literal
+from zoneinfo import available_timezones
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import and_, func, or_
 
 from devai.core.auth import require_api_key
 from devai.core.database import SessionFactory
 from devai.models import Job
 from devai.models.studio import ActionReceipt, Finding, ResearchRun, Workspace
-from devai.services.jobs import insert_job, serialise_job
+from devai.schemas.workflow import Category
+from devai.services.jobs import serialise_job
+from devai.services.research_schedule import create_research_run
 
 router = APIRouter(prefix="/v1", dependencies=[Depends(require_api_key)])
+
+
+@router.get("/time-zones")
+def time_zones(q: str = ""):
+    if len(q) > 100:
+        raise HTTPException(422, "Timezone search is too long")
+    matches = sorted(zone for zone in available_timezones() if q.casefold() in zone.casefold())
+    return {"items": matches[:50], "total": len(matches)}
 
 
 @router.get("/jobs/{job_id}")
@@ -63,6 +74,7 @@ class ResearchInput(BaseModel):
     window: Literal["last_24_hours"] = "last_24_hours"
     rankingPolicyRevision: Literal["developer-24h-v1"] = "developer-24h-v1"
     sourceCatalogRevision: Literal["official-feeds-v1"] = "official-feeds-v1"
+    categoryIds: list[Category] | None = Field(default=None, min_length=1, max_length=5)
 
 
 def require_editor(request):
@@ -98,7 +110,9 @@ def start_research(
     ).hexdigest()
     with session_factory.begin() as db:
         # Serialize paid/action reservations per studio; unrelated studios remain independent.
-        db.query(Workspace).filter_by(id=request.state.workspace_id).with_for_update().one()
+        workspace = (
+            db.query(Workspace).filter_by(id=request.state.workspace_id).with_for_update().one()
+        )
         receipt = (
             db.query(ActionReceipt).filter_by(actor_id=actor, action_key=idempotency_key).first()
         )
@@ -106,31 +120,15 @@ def start_research(
             if receipt.request_hash != digest:
                 raise HTTPException(409, {"code": "IDEMPOTENCY_MISMATCH"})
             return json.loads(receipt.response_json)
-        end = datetime.now(UTC)
-        identifier = str(uuid.uuid4())
-        job = insert_job(
-            db,
-            "research_v4",
-            {"run_id": identifier},
-            key=f"{request.state.workspace_id}:research-v4",
+        configured_categories = (
+            json.loads(workspace.settings_json).get("researchSchedule", {}).get("categories")
         )
-        run = db.query(ResearchRun).filter_by(job_id=job.id).first()
-        if not run:
-            run = ResearchRun(
-                id=identifier,
-                job_id=job.id,
-                window_start=end - timedelta(hours=24),
-                window_end=end,
-                created_by=actor,
-            )
-            db.add(run)
-            db.flush()
-        result = {
-            "runId": run.id,
-            "jobId": job.id,
-            "windowStartUTC": run.window_start.isoformat(),
-            "windowEndUTC": run.window_end.isoformat(),
-        }
+        result = create_research_run(
+            db,
+            request.state.workspace_id,
+            actor,
+            categories=data.categoryIds or configured_categories,
+        )
         db.add(
             ActionReceipt(
                 id=str(uuid.uuid4()),

@@ -97,7 +97,11 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   await page.getByRole('button', { name: 'Settings', exact: true }).first().click();
   await expect(page.getByText('postgresql', { exact: false }).first()).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-  await expect(page).toHaveScreenshot('operations.png', { fullPage: true });
+  await expect(page).toHaveScreenshot('operations.png', {
+    fullPage: true,
+    // Other real journeys create durable job history; compare layout independently of its counts.
+    mask: [page.locator('.source-evidence').filter({ hasText: 'Background work' }).locator('span')],
+  });
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Your next great story starts here.' }),

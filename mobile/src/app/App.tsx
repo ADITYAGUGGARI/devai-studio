@@ -1,4 +1,5 @@
 import { ProfileSettings } from '../features/ProfileSettings';
+import { ResearchSettings } from '../features/ResearchSettings';
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Pressable, ScrollView, Image, Switch, Linking, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -663,6 +664,11 @@ function Operations() {
         secondary
         onPress={() => navigation.navigate('Profile')}
       />
+      <Button
+        title="Research schedule"
+        secondary
+        onPress={() => navigation.navigate('ResearchSettings')}
+      />
       <ErrorText value={error} />
       <Text style={styles.muted}>
         {session?.user.email} · {session?.user.role}
@@ -846,6 +852,11 @@ export default function App() {
               name="Profile"
               component={ProfileSettings}
               options={{ title: 'Profile & preferences' }}
+            />
+            <Stack.Screen
+              name="ResearchSettings"
+              component={ResearchSettings}
+              options={{ title: 'Research schedule' }}
             />
             <Stack.Screen name="Review" component={Review} options={{ title: 'Review carousel' }} />
             <Stack.Screen

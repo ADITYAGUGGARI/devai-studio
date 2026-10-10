@@ -8,6 +8,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.devai.studio"
     },
-    "plugins": ["expo-secure-store"]
+    "plugins": ["expo-secure-store", "@react-native-community/datetimepicker"]
   }
 }

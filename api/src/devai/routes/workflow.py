@@ -190,8 +190,9 @@ def retry_job(id: str, session_factory: SessionFactory):
             if payload.get("post_id")
             else f"topic:{payload['topic_id']}"
             if payload.get("topic_id")
-            else job.schedule_key
-            or (f"{job.workspace_id}:research-v4" if job.kind == "research_v4" else "research")
+            else f"{job.workspace_id}:research-v4"
+            if job.kind == "research_v4"
+            else job.schedule_key or "research"
         )
         key = scoped_key(db, key)
         if (

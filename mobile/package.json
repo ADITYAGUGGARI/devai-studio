@@ -10,6 +10,7 @@
     "android": "expo run:android"
   },
   "dependencies": {
+    "@react-native-community/datetimepicker": "8.4.4",
     "@react-navigation/bottom-tabs": "^7.20.0",
     "@react-navigation/native": "^7.5.0",
     "@react-navigation/native-stack": "^7.20.0",
@@ -27,5 +28,8 @@
   "devDependencies": {
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
+  },
+  "overrides": {
+    "postcss": "8.5.23"
   }
 }

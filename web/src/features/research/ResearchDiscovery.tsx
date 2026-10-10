@@ -219,6 +219,7 @@ export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
                 <option value="outside_window">Outside window</option>
                 <option value="duplicate">Duplicates</option>
                 <option value="excluded_irrelevant">Excluded</option>
+                <option value="excluded_category">Outside category mix</option>
               </select>
             </label>
             <button className="secondary" onClick={() => void results.refetch()}>

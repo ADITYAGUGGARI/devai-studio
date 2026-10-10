@@ -16,6 +16,7 @@ import { request } from '../services/api';
 import { TaskDock } from '../features/workflow/TaskDock';
 import { JobPanel } from '../features/workflow/JobPanel';
 import { TopicQueue } from '../features/workflow/TopicQueue';
+import { ResearchSettings } from '../features/ResearchSettings';
 import { Modal } from '../components/Modal';
 import { WorkspaceShell } from '../components/WorkspaceShell';
 import { StudioOverview } from '../features/StudioOverview';
@@ -194,15 +195,17 @@ export function App() {
           <div>
             <div className="eyebrow">✳ CONTENT INTELLIGENCE</div>
             <h1>
-              {tab === 'Overview'
-                ? 'Your studio, today'
-                : tab === 'Research'
-                  ? 'Discover your next story'
-                  : tab === 'Operations'
-                    ? 'Workspace settings'
-                    : tab === 'Library'
-                      ? 'Content library'
-                      : tab}
+              {tab === 'ResearchSettings'
+                ? 'Research schedule'
+                : tab === 'Overview'
+                  ? 'Your studio, today'
+                  : tab === 'Research'
+                    ? 'Discover your next story'
+                    : tab === 'Operations'
+                      ? 'Workspace settings'
+                      : tab === 'Library'
+                        ? 'Content library'
+                        : tab}
             </h1>
             <p className="subtitle">
               {active
@@ -272,10 +275,15 @@ export function App() {
         />
       ) : tab === 'Profile' ? (
         <ProfileSettings onDirtyChange={setDirty} />
+      ) : tab === 'ResearchSettings' ? (
+        <ResearchSettings onDirtyChange={setDirty} />
       ) : tab === 'Operations' ? (
         <>
           <button className="secondary" onClick={() => setTab('Profile')}>
             Profile & preferences
+          </button>
+          <button className="secondary" onClick={() => setTab('ResearchSettings')}>
+            Research schedule
           </button>
           <OperationsWorkspace busy={busy} onAction={run} />
         </>

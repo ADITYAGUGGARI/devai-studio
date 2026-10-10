@@ -25,7 +25,7 @@ export function WorkspaceShell({
 }) {
   const active = (id: string) =>
     tab === id ||
-    (id === 'Operations' && tab === 'Profile') ||
+    (id === 'Operations' && ['Profile', 'ResearchSettings'].includes(tab)) ||
     (id === 'Research' && tab === 'Queue');
   return (
     <div className="shell desktop-studio">
@@ -81,7 +81,11 @@ export function WorkspaceShell({
         <header className="studio-topbar">
           <span>
             Studio <span className="breadcrumb-separator">/</span>{' '}
-            <strong>{entries.find((e) => e[0] === tab)?.[1] || tab}</strong>
+            <strong>
+              {tab === 'ResearchSettings'
+                ? 'Research schedule'
+                : entries.find((e) => e[0] === tab)?.[1] || tab}
+            </strong>
           </span>
           <div className="account-strip">
             <span className="account-avatar" aria-hidden="true">

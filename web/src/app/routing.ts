@@ -9,6 +9,7 @@ const routes: Record<string, string> = {
   Activity: '/activity',
   Operations: '/settings',
   Profile: '/settings/profile',
+  ResearchSettings: '/settings/research',
 };
 
 export function useStudioRouting() {

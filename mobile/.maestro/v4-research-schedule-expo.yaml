@@ -1,0 +1,63 @@
+# Real API and PostgreSQL in an isolated e2e_server.py schema. No real publication.
+appId: host.exp.Exponent
+---
+- stopApp: host.exp.Exponent
+- openLink: exp://127.0.0.1:8086
+- runFlow:
+    when:
+      visible: Your studio, today
+    commands:
+      - tapOn: Settings
+      - scrollUntilVisible:
+          element: Sign out
+      - tapOn: Sign out
+- tapOn: Use an existing local account
+- tapOn:
+    id: field-email-address
+- inputText: e2e@devai.test
+- tapOn:
+    id: field-password
+- inputText: Isolated-e2e-password-12345
+- pressKey: Enter
+- tapOn: Sign in
+- tapOn:
+    text: Not Now
+    optional: true
+- assertVisible: Your studio, today
+- tapOn: Settings
+- tapOn: Research schedule
+- tapOn: Enable daily research
+- tapOn: Research time ·.*
+- assertVisible: Choose research time
+- tapOn: Done
+- tapOn: Timezone ·.*
+- tapOn:
+    id: field-search-timezones
+- inputText: Kolkata
+- pressKey: Enter
+- tapOn: Asia/Kolkata
+- scrollUntilVisible:
+    element: Save schedule
+- tapOn: Save schedule
+- assertVisible: Saved
+- tapOn:
+    id: BackButton
+- tapOn: Research schedule
+- assertVisible: Timezone · Asia/Kolkata
+- takeScreenshot: native-v4-research-schedule
+- tapOn: Enable daily research
+- tapOn:
+    id: BackButton
+- assertVisible: Keep your changes?
+- tapOn: Stay
+- assertVisible: Unsaved changes
+- tapOn:
+    id: BackButton
+- tapOn: Discard local changes
+- tapOn: Research schedule
+- assertVisible: Timezone · Asia/Kolkata
+- scrollUntilVisible:
+    element: Run research now
+- tapOn: Run research now
+- assertVisible: Work continues here while you explore the studio.
+- assertVisible: research v4

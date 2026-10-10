@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 
 import httpx
 
-from devai.models import Topic
+from devai.models import Job, Topic
 from devai.models.studio import Finding, ResearchRun
 from devai.services.research import (
     FEEDS,
@@ -65,6 +65,7 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
         run = db.get(ResearchRun, run_id)
         start, end = aware(run.window_start), aware(run.window_end)
         coverage = json.loads(run.coverage_json)
+        categories = json.loads(db.get(Job, run.job_id).payload_json).get("categories")
     for index, (source, url) in enumerate(catalog.items()):
         progress(index, len(catalog), f"Collecting {source}")
         try:
@@ -91,6 +92,8 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
                     disposition = "outside_window"
                 elif not relevant:
                     disposition = "excluded_irrelevant"
+                elif categories and category not in categories:
+                    disposition = "excluded_category"
                 with factory.begin() as db:
                     existing = (
                         db.query(Finding).filter_by(run_id=run_id, canonical_url=canonical).first()
