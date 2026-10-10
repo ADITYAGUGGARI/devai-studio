@@ -16,11 +16,63 @@ def build_engine(database_url: str):
     return create_engine(database_url, connect_args=options, pool_pre_ping=True)
 
 
+def prepare_database(engine):
+    import os
+
+    from alembic.runtime.migration import MigrationContext
+    from alembic.script import ScriptDirectory
+
+    from devai.migrate import migration_config
+
+    auto = os.getenv("AUTO_MIGRATE", "false" if os.getenv("APP_ENV") == "production" else "true")
+    if auto == "true":
+        initialize_database(engine)
+    else:
+        with engine.connect() as connection:
+            head = ScriptDirectory.from_config(migration_config(connection)).get_current_head()
+            if MigrationContext.configure(connection).get_current_revision() != head:
+                raise RuntimeError(
+                    "Database migrations are pending; run python -m devai.migrate upgrade head"
+                )
+
+
 def initialize_database(engine):
+    from alembic import command
+
+    from devai.migrate import migration_config, run
+
+    tables = inspect(engine).get_table_names()
+    if (
+        set(tables) & {"posts", "article_evidence", "slides", "editorial_topics"}
+        and "alembic_version" not in tables
+    ):
+        # Adopt the original local database without discarding any rows or assets.
+        initialize_legacy_database(engine)
+        with engine.begin() as connection:
+            command.stamp(migration_config(connection), "0001")
+    run(engine)
+    migrate_editorial_topics(engine)
+
+
+def initialize_legacy_database(engine):
     # Import all models before creating the development schema.
     import devai.models  # noqa: F401
 
-    Base.metadata.create_all(engine)
+    studio_tables = {
+        "email_challenges",
+        "user_profiles",
+        "workspaces",
+        "workspace_members",
+        "studio_documents",
+        "studio_versions",
+        "research_runs",
+        "research_findings",
+        "action_receipts",
+    }
+    Base.metadata.create_all(
+        engine,
+        tables=[table for table in Base.metadata.sorted_tables if table.name not in studio_tables],
+    )
     # `create_all` does not add columns to existing development databases. Keep
     # this narrowly scoped compatibility migration until versioned migrations
     # replace startup schema creation.
@@ -71,7 +123,12 @@ def initialize_database(engine):
 
 
 def get_session_factory(request: Request) -> sessionmaker:
-    return request.app.state.session_factory
+    from devai.core.workspaces import scoped_factory
+    from devai.models.studio import LEGACY_WORKSPACE
+
+    return scoped_factory(
+        request.app.state.session_factory, getattr(request.state, "workspace_id", LEGACY_WORKSPACE)
+    )
 
 
 SessionFactory = Annotated[sessionmaker, Depends(get_session_factory)]

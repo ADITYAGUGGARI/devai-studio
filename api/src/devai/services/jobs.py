@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import threading
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -17,6 +18,19 @@ from devai.services.verification import GroundingError
 
 logger = logging.getLogger(__name__)
 ACTIVE = {"queued", "running", "retry_wait"}
+
+
+class JobCancelled(Exception):
+    """Stopped at a safe unit boundary, preserving successfully persisted units."""
+
+
+def scoped_key(db, key):
+    from devai.models.studio import LEGACY_WORKSPACE
+
+    workspace = db.info.get("workspace_id", LEGACY_WORKSPACE)
+    if key is None or workspace == LEGACY_WORKSPACE or key.startswith(f"{workspace}:"):
+        return key
+    return f"{workspace}:{key}"
 
 
 def serialise_job(job: Job) -> dict:
@@ -35,6 +49,8 @@ def serialise_job(job: Job) -> dict:
             "available_at",
             "created_at",
             "finished_at",
+            "heartbeat_at",
+            "cancel_requested",
         )
     }
     for key in ("available_at", "created_at", "finished_at"):
@@ -49,6 +65,7 @@ def serialise_job(job: Job) -> dict:
 def insert_job(
     db, kind: str, payload: dict, *, key: str | None = None, schedule_key: str | None = None
 ) -> Job:
+    key, schedule_key = scoped_key(db, key), scoped_key(db, schedule_key)
     existing = db.query(Job).filter(Job.active_key == key).first() if key else None
     if schedule_key and not existing:
         existing = db.query(Job).filter_by(schedule_key=schedule_key).first()
@@ -73,6 +90,7 @@ def enqueue(session_factory, kind: str, payload: dict, *, key=None, schedule_key
             return serialise_job(insert_job(db, kind, payload, key=key, schedule_key=schedule_key))
     except IntegrityError:
         with session_factory() as db:
+            key, schedule_key = scoped_key(db, key), scoped_key(db, schedule_key)
             job = (
                 db.query(Job)
                 .filter(
@@ -104,7 +122,7 @@ def enqueue_daily(session_factory, timezone: str, *, now=None, generate_carousel
 
 
 def assert_idle(db, post_id: str):
-    if db.query(Job).filter_by(active_key=f"post:{post_id}").first():
+    if db.query(Job).filter_by(active_key=scoped_key(db, f"post:{post_id}")).first():
         raise ValueError("Wait for this post's active job to finish before editing or approving")
 
 
@@ -152,6 +170,7 @@ def _claim(session_factory, *, now=None) -> dict | None:
                 attempts=Job.attempts + 1,
                 lease_token=token,
                 lease_until=now + timedelta(seconds=120),
+                heartbeat_at=now,
                 error=None,
             )
         )
@@ -163,6 +182,7 @@ def _claim(session_factory, *, now=None) -> dict | None:
             "kind": job.kind,
             "payload": json.loads(job.payload_json),
             "token": token,
+            "workspace_id": job.workspace_id,
         }
 
 
@@ -186,8 +206,60 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
     from devai.services.topics import create_from_topic, research_queue
 
     kind, payload = claim["kind"], claim["payload"]
+    if kind == "studio_audio_upload":
+        from devai.services.studio_audio import run_upload
+
+        return run_upload(session_factory, claim, progress)
+    if kind == "studio_output":
+        from devai.services.studio_generation import run_output
+
+        return run_output(session_factory, claim, progress)
+    if kind == "research_v4":
+        from devai.services.research_runs import collect_run
+
+        return collect_run(session_factory, payload["run_id"], progress)
+    if kind == "verify":
+        from devai.models import ArticleEvidence, Slide
+        from devai.services.verification import verify_copy
+
+        with session_factory() as db:
+            post = db.get(Post, payload["post_id"])
+            evidence = db.query(ArticleEvidence).filter_by(post_id=post.id).first()
+            if not evidence:
+                raise ValueError("Saved source evidence is required")
+            content = {
+                "title": post.title,
+                "caption": post.caption,
+                "slides": [
+                    {"headline": s.headline, "body": s.body}
+                    for s in db.query(Slide).filter_by(post_id=post.id).order_by(Slide.position)
+                ],
+            }
+            excerpt, source_url = evidence.excerpt, evidence.source_url
+        report = verify_copy(excerpt, content, source_url)
+        if not report["supported"]:
+            raise GroundingError(report)
+        with session_factory.begin() as db:
+            post = db.query(Post).filter_by(id=payload["post_id"]).with_for_update().first()
+            if post.version != payload["version"] or post.status in {"published", "publishing"}:
+                raise ValueError("Post changed during copy verification")
+            lease = db.get(Job, claim["id"])
+            if lease.status != "running" or lease.lease_token != claim["token"]:
+                raise RuntimeError("Worker lost its job lease")
+            post.verification_json = json.dumps(report)
+        return {"post_id": post.id, "grounding": report}
     if kind in {"research", "daily_research"}:
-        result = research_queue(session_factory, progress=progress)
+        discover_fn = None
+        query = payload.get("query")
+        if kind == "daily_research" and os.getenv("DAILY_WEB_SEARCH", "false").lower() == "true":
+            query = "AI coding agents, developer tools, models and production AI engineering announcements"
+        if query:
+            from devai.services.search import search_web
+
+            def discover_fn(**kwargs):
+                return search_web(query, **kwargs)
+
+        result = research_queue(session_factory, progress=progress, discover_fn=discover_fn)
         if kind == "daily_research":
             with session_factory.begin() as db:
                 run = (
@@ -263,11 +335,14 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
                 if kind == "daily"
                 else None
             )
-            topic = candidates.filter(Topic.category == desired).first() if desired else None
-            topic = topic or candidates.first()
+            from devai.services.operations import approved_topic
+
+            approved = [t for t in candidates.all() if approved_topic(db, t)]
+            topic = next((t for t in approved if t.category == desired), None)
+            topic = topic or (approved[0] if approved else None)
             if not topic:
                 raise ValueError(
-                    "No verified unused topic is available; refresh research or verify a manual topic"
+                    "No approved unused topic is available; review and approve a verified topic"
                 )
             payload["topic_id"] = topic.id
             topic.status, topic.job_id = "generating", claim["id"]
@@ -284,7 +359,9 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
         session_factory,
         claim,
         result_json=json.dumps(result),
-        active_key=f"post:{result['post_id']}",
+        active_key=f"{claim['workspace_id']}:post:{result['post_id']}"
+        if claim["workspace_id"] != "00000000-0000-4000-8000-000000000001"
+        else f"post:{result['post_id']}",
     )
     with session_factory() as db:
         payload["post_id"] = result["post_id"]
@@ -333,8 +410,14 @@ def work_once(session_factory, *, handler=None) -> bool:
     def heartbeat():
         while not stop_heartbeat.wait(20):
             try:
+                from devai.services.operations import record_worker_heartbeat
+
+                record_worker_heartbeat(session_factory)
                 _update(
-                    session_factory, claim, lease_until=datetime.now(UTC) + timedelta(seconds=120)
+                    session_factory,
+                    claim,
+                    lease_until=datetime.now(UTC) + timedelta(seconds=120),
+                    heartbeat_at=datetime.now(UTC),
                 )
             except Exception:
                 logger.exception("Job lease renewal failed")
@@ -344,10 +427,18 @@ def work_once(session_factory, *, handler=None) -> bool:
     heartbeat_thread.start()
 
     def progress(done, total, step):
+        with session_factory() as db:
+            if db.get(Job, claim["id"]).cancel_requested:
+                raise JobCancelled()
         _update(session_factory, claim, progress=done, total=max(1, total), step=step)
 
     try:
-        result = (handler or dispatch)(session_factory, claim, progress)
+        from devai.core.workspaces import scoped_factory
+        from devai.services.usage import usage_scope
+
+        workspace_factory = scoped_factory(session_factory, claim["workspace_id"])
+        with usage_scope(workspace_factory, claim["id"]):
+            result = (handler or dispatch)(workspace_factory, claim, progress)
         _update(
             session_factory,
             claim,
@@ -357,12 +448,25 @@ def work_once(session_factory, *, handler=None) -> bool:
             active_key=None,
             finished_at=datetime.now(UTC),
         )
+    except JobCancelled:
+        _update(
+            session_factory,
+            claim,
+            status="cancelled",
+            step="Cancelled; completed work preserved",
+            active_key=None,
+            finished_at=datetime.now(UTC),
+        )
     except Exception as exc:
+        from devai.services.topics import ResearchEvidenceError
+
         message = safe_error(exc)
         with session_factory.begin() as db:
             job = db.get(Job, claim["id"])
             if job.lease_token != claim["token"]:
                 return True
+            if isinstance(exc, ResearchEvidenceError):
+                job.result_json = json.dumps(exc.report)
             retryable = (
                 (isinstance(exc, ProviderError) and exc.retryable)
                 or isinstance(exc, httpx.RequestError)
@@ -410,14 +514,23 @@ def work_once(session_factory, *, handler=None) -> bool:
 def run_worker(session_factory, stop: threading.Event, settings=None):
     while not stop.is_set():
         try:
-            if settings and settings.daily_enabled:
-                now = datetime.now(ZoneInfo(settings.daily_timezone))
-                if now.hour >= settings.daily_hour:
+            from devai.services.operations import (
+                dispatch_schedules,
+                record_worker_heartbeat,
+                settings_values,
+            )
+
+            record_worker_heartbeat(session_factory)
+            dispatch_schedules(session_factory)
+            schedule = settings_values(session_factory, settings) if settings else {}
+            if schedule.get("daily_enabled"):
+                now = datetime.now(ZoneInfo(schedule["timezone"]))
+                if now.hour >= schedule["daily_hour"]:
                     enqueue_daily(
                         session_factory,
-                        settings.daily_timezone,
+                        schedule["timezone"],
                         now=now,
-                        generate_carousel=settings.daily_generate_carousel,
+                        generate_carousel=schedule["daily_generate_carousel"],
                     )
             if not work_once(session_factory):
                 stop.wait(1)

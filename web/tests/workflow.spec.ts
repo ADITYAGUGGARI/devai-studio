@@ -1,8 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const source = 'https://example.com/primary-source';
 const topic = {
-  id: 'topic-1',
+  id: '22222222-2222-4222-8222-222222222222',
   title: 'AI engineering workflows',
   url: source,
   source: 'Primary publisher',
@@ -10,6 +11,7 @@ const topic = {
   category: 'architecture',
   priority: 90,
   status: 'queued',
+  approved: false,
   verification: 'primary_source',
   published_at: '2026-10-07T10:00:00Z',
   retrieved_at: '2026-10-07T11:00:00Z',
@@ -17,7 +19,7 @@ const topic = {
   error: null,
 };
 const post = {
-  id: 'post-1',
+  id: '11111111-1111-4111-8111-111111111111',
   title: 'Original developer analysis',
   caption: `Practical engineering guidance. Source: ${source}`,
   status: 'draft',
@@ -83,7 +85,7 @@ async function mockApi(
             status: 'completed_with_warnings',
             step: 'Completed with source warnings',
             result: {
-              created_topic_ids: ['topic-1'],
+              created_topic_ids: ['22222222-2222-4222-8222-222222222222'],
               skipped_urls: ['https://example.com/existing'],
               warnings: [
                 'OpenAI News: article HTTP 403; insufficient readable source evidence (3 stories)',
@@ -103,11 +105,16 @@ async function mockApi(
     }
     let result: unknown = {};
     if (method === 'GET') {
-      if (path === '/posts') result = posts;
+      if (path === '/auth/me')
+        result = { id: 'test-admin', email: 'admin@example.test', role: 'admin' };
+      else if (path.endsWith('/versions')) result = [];
+      else if (path === '/v1/research/runs') result = { items: [] };
+      else if (path === '/posts') result = posts;
       else if (path === '/topics') result = topics;
       else if (path === '/jobs') result = jobs;
       else if (path === '/research/daily/latest')
         result = { run: null, topic: 'news', timezone: 'America/Chicago' };
+      else if (path === '/v1/content') result = { items: [] };
       else if (path === '/workflow/config')
         result = {
           worker_enabled: true,
@@ -140,18 +147,27 @@ async function mockApi(
             status: 'completed',
             progress: 6,
             step: 'Completed',
-            result: { post_id: 'post-1' },
+            result: { post_id: '11111111-1111-4111-8111-111111111111' },
           },
         ];
         result = jobs[0];
       } else if (path.endsWith('/submit')) {
         posts[0].status = 'pending_review';
         result = { status: 'pending_review' };
+      } else if (path.startsWith('/topics/') && path.endsWith('/approve')) {
+        topics[0].approved = true;
+        result = topics[0];
       } else if (path.endsWith('/approve')) {
         posts[0].status = 'approved';
         result = { status: 'approved' };
       } else if (path.endsWith('/publish')) {
-        jobs = [{ ...blankJob, kind: 'publish', payload: { post_id: 'post-1', version: '1' } }];
+        jobs = [
+          {
+            ...blankJob,
+            kind: 'publish',
+            payload: { post_id: '11111111-1111-4111-8111-111111111111', version: '1' },
+          },
+        ];
         result = jobs[0];
       } else if (path.endsWith('/retry')) {
         jobs = [{ ...blankJob, kind: 'artwork', status: 'queued' }];
@@ -184,17 +200,39 @@ async function mockApi(
   return mutations;
 }
 
+test('focused workspaces keep research, drafts and diagnostics separate', async ({ page }) => {
+  await mockApi(page, { draft: true, warnings: true });
+  await page.goto('/');
+  await expect(
+    page.getByRole('heading', { name: 'Give your next story the final touch.' }),
+  ).toBeVisible();
+  await expect(page.getByLabel('Story headline')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Prioritized topic queue' })).toHaveCount(0);
+  await expect(page.getByText('completed with warnings', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
+  await expect(page.getByRole('heading', { name: 'Prioritized topic queue' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Content library' })).toHaveCount(0);
+  await expect(page.getByLabel('Story headline')).not.toBeVisible();
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
+  await expect(page.getByRole('heading', { name: 'Content library' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Prioritized topic queue' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Activity', exact: true }).first().click();
+  await expect(page.getByText('completed with warnings', { exact: true })).toBeVisible();
+});
+
 test('preserves dashboard and exposes persistent research progress', async ({ page }) => {
   const calls = await mockApi(page);
   await page.goto('/');
   await expect(page.getByText('devai studio')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Overview', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Refresh research' }).click();
+  await expect(page.getByRole('button', { name: 'Today', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
+  await page.getByRole('button', { name: 'Refresh research', exact: true }).click();
   await expect(page.getByText('Checking primary-source evidence', { exact: false })).toBeVisible();
-  await expect(page.getByRole('progressbar', { name: 'research progress' })).toHaveAttribute(
-    'value',
-    '1',
-  );
+  await expect(
+    page.getByRole('progressbar', { name: 'Current background task progress' }),
+  ).toHaveAttribute('value', '1');
   expect(calls[0].path).toBe('/research/refresh');
   await page.screenshot({ path: 'test-results/dashboard-overview.png', fullPage: true });
 });
@@ -202,6 +240,9 @@ test('preserves dashboard and exposes persistent research progress', async ({ pa
 test('manual evidence must be verified before selecting six-slide generation', async ({ page }) => {
   const calls = await mockApi(page);
   await page.goto('/');
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
+  await page.getByText('Add your own source', { exact: true }).click();
   await page.getByLabel('Story headline').fill('Manual source for developers');
   await page.getByLabel('Primary source URL').fill(source);
   await page.getByLabel('Source excerpt (at least 240 characters)').fill(topic.excerpt);
@@ -209,12 +250,14 @@ test('manual evidence must be verified before selecting six-slide generation', a
   await page.getByRole('radio').check();
   await expect(page.getByRole('button', { name: 'Generate selected topic' })).toBeDisabled();
   await page.getByRole('button', { name: 'I reviewed and verified this evidence' }).click();
+  await page.getByRole('button', { name: 'Approve topic', exact: true }).click();
   await page.getByLabel('Slides', { exact: true }).selectOption('6');
   await page.getByRole('button', { name: 'Generate selected topic' }).click();
   expect(calls.find((call) => call.path.endsWith('/generate'))?.body).toEqual({
     slide_count: 6,
     artwork: true,
   });
+  await page.getByRole('button', { name: 'Activity', exact: true }).first().click();
   await page.getByRole('button', { name: 'Review draft', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Review content' })).toBeVisible();
   await expect(page.getByText('Image validation passed.', { exact: false })).toBeVisible();
@@ -223,7 +266,8 @@ test('manual evidence must be verified before selecting six-slide generation', a
 test('human review and configuration gate publishing from existing editor', async ({ page }) => {
   const calls = await mockApi(page, { draft: true, publishing: true });
   await page.goto('/');
-  await page.getByRole('button', { name: /AI \/ ENGINEERING/ }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
+  await page.getByRole('button', { name: /Open carousel:/ }).click();
   await page.getByRole('button', { name: 'Submit for review', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Approve', exact: true })).toBeDisabled();
   await page
@@ -232,16 +276,18 @@ test('human review and configuration gate publishing from existing editor', asyn
   await page.getByRole('button', { name: 'Approve', exact: true }).click();
   await page.getByRole('button', { name: 'Publish approved carousel to Instagram' }).click();
   expect(calls.map((call) => call.path)).toEqual([
-    '/posts/post-1/submit',
-    '/posts/post-1/approve',
-    '/posts/post-1/publish',
+    '/posts/11111111-1111-4111-8111-111111111111/submit',
+    '/posts/11111111-1111-4111-8111-111111111111/approve',
+    '/posts/11111111-1111-4111-8111-111111111111/publish',
   ]);
+  await page.getByRole('tab', { name: 'Copy', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Save post', exact: true })).toBeDisabled();
 });
 
 test('failed jobs can be retried visibly', async ({ page }) => {
   const calls = await mockApi(page, { failed: true });
   await page.goto('/');
+  await page.getByRole('button', { name: 'Activity', exact: true }).first().click();
   await page.getByRole('button', { name: 'Retry job', exact: true }).click();
   expect(calls[0].path).toBe('/jobs/job-1/retry');
   await expect(page.getByText('queued', { exact: true })).toBeVisible();
@@ -252,6 +298,7 @@ test('partial research shows warning status, topic counts and expandable source 
 }) => {
   await mockApi(page, { warnings: true });
   await page.goto('/');
+  await page.getByRole('button', { name: 'Activity', exact: true }).first().click();
   await expect(page.getByText('completed with warnings', { exact: true })).toBeVisible();
   await expect(
     page.getByText('1 new topics added · 1 sources already queued or used'),
@@ -301,7 +348,7 @@ for (const status of ['completed_with_warnings', 'running', 'failed']) {
             result:
               status === 'completed_with_warnings'
                 ? {
-                    created_topic_ids: ['topic-1'],
+                    created_topic_ids: ['22222222-2222-4222-8222-222222222222'],
                     skipped_urls: [],
                     warnings: ['OpenAI News: article HTTP 403'],
                   }
@@ -311,6 +358,9 @@ for (const status of ['completed_with_warnings', 'running', 'failed']) {
       });
     });
     await page.goto('/');
+    await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+    await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
+    await page.getByText('Daily research status', { exact: true }).click();
     const panel = page.getByRole('region', { name: 'AI news and developer impact' });
     await expect(panel.getByText('Latest research refresh ·', { exact: false })).toBeVisible();
     await expect(
@@ -366,6 +416,7 @@ test('failed grounding jobs show claim-level evidence without exposing an approv
     });
   });
   await page.goto('/');
+  await page.getByRole('button', { name: 'Activity', exact: true }).first().click();
   await page.getByText('Review grounding report', { exact: true }).click();
   await expect(page.getByRole('listitem').filter({ hasText: 'Claim 1:' })).toContainText(
     '99.9% accuracy',
@@ -375,4 +426,202 @@ test('failed grounding jobs show claim-level evidence without exposing an approv
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Review draft', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Retry job', exact: true })).toBeEnabled();
+});
+
+test('desktop research filters and source dialog preserve a focused workspace', async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
+  await page.getByLabel('Search topics', { exact: true }).fill('no matching story');
+  await expect(page.getByRole('radio')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Approve topic', exact: true })).toHaveCount(0);
+  await page.getByLabel('Search topics', { exact: true }).fill('');
+  await expect(page.getByRole('radio')).toHaveCount(1);
+  const add = page.getByRole('button', { name: 'Add your own source', exact: true });
+  await add.click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(add).toBeFocused();
+  await page.screenshot({ path: 'test-results/research-desktop.png', fullPage: true });
+});
+
+test('desktop editor separates copy and history while retaining keyboard slide navigation', async ({
+  page,
+}) => {
+  await mockApi(page, { draft: true });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
+  await page.getByRole('button', { name: /Open carousel:/ }).click();
+  await expect(page.getByLabel('Caption', { exact: true })).toHaveCount(0);
+  await page.getByRole('tab', { name: 'Copy', exact: true }).click();
+  await expect(page.getByLabel('Caption', { exact: true })).toBeVisible();
+  await page.getByRole('tab', { name: 'History', exact: true }).click();
+  await expect(page.getByLabel('Caption', { exact: true })).toHaveCount(0);
+  const preview = page.getByLabel('Carousel preview', { exact: true });
+  await preview.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('button', { name: 'Slide 2', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+});
+
+test('unsaved copy and slide edits survive navigation cancellation', async ({ page }) => {
+  await mockApi(page, { draft: true });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
+  await page.getByRole('button', { name: /Open carousel:/ }).click();
+  await page.getByLabel('Headline', { exact: true }).fill('Unsaved slide headline');
+  await page.getByRole('button', { name: 'Slide 2', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('button', { name: 'Keep editing slide', exact: true }).click();
+  await expect(page.getByLabel('Headline', { exact: true })).toHaveValue('Unsaved slide headline');
+  await page.getByRole('tab', { name: 'Copy', exact: true }).click();
+  await page.getByLabel('Caption', { exact: true }).fill('Unsaved caption');
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('button', { name: 'Keep editing', exact: true }).click();
+  await expect(page.getByLabel('Caption', { exact: true })).toHaveValue('Unsaved caption');
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Discard edits and leave', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Discover your next story' })).toBeVisible();
+});
+
+test('background work remains visible across navigation and completion opens the draft', async ({
+  page,
+}) => {
+  await mockApi(page, { draft: true });
+  let status = 'running';
+  await page.route('http://127.0.0.1:8123/jobs', (route) =>
+    route.fulfill({
+      json: [
+        {
+          ...blankJob,
+          status,
+          kind: 'artwork',
+          step: status === 'running' ? 'Creating slide 3 of 6' : 'Artwork completed',
+          progress: status === 'running' ? 3 : 6,
+          payload: { post_id: '11111111-1111-4111-8111-111111111111' },
+          result:
+            status === 'completed' ? { post_id: '11111111-1111-4111-8111-111111111111' } : null,
+        },
+      ],
+    }),
+  );
+  await page.goto('/');
+  await expect(page.getByRole('region', { name: 'Task status' })).toBeVisible();
+  await page.getByRole('button', { name: 'Library', exact: true }).first().click();
+  await expect(
+    page.getByRole('progressbar', { name: 'Current background task progress' }),
+  ).toHaveAttribute('value', '3');
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  status = 'completed';
+  await page.getByRole('button', { name: 'Open ready draft', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Review content' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Submit for review', exact: true })).toBeEnabled();
+});
+
+test('failed background tasks expose recovery without automatic publication retries', async ({
+  page,
+}) => {
+  await mockApi(page);
+  let status = 'running';
+  await page.route('http://127.0.0.1:8123/jobs', (route) =>
+    route.fulfill({
+      json: [
+        {
+          ...blankJob,
+          status,
+          kind: 'publish',
+          step: 'Checking publication',
+          error: status === 'needs_reconciliation' ? 'Uncertain provider response' : null,
+        },
+      ],
+    }),
+  );
+  await page.goto('/');
+  await expect(page.getByRole('region', { name: 'Task status' })).toBeVisible();
+  status = 'needs_reconciliation';
+  await expect(page.getByText('Task needs attention', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Task details', exact: true }).click();
+  await expect(
+    page.getByText('Check Instagram before reconciling this version.', { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retry task', exact: true })).toHaveCount(0);
+});
+
+test('publishing schedules approved versions and exposes cancellation', async ({ page }) => {
+  await mockApi(page, { draft: true, publishing: true });
+  await page.route('http://127.0.0.1:8123/posts', (route) =>
+    route.fulfill({ json: [{ ...post, status: 'approved' }] }),
+  );
+  let schedules: object[] = [];
+  await page.route('http://127.0.0.1:8123/publishing/schedules', (route) =>
+    route.fulfill({ json: schedules }),
+  );
+  await page.route(
+    'http://127.0.0.1:8123/posts/11111111-1111-4111-8111-111111111111/schedule',
+    async (route) => {
+      const due = route.request().postDataJSON().due_at;
+      schedules = [
+        {
+          id: 'schedule-1',
+          post_id: '11111111-1111-4111-8111-111111111111',
+          version: '1',
+          due_at: due,
+          status: 'scheduled',
+          error: null,
+        },
+      ];
+      await route.fulfill({ status: 201, json: schedules[0] });
+    },
+  );
+  await page.route(
+    'http://127.0.0.1:8123/publishing/schedules/schedule-1/cancel',
+    async (route) => {
+      schedules = [{ ...schedules[0], status: 'cancelled' }];
+      await route.fulfill({ json: { status: 'cancelled' } });
+    },
+  );
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Publishing', exact: true }).first().click();
+  await page.getByText('Schedule this carousel', { exact: true }).click();
+  await page.getByLabel(`Publication time for ${post.title}`).fill('2030-01-01T09:00');
+  await page.getByRole('button', { name: 'Schedule approved version', exact: true }).click();
+  await page.getByRole('button', { name: 'Schedules', exact: true }).click();
+  await expect(page.getByText('scheduled', { exact: false }).last()).toBeVisible();
+  await page.getByRole('button', { name: 'Cancel schedule', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Cancel schedule', exact: true })).toHaveCount(0);
+  await expect(page.getByText('cancelled', { exact: false }).last()).toBeVisible();
+});
+
+test('input validation returns useful field errors without losing manual source input', async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.route('http://127.0.0.1:8123/topics', async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ json: [topic] });
+      return;
+    }
+    await route.fulfill({
+      status: 422,
+      json: { detail: [{ loc: ['body', 'url'], msg: 'A public HTTPS source is required' }] },
+    });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Research', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Open editorial topic queue' }).click();
+  await page.getByRole('button', { name: 'Add your own source', exact: true }).click();
+  await page.getByLabel('Story headline').fill('Preserved source input');
+  await page.getByLabel('Primary source URL').fill(source);
+  await page.getByLabel('Source excerpt (at least 240 characters)').fill(topic.excerpt);
+  await page.getByRole('button', { name: 'Add source to queue', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('url: A public HTTPS source is required');
+  await expect(page.getByLabel('Story headline')).toHaveValue('Preserved source input');
 });

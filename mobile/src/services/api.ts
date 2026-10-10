@@ -1,12 +1,103 @@
-const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly detail: unknown,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
 
-export async function request<T>(path: string, apiKey: string, method = 'GET'): Promise<T> {
-  const response = await fetch(API_URL + path, { method, headers: { 'X-API-Key': apiKey } });
+import { getDefaultStore } from 'jotai';
+import { Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+import { sessionAtom, type Session } from '../app/state';
+import { isStoredSession, sessionStorageKey } from '../../../shared/sessionStorage';
+export const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000').replace(
+  /\/$/,
+  '',
+);
+const SESSION_STORAGE_KEY = sessionStorageKey(API_URL);
+export async function request<T>(
+  path: string,
+  method = 'GET',
+  body?: unknown,
+  headers: Record<string, string> = {},
+): Promise<T> {
+  const session = getDefaultStore().get(sessionAtom);
+  const response = await fetch(API_URL + path, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(session ? { Authorization: `Bearer ${session.token}` } : {}),
+      ...headers,
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
   if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    throw new Error(
-      typeof body?.detail === 'string' ? body.detail : `Request failed (${response.status})`,
+    const data = await response.json().catch(() => null);
+    if (
+      response.status === 401 &&
+      !path.startsWith('/auth/') &&
+      !path.startsWith('/v1/auth/') &&
+      session?.token === getDefaultStore().get(sessionAtom)?.token
+    )
+      await saveSession(null);
+    throw new ApiError(
+      typeof data?.detail === 'string'
+        ? data.detail
+        : typeof data?.detail?.message === 'string'
+          ? data.detail.message
+          : `Request failed (${response.status})`,
+      response.status,
+      data?.detail,
     );
   }
   return response.json() as Promise<T>;
+}
+export async function saveSession(session: Session | null) {
+  getDefaultStore().set(sessionAtom, session);
+  if (Platform.OS !== 'web') {
+    if (session) await SecureStore.setItemAsync(SESSION_STORAGE_KEY, JSON.stringify(session));
+    else await SecureStore.deleteItemAsync(SESSION_STORAGE_KEY);
+  }
+}
+export async function restoreSession() {
+  if (Platform.OS === 'web') return;
+  const raw = await SecureStore.getItemAsync(SESSION_STORAGE_KEY);
+  if (raw) {
+    let session: Session;
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (!isStoredSession(parsed)) throw new Error('Invalid stored session');
+      session = parsed;
+    } catch {
+      await saveSession(null);
+      return;
+    }
+    getDefaultStore().set(sessionAtom, session);
+    // Only an explicit 401 revokes the local session. Offline launch must retain it.
+    await request('/auth/me').catch(() => {});
+  }
+}
+export async function exportPost(id: string) {
+  const session = getDefaultStore().get(sessionAtom);
+  if (!session) throw new Error('Sign in first');
+  if (Platform.OS === 'web') {
+    throw new Error(
+      'ZIP sharing is available in the native iOS app. Use the web dashboard for browser downloads.',
+    );
+  }
+  const result = await FileSystem.downloadAsync(
+    `${API_URL}/posts/${id}/export`,
+    `${FileSystem.cacheDirectory}devai-${id}.zip`,
+    { headers: { Authorization: `Bearer ${session.token}` } },
+  );
+  if (result.status !== 200) throw new Error('Export failed; complete the slide images first');
+  if (!(await Sharing.isAvailableAsync()))
+    throw new Error('File sharing is unavailable on this device');
+  await Sharing.shareAsync(result.uri, { mimeType: 'application/zip', UTI: 'public.zip-archive' });
 }

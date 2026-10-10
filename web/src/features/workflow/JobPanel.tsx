@@ -12,11 +12,21 @@ interface Props {
 
 export function JobPanel({ jobs, config, busy, onAction, onOpen }: Props) {
   const [showHistory, setShowHistory] = useState(false);
+  const [filter, setFilter] = useState('All');
   const pending = jobs.filter((job) =>
     ['queued', 'running', 'retry_wait', 'needs_reconciliation'].includes(job.status),
   );
   const history = jobs.filter((job) => !pending.includes(job));
-  const visible = showHistory ? [...pending, ...history] : [...pending, ...history].slice(0, 6);
+  const matching = [...pending, ...history].filter(
+    (job) =>
+      filter === 'All' ||
+      (filter === 'Active'
+        ? ['queued', 'running', 'retry_wait'].includes(job.status)
+        : filter === 'Needs attention'
+          ? ['failed', 'needs_reconciliation'].includes(job.status)
+          : job.status.startsWith('completed')),
+  );
+  const visible = showHistory ? matching : matching.slice(0, 6);
   if (!jobs.length && !config) return null;
   return (
     <section className="panel" aria-label="Background work">
@@ -33,6 +43,19 @@ export function JobPanel({ jobs, config, busy, onAction, onOpen }: Props) {
           Configure the server’s OpenAI key to generate copy, images and validation reports.
         </p>
       )}
+      <div className="workspace-sections" aria-label="Activity filters">
+        {['All', 'Active', 'Needs attention', 'History'].map((label) => (
+          <button
+            key={label}
+            aria-pressed={filter === label}
+            className={filter === label ? 'secondary active' : 'ghost'}
+            onClick={() => setFilter(label)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {!visible.length && <p className="hint">No tasks in this section.</p>}
       {visible.map((job) => (
         <div className="job-row" key={job.id}>
           <div className="sectiontitle">
@@ -114,7 +137,7 @@ export function JobPanel({ jobs, config, busy, onAction, onOpen }: Props) {
           </div>
         </div>
       ))}
-      {jobs.length > 6 && (
+      {matching.length > 6 && (
         <button className="ghost" onClick={() => setShowHistory(!showHistory)}>
           {showHistory ? 'Collapse history' : 'Show job history'}
         </button>

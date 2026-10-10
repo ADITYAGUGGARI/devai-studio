@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from devai.core.database import Base
@@ -11,8 +11,12 @@ from devai.models.content import utc_now
 
 class Topic(Base):
     __tablename__ = "topics"
+    __table_args__ = (UniqueConstraint("workspace_id", "url", name="uq_topics_workspace_url"),)
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    url: Mapped[str] = mapped_column(String(2048), unique=True, nullable=False)
+    url: Mapped[str] = mapped_column(String(2048), nullable=False)
     title: Mapped[str] = mapped_column(String(500))
     source: Mapped[str] = mapped_column(String(200))
     excerpt: Mapped[str] = mapped_column(Text)
@@ -30,7 +34,12 @@ class Topic(Base):
 
 class Job(Base):
     __tablename__ = "jobs"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
     id: Mapped[str] = mapped_column(String, primary_key=True)
+    cancel_requested: Mapped[bool] = mapped_column(Boolean, default=False)
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     kind: Mapped[str] = mapped_column(String(30))
     status: Mapped[str] = mapped_column(String(30), default="queued", index=True)
     payload_json: Mapped[str] = mapped_column(Text, default="{}")
@@ -52,6 +61,9 @@ class Job(Base):
 
 class MediaAsset(Base):
     __tablename__ = "media_assets"
+    workspace_id: Mapped[str] = mapped_column(
+        String, default="00000000-0000-4000-8000-000000000001", index=True, nullable=False
+    )
     token: Mapped[str] = mapped_column(String(64), primary_key=True)
     post_id: Mapped[str] = mapped_column(String, index=True)
     version: Mapped[str] = mapped_column(String)

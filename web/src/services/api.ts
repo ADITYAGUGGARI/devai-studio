@@ -1,23 +1,80 @@
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
-// Development-only credential: Vite values are visible in the browser bundle.
-const API_KEY = import.meta.env.VITE_ADMIN_API_KEY || 'local-dev-only';
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly detail: unknown,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
 
-async function fetchApi(path: string, method = 'GET', body?: unknown): Promise<Response> {
+const apiOrigin = new URL(import.meta.env.VITE_API_URL || 'http://localhost:8000');
+// Keep local cookie sessions same-site whichever loopback URL opens the dashboard.
+const loopbackHosts = ['localhost', '127.0.0.1', '[::1]'];
+if (
+  import.meta.env.DEV &&
+  loopbackHosts.includes(apiOrigin.hostname) &&
+  loopbackHosts.includes(window.location.hostname)
+) {
+  apiOrigin.hostname = window.location.hostname;
+}
+const API_URL = apiOrigin.toString().replace(/\/$/, '');
+// Development-only credential: Vite values are visible in the browser bundle.
+const API_KEY =
+  import.meta.env.VITE_DEV_API_KEY_ENABLED === 'true'
+    ? import.meta.env.VITE_ADMIN_API_KEY
+    : undefined;
+
+async function fetchApi(
+  path: string,
+  method = 'GET',
+  body?: unknown,
+  headers: Record<string, string> = {},
+): Promise<Response> {
   const response = await fetch(API_URL + path, {
     method,
-    headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(API_KEY ? { 'X-API-Key': API_KEY } : {}),
+      ...headers,
+    },
+    credentials: 'include',
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
     const detail = data?.detail;
-    throw new Error(typeof detail === 'string' ? detail : `Request failed (${response.status})`);
+    const validation = Array.isArray(detail)
+      ? detail
+          .map(
+            (item: { loc?: unknown[]; msg?: string }) =>
+              `${item.loc?.filter((part) => part !== 'body').join(' → ') || 'Input'}: ${item.msg || 'Invalid value'}`,
+          )
+          .join('; ')
+      : null;
+    throw new ApiError(
+      typeof detail === 'string'
+        ? detail
+        : (typeof detail?.message === 'string' ? detail.message : null) ||
+            validation ||
+            (response.status === 401
+              ? 'Your session expired. Sign in again to continue; saved work is safe.'
+              : `Request failed (${response.status}). Please try again.`),
+      response.status,
+      detail,
+    );
   }
   return response;
 }
 
-export async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
-  const response = await fetchApi(path, method, body);
+export async function request<T>(
+  path: string,
+  method = 'GET',
+  body?: unknown,
+  headers: Record<string, string> = {},
+): Promise<T> {
+  const response = await fetchApi(path, method, body, headers);
   return response.json() as Promise<T>;
 }
 
@@ -36,4 +93,48 @@ export async function downloadPost(postId: string): Promise<void> {
 export async function loadSlidePreview(postId: string, slideId: string): Promise<string> {
   const response = await fetchApi(`/posts/${postId}/slides/${slideId}/image`);
   return URL.createObjectURL(await response.blob());
+}
+
+export async function loadAsset(assetId: string): Promise<string> {
+  const response = await fetchApi(`/v1/assets/${encodeURIComponent(assetId)}`);
+  return URL.createObjectURL(await response.blob());
+}
+
+export async function downloadOutput(outputId: string): Promise<void> {
+  const response = await fetchApi(`/v1/outputs/${outputId}/export`);
+  const href = URL.createObjectURL(await response.blob());
+  const anchor = document.createElement('a');
+  anchor.href = href;
+  anchor.download = `devai-${outputId}.zip`;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(href), 1000);
+}
+
+export async function uploadAudioBytes(path: string, token: string, file: File) {
+  const response = await fetch(API_URL + path, {
+    method: 'PUT',
+    credentials: 'include',
+    body: file,
+    headers: {
+      'Content-Type':
+        file.type ||
+        (file.name.toLowerCase().endsWith('.wav')
+          ? 'audio/wav'
+          : file.name.toLowerCase().endsWith('.mp3')
+            ? 'audio/mpeg'
+            : 'audio/mp4'),
+      'X-Upload-Token': token,
+      ...(API_KEY ? { 'X-API-Key': API_KEY } : {}),
+    },
+  });
+  const result = await response.json();
+  if (!response.ok)
+    throw new ApiError(
+      typeof result.detail === 'string'
+        ? result.detail
+        : 'Audio upload failed. Your current media is preserved.',
+      response.status,
+      result.detail,
+    );
+  return result as { sha256: string; sizeBytes: number };
 }

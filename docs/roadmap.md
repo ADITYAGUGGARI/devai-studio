@@ -2,6 +2,7 @@
 
 ## Implemented in the current workflow
 
+- AI-assisted UX wireframe, focused mobile Today/Discover/Library/Publishing navigation, separate source/job screens and sectioned review; web workspaces separated by purpose.
 - Persistent prioritized research queue and manual topic selection.
 - Complete capped RSS/Atom parsing, full feed evidence, publisher-only redirects and grouped source diagnostics with explicit partial-success status and topic counts.
 - Source-grounded 6–8-slide writing with citations and independent evidence audit.
@@ -12,14 +13,22 @@
 
 ## Verification and deployment milestones remaining
 
+Revision4 discovery now retrieves eligible short-summary articles using the existing publisher allowlist and retains inaccessible findings/evidence warnings without promoting headlines to grounded topics. Actual web search, topic clustering and the complete source/claim review UX remain outstanding.
+
 1. Review a real generated carousel across all supported image/vision configurations; measure lettering errors and validation false negatives.
 2. Validate public JPEG retrieval, Meta app permissions, container processing and publication with a designated Instagram test account.
 3. Validate sustained daily operation and feed health over multiple days; add ranking quality feedback from reviewed posts. OpenAI article pages currently return HTTP 403 to the local server; short feed summaries remain excluded rather than treated as sufficient evidence.
-4. Add account-grade authentication and authorization before exposing the dashboard beyond local use.
-5. Add versioned production migration tooling, backups, monitoring, asset retention/cleanup and load testing of concurrent PostgreSQL workers.
-6. Validate the mobile review app on iOS/Android and upgrade inherited Expo dependencies with device tests.
+4. Complete iOS simulator/device acceptance with full Xcode and run the prepared Maestro flow.
+5. Resolve inherited native dependency security advisories with a supported Expo SDK migration and simulator regression.
+6. Verify TLS ingress, operational alerts, storage retention and concurrent-worker capacity before public deployment.
 7. Expand originality comparisons with accessible external content; never claim uniqueness across all Instagram accounts.
 
 ## UX design handoff available
 
+Revision4 implementation now includes persisted workspace research schedules across web and native iOS, once-per-local-day reservations with DST handling, frozen research categories, optimistic concurrency recovery and real Run now background jobs. Native session storage is isolated per backend. FFmpeg supports active-process cancellation and preserves previous renders. Full revised Reel orchestration/editing, independent output approvals and the complete screen/control matrix remain implementation work; see the current checkpoint in `IMPLEMENTATION_STATUS.md`.
+
 [Revision 4 desktop and native iOS design handoff](ux/devai-studio-v4/README.md) defines the complete intended product and dependency-aware implementation plan. The package includes ranked rolling-24-hour developer AI research, autonomous varied carousel/Reel artwork, independent approvals, explicitly authorized publication, recovery states, and the remaining workflows. Publication of the design package does not mark proposed backend or client capabilities as implemented or verified. See its [implementation roadmap](ux/devai-studio-v4/handoff/roadmap.md) and [QA limitations](ux/devai-studio-v4/qa/review.md).
+
+Account roles/sessions, PostgreSQL migration/adoption, backups with restore verification, usage/monitoring, publishing schedules, version restore and connected browser tests are implemented. See IMPLEMENTATION_STATUS.md for current evidence.
+
+The workflow UX acceptance audit added persistent background-task feedback, completion/recovery actions, unsaved-edit protection, safe cross-section saves, configuration guards and expanded connected account/settings verification. See [workflow acceptance](WORKFLOW_ACCEPTANCE.md) for the tested journeys and remaining external/native verification.

@@ -7,3 +7,5 @@ package-lock.json
 web/package-lock.json
 mobile/package-lock.json
 api
+# Preserve the bundled authoritative design package and its artifact manifests.
+docs/ux/devai-studio-v4

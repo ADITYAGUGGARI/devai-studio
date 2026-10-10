@@ -44,3 +44,16 @@ format:
 check: lint test
 	npm run typecheck
 	npm run build
+
+# Integration tests use disposable PostgreSQL schemas.
+test-postgres:
+	TEST_DATABASE_URL=postgresql+psycopg://devai:devai_local_only@127.0.0.1:$${POSTGRES_PORT:-5433}/devai $(MAKE) test
+
+migrate:
+	$(VENV)/python -m devai.migrate upgrade head
+
+test-web-connected:
+	npm run test:e2e:connected
+
+bundle-ios:
+	cd mobile && npx expo export --platform ios --output-dir ../.local-data/mobile-ios-bundle

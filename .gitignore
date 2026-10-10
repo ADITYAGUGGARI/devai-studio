@@ -7,6 +7,8 @@ __pycache__/
 node_modules/
 dist/
 .expo/
+mobile/ios/
+mobile/android/
 *.sqlite
 *.db
 .venv/

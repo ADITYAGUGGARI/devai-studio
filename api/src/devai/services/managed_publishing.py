@@ -16,6 +16,9 @@ from devai.services.artwork import normalize_image, slide_hash
 
 
 def validate_ready(db, post: Post) -> list[Slide]:
+    report = json.loads(post.verification_json or "{}")
+    if report.get("supported") is not True or report.get("issues"):
+        raise ValueError("Current copy must pass source grounding before approval or publishing")
     evidence = db.query(ArticleEvidence).filter_by(post_id=post.id).first()
     if (
         not evidence

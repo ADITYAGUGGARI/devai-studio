@@ -16,8 +16,8 @@ FEEDS = {
     "Anthropic Claude Code": "https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml",
     "OpenAI Codex": "https://github.com/openai/codex/releases.atom",
     "Model Context Protocol": "https://github.com/modelcontextprotocol/modelcontextprotocol/releases.atom",
-    "arXiv: Software Engineering": "https://export.arxiv.org/rss/cs.SE",
-    "arXiv: Artificial Intelligence": "https://export.arxiv.org/rss/cs.AI",
+    "arXiv: Software Engineering": "https://rss.arxiv.org/rss/cs.SE",
+    "arXiv: Artificial Intelligence": "https://rss.arxiv.org/rss/cs.AI",
 }
 
 # Source-page retrieval is limited to the official publishers already used for RSS.
@@ -54,7 +54,18 @@ class ArticleText(HTMLParser):
             self._skip_depth += 1
         if tag == "meta":
             key = (attributes.get("property") or attributes.get("name") or "").lower()
-            if key in {"og:title", "og:description", "description", "article:published_time"}:
+            if key in {
+                "og:title",
+                "og:description",
+                "description",
+                "article:published_time",
+                "citation_title",
+                "citation_date",
+                "citation_publication_date",
+                "date",
+                "dc.date",
+                "datepublished",
+            }:
                 self.metadata[key] = attributes.get("content", "")
 
     def handle_endtag(self, tag):
@@ -82,7 +93,10 @@ def parse_published(value):
         try:
             parsed = parsedate_to_datetime(value)
         except (TypeError, ValueError, OverflowError):
-            return None
+            try:
+                parsed = datetime.strptime(value.strip(), "%Y/%m/%d")
+            except ValueError:
+                return None
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)
     return parsed.astimezone(UTC)
@@ -103,9 +117,10 @@ def fetch_feed(url, timeout=8):
             raise ValueError("Feed did not return an XML or plain-text document")
     root = ET.fromstring(data)
     items = []
-    for item in root.findall(".//item")[:30]:
-        title = item.findtext("title") or ""
-        link = item.findtext("link") or ""
+    rss_namespace = "{http://purl.org/rss/1.0/}"
+    for item in root.findall(".//item") + root.findall(f".//{rss_namespace}item"):
+        title = item.findtext("title") or item.findtext(f"{rss_namespace}title") or ""
+        link = item.findtext("link") or item.findtext(f"{rss_namespace}link") or ""
         if title.strip() and link.startswith("https://"):
             items.append(
                 {
@@ -116,11 +131,12 @@ def fetch_feed(url, timeout=8):
                     or "",
                     "summary": item.findtext("{http://purl.org/rss/1.0/modules/content/}encoded")
                     or item.findtext("description")
+                    or item.findtext(f"{rss_namespace}description")
                     or "",
                 }
             )
     ns = {"a": "http://www.w3.org/2005/Atom"}
-    for entry in root.findall("a:entry", ns)[:30]:
+    for entry in root.findall("a:entry", ns):
         title = entry.findtext("a:title", default="", namespaces=ns)
         link = next(
             (

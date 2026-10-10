@@ -1,4 +1,7 @@
 # Resolved with Python 3.13. Refresh after intentional dependency changes.
+alembic==1.20.0
+Mako==1.4.3
+MarkupSafe==3.0.4
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1

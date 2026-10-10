@@ -1,0 +1,94 @@
+# Isolated PostgreSQL and E2E_REEL_FIXTURE=true. Synthetic test-only editorial evidence,
+# actual encoded/decoded MP4. No real provider call or publication.
+appId: host.exp.Exponent
+---
+- stopApp: host.exp.Exponent
+- openLink: exp://127.0.0.1:8086
+- extendedWaitUntil:
+    visible: Your studio, today|Use an existing local account
+    timeout: 60000
+- runFlow:
+    when:
+      visible: Your studio, today
+    commands:
+      - tapOn: Settings
+      - scrollUntilVisible:
+          element: Sign out
+      - tapOn: Sign out
+- tapOn: Use an existing local account
+- tapOn:
+    id: field-email-address
+- inputText: e2e@devai.test
+- tapOn:
+    id: field-password
+- inputText: Isolated-e2e-password-12345
+- pressKey: Enter
+- tapOn: Sign in
+- tapOn:
+    text: Not Now
+    optional: true
+- assertVisible: Your studio, today
+- tapOn: Content, tab,.*
+- tapOn: Reel codec acceptance fixture.*
+- assertVisible: Render current timeline
+- scrollUntilVisible:
+    element: Inspect sources & claims
+- tapOn: Inspect sources & claims
+- assertVisible: Claim grounding
+- tapOn: Done
+- scrollUntilVisible:
+    element: Scenes & script
+    direction: UP
+- tapOn: Scenes & script
+- assertVisible: Move scene later
+- tapOn: Move scene later
+- assertVisible: Save & close
+- tapOn: Save & close
+- assertVisible: Saved
+- scrollUntilVisible:
+    element: Scenes & script
+- tapOn: Scenes & script
+- assertVisible: Scene headline
+- takeScreenshot: native-v4-reel-scene-sheet
+- tapOn: Done
+- scrollUntilVisible:
+    element: Version history
+- tapOn: Version history
+- scrollUntilVisible:
+    element: Version 3
+- assertVisible: Version 3
+- scrollUntilVisible:
+    element: Restore version 2
+- tapOn: Restore version 2
+- assertVisible: Restore as a new draft?
+- tapOn: Restore draft
+- assertVisible: Saved
+- scrollUntilVisible:
+    element: Version history
+- tapOn: Version history
+- assertVisible: Version 4
+- takeScreenshot: native-v4-reel-versions
+- tapOn: Done
+- scrollUntilVisible:
+    element: Audio & subtitles
+    direction: UP
+- tapOn: Audio & subtitles
+- assertVisible: Licensed music
+- assertVisible: Choose audio file
+- scrollUntilVisible:
+    element: Burned-in subtitles
+- tapOn: Burned-in subtitles
+- scrollUntilVisible:
+    element: Edit subtitle cues
+- tapOn: Edit subtitle cues
+- scrollUntilVisible:
+    element: Cue 1 text
+- takeScreenshot: native-v4-reel-subtitle-cues
+- scrollUntilVisible:
+    element: Cue 1 start.*
+- assertVisible: Cue 1 start.*
+- scrollUntilVisible:
+    element: Save & close|Done
+    direction: UP
+- tapOn: Save & close|Done
+- assertVisible: Saved

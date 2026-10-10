@@ -9,8 +9,11 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import sessionmaker
 
 from devai.core.config import Settings
-from devai.core.database import build_engine, initialize_database
+from devai.core.database import build_engine, prepare_database
+from devai.models.studio import Workspace
 from devai.services.jobs import enqueue_daily
+from devai.services.operations import settings_values
+from devai.services.research_schedule import enqueue_workspace_schedule
 
 
 def should_run(now, last_date, hour: int = 8):
@@ -22,18 +25,26 @@ def run_forever():
     logging.basicConfig(level=logging.INFO)
     settings = Settings()
     engine = build_engine(settings.database_url)
-    initialize_database(engine)
+    prepare_database(engine)
     session_factory = sessionmaker(bind=engine)
     try:
         while True:
-            now = datetime.now(ZoneInfo(settings.daily_timezone))
-            if should_run(now, None, settings.daily_hour):
+            with session_factory() as db:
+                workspace_ids = [row.id for row in db.query(Workspace).all()]
+            for workspace_id in workspace_ids:
+                try:
+                    enqueue_workspace_schedule(session_factory, workspace_id)
+                except Exception:
+                    logging.exception("Could not enqueue workspace research")
+            schedule = settings_values(session_factory, settings)
+            now = datetime.now(ZoneInfo(schedule["timezone"]))
+            if schedule["daily_enabled"] and should_run(now, None, schedule["daily_hour"]):
                 try:
                     job = enqueue_daily(
                         session_factory,
-                        settings.daily_timezone,
+                        schedule["timezone"],
                         now=now,
-                        generate_carousel=settings.daily_generate_carousel,
+                        generate_carousel=schedule["daily_generate_carousel"],
                     )
                     logging.info("Daily job %s: %s", job["id"], job["status"])
                 except Exception:
