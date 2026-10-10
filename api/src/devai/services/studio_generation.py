@@ -215,6 +215,10 @@ def run_output(factory, claim, progress):
                             "body": scene["body"] + "\nNarration: " + scene["script"],
                         }
                         for scene in data["scenes"]
+                    ]
+                    + [
+                        {"headline": "Edited subtitles", "body": cue["text"]}
+                        for cue in data.get("subtitleCues") or []
                     ],
                 }
                 report = verify_copy(data["source"]["excerpt"], packet, data["source"]["url"])
@@ -334,6 +338,34 @@ def run_output(factory, claim, progress):
                 if audio_scenes
                 else None
             )
+            if data.get("musicAssetId"):
+                from devai.services.studio_audio import mix_audio
+
+                with factory() as db:
+                    _, music, _ = asset_bytes(db, data["musicAssetId"], output_id=output_id)
+                    if not music.get("uploadedMusic") or not music.get("license", {}).get(
+                        "acknowledged"
+                    ):
+                        raise ValueError("Music needs validated audio and recorded usage rights")
+                audio_path = mix_audio(
+                    audio_path,
+                    music["privatePath"],
+                    duration=sum(scene["durationSec"] for scene in scenes),
+                    voice_gain=data.get("voiceGainDb", 0),
+                    music_gain=data.get("musicGainDb", -18),
+                    ducking=data.get("ducking", True),
+                    directory=root,
+                    checkpoint=lambda: progress(0, len(scenes) + 2, "Mixing licensed audio"),
+                )
+            elif audio_path and data.get("voiceGainDb", 0) != 0:
+                from devai.services.studio_audio import gain_audio
+
+                audio_path = gain_audio(
+                    audio_path,
+                    data["voiceGainDb"],
+                    root,
+                    lambda: progress(0, len(scenes) + 2, "Adjusting narration gain"),
+                )
             save({"stage": "video_rendering"})
             cues, at = [], 0.0
             for scene in scenes:
@@ -346,7 +378,12 @@ def run_output(factory, claim, progress):
                 audio_path=audio_path,
                 output_directory=root,
                 progress=progress,
-                subtitle_cues=cues if data["subtitles"] else None,
+                subtitle_cues=(
+                    data.get("subtitleCues") if data.get("subtitleCues") is not None else cues
+                )
+                if data["subtitles"]
+                else None,
+                subtitle_style=data.get("subtitleStyle"),
             )
             with factory.begin() as db:
                 lease(db)

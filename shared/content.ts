@@ -70,6 +70,17 @@ export interface OutputData {
   voiceId: ContentOptions['voiceId'];
   subtitles: boolean;
   stage: string;
+  subtitleCues?: { id?: string; start: number; end: number; text: string }[] | null;
+  subtitleStyle?: {
+    fontSize: number;
+    position: 'lower' | 'middle';
+    bold: boolean;
+    background: boolean;
+  } | null;
+  musicAssetId?: string | null;
+  voiceGainDb?: number;
+  musicGainDb?: number;
+  ducking?: boolean;
   postId?: string;
   renderId?: string;
   renderCurrent?: boolean;
@@ -131,6 +142,12 @@ export function timelinePayload(output: StudioOutput) {
     caption: output.data.caption,
     voiceId: output.data.voiceId,
     subtitles: output.data.subtitles,
+    subtitleCues: output.data.subtitleCues ?? null,
+    subtitleStyle: output.data.subtitleStyle ?? null,
+    musicAssetId: output.data.musicAssetId ?? null,
+    voiceGainDb: output.data.voiceGainDb ?? 0,
+    musicGainDb: output.data.musicGainDb ?? -18,
+    ducking: output.data.ducking ?? true,
     scenes: output.data.scenes.map(({ id, headline, body, script, durationSec }) => ({
       id,
       headline,
@@ -139,4 +156,14 @@ export function timelinePayload(output: StudioOutput) {
       durationSec,
     })),
   };
+}
+
+export function subtitleCues(output: StudioOutput) {
+  if (output.data.subtitleCues != null) return output.data.subtitleCues;
+  let at = 0;
+  return output.data.scenes.map((scene) => {
+    const start = at;
+    at += scene.durationSec;
+    return { id: scene.id, start, end: at, text: scene.script };
+  });
 }

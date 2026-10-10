@@ -109,3 +109,32 @@ export async function downloadOutput(outputId: string): Promise<void> {
   anchor.click();
   window.setTimeout(() => URL.revokeObjectURL(href), 1000);
 }
+
+export async function uploadAudioBytes(path: string, token: string, file: File) {
+  const response = await fetch(API_URL + path, {
+    method: 'PUT',
+    credentials: 'include',
+    body: file,
+    headers: {
+      'Content-Type':
+        file.type ||
+        (file.name.toLowerCase().endsWith('.wav')
+          ? 'audio/wav'
+          : file.name.toLowerCase().endsWith('.mp3')
+            ? 'audio/mpeg'
+            : 'audio/mp4'),
+      'X-Upload-Token': token,
+      ...(API_KEY ? { 'X-API-Key': API_KEY } : {}),
+    },
+  });
+  const result = await response.json();
+  if (!response.ok)
+    throw new ApiError(
+      typeof result.detail === 'string'
+        ? result.detail
+        : 'Audio upload failed. Your current media is preserved.',
+      response.status,
+      result.detail,
+    );
+  return result as { sha256: string; sizeBytes: number };
+}

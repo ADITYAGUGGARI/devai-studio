@@ -4,6 +4,7 @@ Uses an actual decoded MP4. Does not simulate an AI provider or production succe
 """
 
 import hashlib
+import os
 import tempfile
 import uuid
 from pathlib import Path
@@ -21,6 +22,7 @@ from PIL import Image
 def seed_reel(factory):
     temporary = tempfile.TemporaryDirectory(prefix="devai-e2e-reel-")
     root = Path(temporary.name)
+    os.environ["STUDIO_MEDIA_DIR"] = str(root)
     image = root / "test-only-image.png"
     Image.new("RGB", (1080, 1920), (23, 61, 50)).save(image)
     result = render_video(

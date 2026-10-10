@@ -301,15 +301,43 @@ def edit_timeline(
                 raise HTTPException(422, "Only Reels have a timeline")
             if saved["source"]["url"] not in data.caption:
                 raise HTTPException(422, "Retain the exact source citation in the caption")
+            caption = data.caption
+            if data.voiceId and "AI-generated" not in caption:
+                caption += "\nVoice: AI-generated narration."
+                if len(caption) > 2200:
+                    raise HTTPException(
+                        422, "Shorten the caption to retain the AI narration disclosure"
+                    )
+            if data.musicAssetId:
+                _, music, _ = asset_bytes(db, data.musicAssetId, output_id=output_id)
+                if not (
+                    music.get("uploadedMusic")
+                    and music.get("license", {}).get("acknowledged")
+                    and music.get("validation", {}).get("passed")
+                ):
+                    raise HTTPException(422, "Choose decoded audio with recorded usage rights")
             old = {scene["id"]: scene for scene in saved["scenes"]}
             saved["scenes"] = [
                 {**old.get(scene.id, {}), **scene.model_dump()} for scene in data.scenes
             ]
             saved.update(
-                caption=data.caption,
+                caption=caption,
                 voiceId=data.voiceId,
                 subtitles=data.subtitles,
+                subtitleStyle=data.subtitleStyle.model_dump() if data.subtitleStyle else None,
+                subtitleCues=(
+                    [
+                        {**cue.model_dump(), "id": cue.id or uuid.uuid4().hex}
+                        for cue in data.subtitleCues
+                    ]
+                    if data.subtitleCues is not None
+                    else None
+                ),
                 stage="needs_render",
+                musicAssetId=data.musicAssetId,
+                voiceGainDb=data.voiceGainDb,
+                musicGainDb=data.musicGainDb,
+                ducking=data.ducking,
             )
             saved.pop("approval", None)
             saved.pop("grounding", None)

@@ -257,8 +257,9 @@ def test_actual_reel_pipeline_review_export_and_material_edit_invalidation(
             for scene in output["data"]["scenes"]
         ],
         "caption": output["data"]["caption"] + "\nUpdated analysis.",
-        "voiceId": None,
+        "voiceId": "coral",
         "subtitles": False,
+        "subtitleCues": [{"start": 0, "end": 6, "text": "An executable workflow API."}],
     }
     edited = client.patch(
         f"/v1/outputs/{output_id}/timeline",
@@ -266,6 +267,9 @@ def test_actual_reel_pipeline_review_export_and_material_edit_invalidation(
         json=timeline,
     )
     assert edited.status_code == 200, edited.text
+    assert "Voice: AI-generated narration." in edited.json()["data"]["caption"]
+    assert edited.json()["data"]["subtitleCues"][0]["text"] == timeline["subtitleCues"][0]["text"]
+    assert edited.json()["data"]["subtitleCues"][0]["id"]
     assert "approval" not in edited.json()["data"]
     assert not edited.json()["data"]["renderCurrent"]
     assert all(scene["imageCurrent"] for scene in edited.json()["data"]["scenes"])
@@ -341,3 +345,44 @@ def test_provider_budget_stops_before_unapproved_network_call(monkeypatch):
     with provider_budget(exhausted), pytest.raises(ProviderError, match="budget exhausted"):
         post_json("chat/completions", {})
     assert calls == []
+
+
+def test_subtitle_cues_validate_timing_and_preserve_legacy_render_fingerprint():
+    from pydantic import ValidationError
+
+    from devai.schemas.studio_content import TimelineInput
+    from devai.services.studio_content import timeline_hash
+
+    payload = {
+        "expectedRevision": 1,
+        "scenes": [
+            {
+                "id": str(i),
+                "headline": "Developer workflow",
+                "script": "Verified source text",
+                "body": "",
+                "durationSec": 7,
+            }
+            for i in range(5)
+        ],
+        "caption": "Source: https://example.org",
+        "voiceId": None,
+        "subtitles": True,
+    }
+    assert timeline_hash(payload) == timeline_hash({**payload, "subtitleCues": None})
+    cues = [
+        {"start": 0, "end": 7, "text": "Verified workflow"},
+        {"start": 7, "end": 14, "text": "Developer analysis"},
+    ]
+    assert TimelineInput(**payload, subtitleCues=cues).subtitleCues[1].start == 7
+    assert timeline_hash(payload) != timeline_hash({**payload, "subtitleCues": cues})
+    for invalid in (
+        [],
+        [{"start": 0, "end": 36, "text": "Beyond duration"}],
+        [{"start": 2, "end": 1, "text": "Backwards"}],
+        [cues[0], {"start": 6, "end": 9, "text": "Overlap"}],
+        [{"start": 0, "end": 1, "text": "  "}],
+        [{"start": float("nan"), "end": 1, "text": "Invalid"}],
+    ):
+        with pytest.raises(ValidationError):
+            TimelineInput(**payload, subtitleCues=invalid)

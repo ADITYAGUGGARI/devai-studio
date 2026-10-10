@@ -13,6 +13,8 @@ import { useAtomValue } from 'jotai';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { NativeAudioUpload } from './AudioUpload';
+import { NativeSubtitleEditor } from './SubtitleEditor';
 import { API_URL, ApiError, request } from '../services/api';
 import { sessionAtom } from '../app/state';
 import type { Routes } from '../app/navigation';
@@ -508,7 +510,7 @@ export function ContentProject() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [tool, setTool] = useState<
-    'Scenes' | 'Script' | 'Audio' | 'Review' | 'Versions' | 'Sources' | null
+    'Scenes' | 'Script' | 'Audio' | 'Subtitles' | 'Review' | 'Versions' | 'Sources' | null
   >(null);
   const [versions, setVersions] = useState<{ revision: number; reason: string; state: string }[]>(
     [],
@@ -772,7 +774,7 @@ export function ContentProject() {
       footer={
         <View>
           <Text style={styles.muted} accessibilityLiveRegion="polite">
-            {status}
+            {dirty && status === 'Saved' ? 'Unsaved changes' : status}
           </Text>
           <Button
             title="Review this output"
@@ -951,6 +953,7 @@ export function ContentProject() {
         onRequestClose={() => setTool(null)}
       >
         <Screen
+          key={tool}
           safeTop
           title={tool === 'Review' ? 'Review this version' : tool || 'Reel tools'}
           footer={
@@ -1169,6 +1172,42 @@ export function ContentProject() {
           )}
           {tool === 'Audio' && (
             <Card>
+              <NativeAudioUpload
+                key={draft.id}
+                outputId={draft.id}
+                disabled={!canEdit || active || busy}
+                onSelect={(id) => setDraft({ ...draft, data: { ...draft.data, musicAssetId: id } })}
+              />
+              {draft.data.musicAssetId && (
+                <Button
+                  title="Remove music"
+                  secondary
+                  disabled={!canEdit || active || busy}
+                  onPress={() =>
+                    setDraft({ ...draft, data: { ...draft.data, musicAssetId: null } })
+                  }
+                />
+              )}
+              {(['voiceGainDb', 'musicGainDb'] as const).map((key) => (
+                <Field
+                  key={key}
+                  label={key === 'voiceGainDb' ? 'Voice gain (dB)' : 'Music gain (dB)'}
+                  value={String(draft.data[key] ?? (key === 'voiceGainDb' ? 0 : -18))}
+                  disabled={!canEdit || active || busy}
+                  onChange={(text) =>
+                    setDraft({ ...draft, data: { ...draft.data, [key]: Number(text) } })
+                  }
+                />
+              ))}
+              <Text style={styles.text}>Lower music during narration</Text>
+              <Switch
+                accessibilityLabel="Lower music during narration"
+                disabled={!canEdit || active || busy}
+                value={draft.data.ducking ?? true}
+                onValueChange={(value) =>
+                  setDraft({ ...draft, data: { ...draft.data, ducking: value } })
+                }
+              />
               <Text style={styles.muted}>AI narration voice</Text>
               <Segments
                 items={['coral', 'marin', 'cedar', 'None'] as const}
@@ -1213,6 +1252,27 @@ export function ContentProject() {
               <Text style={styles.muted}>
                 Changing a voice does not generate audio. Old audio and renders remain preserved.
               </Text>
+              <Button title="Edit subtitle cues" secondary onPress={() => setTool('Subtitles')} />
+            </Card>
+          )}
+          {tool === 'Subtitles' && (
+            <Card>
+              <Text style={styles.text}>Burned-in subtitles</Text>
+              <Switch
+                accessibilityLabel="Burned-in subtitles"
+                disabled={!canEdit || active || busy}
+                value={draft.data.subtitles}
+                onValueChange={(value) =>
+                  setDraft({ ...draft, data: { ...draft.data, subtitles: value } })
+                }
+              />
+              {draft.data.subtitles && (
+                <NativeSubtitleEditor
+                  output={draft}
+                  disabled={!canEdit || active || busy}
+                  onChange={setDraft}
+                />
+              )}
             </Card>
           )}
           {tool === 'Review' && (

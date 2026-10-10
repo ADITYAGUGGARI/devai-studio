@@ -5,6 +5,8 @@ import { useAtomValue } from 'jotai';
 import { accountAtom } from '../../app/state';
 import { ApiError, downloadOutput, loadAsset, request } from '../../services/api';
 import { Modal } from '../../components/Modal';
+import { AudioUpload } from './AudioUpload';
+import { SubtitleEditor } from './SubtitleEditor';
 import {
   contentList,
   canEditStudio,
@@ -119,21 +121,27 @@ export function ContentWorkspace({
   const draftRef = useRef<StudioOutput | null>(null);
   draftRef.current = draft;
   const [selectedScene, setSelectedScene] = useState(initialSceneId || '');
-  const [section, setSection] = useState<'Scenes' | 'Script' | 'Audio' | 'Review' | 'Versions'>(
+  const [section, setSection] = useState<
+    'Scenes' | 'Script' | 'Audio' | 'Subtitles' | 'Review' | 'Versions'
+  >(
     editorTool === 'script'
       ? 'Script'
-      : ['audio', 'subtitles'].includes(editorTool || '')
-        ? 'Audio'
-        : 'Scenes',
+      : editorTool === 'subtitles'
+        ? 'Subtitles'
+        : editorTool === 'audio'
+          ? 'Audio'
+          : 'Scenes',
   );
   useEffect(() => {
     if (outputFormat)
       setSection(
         editorTool === 'script'
           ? 'Script'
-          : ['audio', 'subtitles'].includes(editorTool || '')
-            ? 'Audio'
-            : 'Scenes',
+          : editorTool === 'subtitles'
+            ? 'Subtitles'
+            : editorTool === 'audio'
+              ? 'Audio'
+              : 'Scenes',
       );
     if (initialSceneId) setSelectedScene(initialSceneId);
   }, [outputFormat, editorTool, initialSceneId]);
@@ -358,7 +366,9 @@ export function ContentWorkspace({
         </p>
       )}
       <div className="editor-status">
-        <span role="status">{saveStatus}</span>
+        <span role="status">
+          {dirty && saveStatus === 'Saved' ? 'Unsaved changes' : saveStatus}
+        </span>
         <span>
           {output.data.stage.replaceAll('_', ' ')} · {output.data.budgetRemaining} authorized
           requests remaining
@@ -514,7 +524,7 @@ export function ContentWorkspace({
           </section>
           <section className="panel reel-inspector">
             <div className="view-tabs" role="tablist" aria-label="Reel editing tools">
-              {(['Scenes', 'Script', 'Audio'] as const).map((item) => (
+              {(['Scenes', 'Script', 'Audio', 'Subtitles'] as const).map((item) => (
                 <button
                   role="tab"
                   aria-selected={section === item}
@@ -548,6 +558,56 @@ export function ContentWorkspace({
                     ))}
                   </select>
                 </label>
+                <AudioUpload
+                  key={draft.id}
+                  outputId={draft.id}
+                  disabled={readOnly}
+                  onSelect={(id) =>
+                    setDraft({ ...draft, data: { ...draft.data, musicAssetId: id } })
+                  }
+                />
+                {draft.data.musicAssetId && (
+                  <>
+                    <p>Validated music is selected. Render again to hear the current mix.</p>
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() =>
+                        setDraft({ ...draft, data: { ...draft.data, musicAssetId: null } })
+                      }
+                    >
+                      Remove music
+                    </button>
+                  </>
+                )}
+                {(['voiceGainDb', 'musicGainDb'] as const).map((key) => (
+                  <label key={key}>
+                    {key === 'voiceGainDb' ? 'Voice gain (dB)' : 'Music gain (dB)'}
+                    <input
+                      type="number"
+                      min={-60}
+                      max={6}
+                      step={1}
+                      value={draft.data[key] ?? (key === 'voiceGainDb' ? 0 : -18)}
+                      onChange={(event) =>
+                        setDraft({
+                          ...draft,
+                          data: { ...draft.data, [key]: Number(event.target.value) },
+                        })
+                      }
+                    />
+                  </label>
+                ))}
+                <label className="choice-row">
+                  <input
+                    type="checkbox"
+                    checked={draft.data.ducking ?? true}
+                    onChange={(event) =>
+                      setDraft({ ...draft, data: { ...draft.data, ducking: event.target.checked } })
+                    }
+                  />
+                  Lower music during narration
+                </label>
                 <label className="choice-row">
                   <input
                     type="checkbox"
@@ -562,6 +622,9 @@ export function ContentWorkspace({
                   Burned-in subtitles
                 </label>
                 <p>Changing the voice does not generate audio. Narration is AI-generated.</p>
+                <button type="button" className="secondary" onClick={() => setSection('Subtitles')}>
+                  Edit subtitle cues
+                </button>
                 <button
                   className="secondary"
                   disabled={dirty || !draft.data.voiceId}
@@ -569,6 +632,27 @@ export function ContentWorkspace({
                 >
                   Generate current voiceover
                 </button>
+              </fieldset>
+            ) : section === 'Subtitles' ? (
+              <fieldset>
+                <legend>Subtitles</legend>
+                <label className="choice-row">
+                  <input
+                    type="checkbox"
+                    disabled={readOnly}
+                    checked={draft.data.subtitles}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        data: { ...draft.data, subtitles: event.target.checked },
+                      })
+                    }
+                  />
+                  Burned-in subtitles
+                </label>
+                {draft.data.subtitles && (
+                  <SubtitleEditor output={draft} disabled={readOnly} onChange={setDraft} />
+                )}
               </fieldset>
             ) : scene ? (
               <fieldset disabled={readOnly}>
@@ -622,156 +706,160 @@ export function ContentWorkspace({
               <p>Scenes appear when the grounded storyboard is ready.</p>
             )}
           </section>
-          <section className="panel scene-timeline">
-            <div className="timeline-heading">
-              <h3>Scene timeline</h3>
-              <strong>{totalDuration.toFixed(1)}s / 30–40s</strong>
-            </div>
-            <div className="scene-cards">
-              {draft.data.scenes.map((item, index) => (
-                <div
-                  key={item.id}
-                  className={scene?.id === item.id ? 'scene-card selected' : 'scene-card'}
-                >
-                  <button
-                    className="scene-select"
-                    aria-pressed={scene?.id === item.id}
-                    onClick={() => {
-                      setSelectedScene(item.id);
-                      setSection('Scenes');
-                    }}
+          {['Scenes', 'Script'].includes(section) && (
+            <section className="panel scene-timeline">
+              <div className="timeline-heading">
+                <h3>Scene timeline</h3>
+                <strong>{totalDuration.toFixed(1)}s / 30–40s</strong>
+              </div>
+              <div className="scene-cards">
+                {draft.data.scenes.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className={scene?.id === item.id ? 'scene-card selected' : 'scene-card'}
                   >
-                    <span>SCENE {index + 1}</span>
-                    <strong>{item.headline}</strong>
-                    <small>
-                      {item.durationSec}s ·{' '}
-                      {item.imageAssetId
-                        ? item.imageCurrent
-                          ? 'Image saved'
-                          : 'Image needs regeneration'
-                        : 'Image pending'}
-                    </small>
-                  </button>
-                  <div className="actions">
                     <button
-                      className="ghost"
-                      aria-label={`Move scene ${index + 1} earlier`}
-                      disabled={readOnly || index === 0}
-                      onClick={() => reorder(item.id, -1)}
+                      className="scene-select"
+                      aria-pressed={scene?.id === item.id}
+                      onClick={() => {
+                        setSelectedScene(item.id);
+                        setSection('Scenes');
+                      }}
                     >
-                      ←
+                      <span>SCENE {index + 1}</span>
+                      <strong>{item.headline}</strong>
+                      <small>
+                        {item.durationSec}s ·{' '}
+                        {item.imageAssetId
+                          ? item.imageCurrent
+                            ? 'Image saved'
+                            : 'Image needs regeneration'
+                          : 'Image pending'}
+                      </small>
                     </button>
-                    <button
-                      className="ghost"
-                      aria-label={`Move scene ${index + 1} later`}
-                      disabled={readOnly || index === draft.data.scenes.length - 1}
-                      onClick={() => reorder(item.id, 1)}
-                    >
-                      →
-                    </button>
-                    <button
-                      className="ghost"
-                      disabled={readOnly || draft.data.scenes.length <= 3}
-                      onClick={() =>
-                        setDraft({
-                          ...draft,
-                          data: {
-                            ...draft.data,
-                            scenes: draft.data.scenes.filter((value) => value.id !== item.id),
-                          },
-                        })
-                      }
-                    >
-                      Delete
-                    </button>
+                    <div className="actions">
+                      <button
+                        className="ghost"
+                        aria-label={`Move scene ${index + 1} earlier`}
+                        disabled={readOnly || index === 0}
+                        onClick={() => reorder(item.id, -1)}
+                      >
+                        ←
+                      </button>
+                      <button
+                        className="ghost"
+                        aria-label={`Move scene ${index + 1} later`}
+                        disabled={readOnly || index === draft.data.scenes.length - 1}
+                        onClick={() => reorder(item.id, 1)}
+                      >
+                        →
+                      </button>
+                      <button
+                        className="ghost"
+                        disabled={readOnly || draft.data.scenes.length <= 3}
+                        onClick={() =>
+                          setDraft({
+                            ...draft,
+                            data: {
+                              ...draft.data,
+                              scenes: draft.data.scenes.filter((value) => value.id !== item.id),
+                            },
+                          })
+                        }
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-            <button
-              className="secondary"
-              disabled={readOnly || draft.data.scenes.length >= 12}
-              onClick={() => {
-                const id = crypto.randomUUID();
-                setDraft({
-                  ...draft,
-                  data: {
-                    ...draft.data,
-                    scenes: [
-                      ...draft.data.scenes,
-                      {
-                        id,
-                        headline: 'New scene',
-                        body: '',
-                        script: 'Add source-grounded narration.',
-                        durationSec: 3,
-                      },
-                    ],
-                  },
-                });
-                setSelectedScene(id);
-              }}
-            >
-              Add scene
-            </button>
-            <button
-              className="secondary"
-              disabled={!dirty || readOnly || saving.current}
-              onClick={() => void save()}
-            >
-              Save now
-            </button>
-          </section>
+                ))}
+              </div>
+              <button
+                className="secondary"
+                disabled={readOnly || draft.data.scenes.length >= 12}
+                onClick={() => {
+                  const id = crypto.randomUUID();
+                  setDraft({
+                    ...draft,
+                    data: {
+                      ...draft.data,
+                      scenes: [
+                        ...draft.data.scenes,
+                        {
+                          id,
+                          headline: 'New scene',
+                          body: '',
+                          script: 'Add source-grounded narration.',
+                          durationSec: 3,
+                        },
+                      ],
+                    },
+                  });
+                  setSelectedScene(id);
+                }}
+              >
+                Add scene
+              </button>
+              <button
+                className="secondary"
+                disabled={!dirty || readOnly || saving.current}
+                onClick={() => void save()}
+              >
+                Save now
+              </button>
+            </section>
+          )}
         </div>
       )}
-      <section className="panel caption-panel">
-        <h3>Caption & source attribution</h3>
-        {output.data.format === 'reel' ? (
-          <label>
-            Caption
-            <textarea
-              disabled={readOnly}
-              maxLength={2200}
-              value={draft.data.caption}
-              onChange={(event) =>
-                setDraft({ ...draft, data: { ...draft.data, caption: event.target.value } })
-              }
-            />
-          </label>
-        ) : (
-          <p>{output.data.caption}</p>
-        )}
-        <details>
-          <summary>Saved source evidence · {output.data.source.source}</summary>
-          <p>{output.data.source.excerpt}</p>
-          <a href={output.data.source.url} target="_blank" rel="noreferrer">
-            Open primary source
-          </a>
-        </details>
-        <details>
-          <summary>Claim grounding report</summary>
-          {output.data.grounding?.claims?.map((claim, index) => (
-            <div key={index}>
-              <strong>{claim.claim}</strong>
-              <blockquote>{claim.evidence_quote}</blockquote>
-            </div>
-          ))}
-          <p>
-            {output.data.grounding?.supported
-              ? 'Supported by the saved evidence; human review still required.'
-              : 'Grounding needs verification before review.'}
-          </p>
-        </details>
-        {output.data.format === 'reel' && (
-          <button
-            className="secondary"
-            disabled={readOnly || dirty}
-            onClick={() => setPaid({ action: 'grounding' })}
-          >
-            Recheck current script and caption
-          </button>
-        )}
-      </section>
+      {!['Audio', 'Subtitles'].includes(section) && (
+        <section className="panel caption-panel">
+          <h3>Caption & source attribution</h3>
+          {output.data.format === 'reel' ? (
+            <label>
+              Caption
+              <textarea
+                disabled={readOnly}
+                maxLength={2200}
+                value={draft.data.caption}
+                onChange={(event) =>
+                  setDraft({ ...draft, data: { ...draft.data, caption: event.target.value } })
+                }
+              />
+            </label>
+          ) : (
+            <p>{output.data.caption}</p>
+          )}
+          <details>
+            <summary>Saved source evidence · {output.data.source.source}</summary>
+            <p>{output.data.source.excerpt}</p>
+            <a href={output.data.source.url} target="_blank" rel="noreferrer">
+              Open primary source
+            </a>
+          </details>
+          <details>
+            <summary>Claim grounding report</summary>
+            {output.data.grounding?.claims?.map((claim, index) => (
+              <div key={index}>
+                <strong>{claim.claim}</strong>
+                <blockquote>{claim.evidence_quote}</blockquote>
+              </div>
+            ))}
+            <p>
+              {output.data.grounding?.supported
+                ? 'Supported by the saved evidence; human review still required.'
+                : 'Grounding needs verification before review.'}
+            </p>
+          </details>
+          {output.data.format === 'reel' && (
+            <button
+              className="secondary"
+              disabled={readOnly || dirty}
+              onClick={() => setPaid({ action: 'grounding' })}
+            >
+              Recheck current script and caption
+            </button>
+          )}
+        </section>
+      )}
       <div className="actions">
         <button className="secondary" onClick={() => setSection('Review')}>
           Review this output

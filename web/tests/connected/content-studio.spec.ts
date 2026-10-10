@@ -75,6 +75,7 @@ test('actual rendered Reel plays, autosaves, retains old media and recovers a co
   page,
   request,
 }) => {
+  test.setTimeout(60_000);
   test.skip(
     process.env.E2E_REEL_FIXTURE !== 'true',
     'Requires explicitly enabled isolated codec fixture',
@@ -166,4 +167,68 @@ test('actual rendered Reel plays, autosaves, retains old media and recovers a co
   await expect(
     page.getByText('Changing the voice does not generate audio.', { exact: false }),
   ).toBeVisible();
+  await page.goto(`/content/${projectId}/reel/subtitles`);
+  await page.getByLabel('Burned-in subtitles', { exact: true }).check();
+  await expect(page.getByRole('status').filter({ hasText: /^Saved$/ })).toBeVisible();
+  await page.getByLabel('Cue 1 text', { exact: true }).fill('Edited verified workflow subtitle');
+  await expect(page.getByRole('status').filter({ hasText: /^Saved$/ })).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel('Cue 1 text', { exact: true })).toHaveValue(
+    'Edited verified workflow subtitle',
+  );
+  await expect(page.getByText('Previous render preserved', { exact: false })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.getByRole('button', { name: 'Reset subtitles to script', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: /^Saved$/ })).toBeVisible();
+  const subtitleOutput = await (
+    await request.get(`http://127.0.0.1:8124/v1/outputs/${output.id}`, { headers })
+  ).json();
+  expect(subtitleOutput.data.subtitleCues).toBeNull();
+  expect(subtitleOutput.data.renderCurrent).toBeFalsy();
+  await page.goto(`/content/${projectId}/reel/audio`);
+  // Synthetic WAV is confined to this isolated test, never a production asset fallback.
+  const wav = Buffer.alloc(44 + 16000);
+  wav.write('RIFF');
+  wav.writeUInt32LE(wav.length - 8, 4);
+  wav.write('WAVE', 8);
+  wav.write('fmt ', 12);
+  wav.writeUInt32LE(16, 16);
+  wav.writeUInt16LE(1, 20);
+  wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(8000, 24);
+  wav.writeUInt32LE(16000, 28);
+  wav.writeUInt16LE(2, 32);
+  wav.writeUInt16LE(16, 34);
+  wav.write('data', 36);
+  wav.writeUInt32LE(16000, 40);
+  await page
+    .getByLabel('Audio file', { exact: true })
+    .setInputFiles({ name: 'test-only.wav', mimeType: 'audio/wav', buffer: wav });
+  await page.getByLabel('Rights reference', { exact: true }).fill('Isolated test audio owner');
+  await page.getByLabel('I have permission to use this audio in this post').check();
+  const completion = page.waitForResponse(
+    (response) => response.url().endsWith('/complete') && response.request().method() === 'POST',
+  );
+  await page.getByRole('button', { name: 'Upload & validate audio', exact: true }).click();
+  const completedUpload = await completion;
+  expect(completedUpload.status()).toBe(202);
+  const queuedUpload = await completedUpload.json();
+  await expect(page.getByText('Audio validation queued…', { exact: true })).toBeVisible();
+  expect(
+    (
+      await request.post(`http://127.0.0.1:8124/v1/jobs/${queuedUpload.jobId}/cancel`, { headers })
+    ).ok(),
+  ).toBeTruthy();
+  await expect(page.getByRole('alert').filter({ hasText: /cancelled/ })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: 'test-results/connected/reel-audio-phone.png', fullPage: true });
+  await page.goto(`/content/${projectId}/reel/subtitles`);
+  await expect(page.getByLabel('Cue 1 text', { exact: true })).toBeVisible();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+  ).toBeTruthy();
+  await page.screenshot({
+    path: 'test-results/connected/reel-subtitles-phone.png',
+    fullPage: true,
+  });
 });

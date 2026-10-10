@@ -54,7 +54,11 @@ appId: host.exp.Exponent
 - scrollUntilVisible:
     element: Version history
 - tapOn: Version history
+- scrollUntilVisible:
+    element: Version 3
 - assertVisible: Version 3
+- scrollUntilVisible:
+    element: Restore version 2
 - tapOn: Restore version 2
 - assertVisible: Restore as a new draft?
 - tapOn: Restore draft
@@ -65,3 +69,26 @@ appId: host.exp.Exponent
 - assertVisible: Version 4
 - takeScreenshot: native-v4-reel-versions
 - tapOn: Done
+- scrollUntilVisible:
+    element: Audio & subtitles
+    direction: UP
+- tapOn: Audio & subtitles
+- assertVisible: Licensed music
+- assertVisible: Choose audio file
+- scrollUntilVisible:
+    element: Burned-in subtitles
+- tapOn: Burned-in subtitles
+- scrollUntilVisible:
+    element: Edit subtitle cues
+- tapOn: Edit subtitle cues
+- scrollUntilVisible:
+    element: Cue 1 text
+- takeScreenshot: native-v4-reel-subtitle-cues
+- scrollUntilVisible:
+    element: Cue 1 start.*
+- assertVisible: Cue 1 start.*
+- scrollUntilVisible:
+    element: Save & close|Done
+    direction: UP
+- tapOn: Save & close|Done
+- assertVisible: Saved

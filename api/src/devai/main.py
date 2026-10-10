@@ -22,6 +22,7 @@ from devai.routes import (
     publishing,
     research,
     studio,
+    studio_audio,
     studio_auth,
     studio_content,
     studio_profile,
@@ -67,6 +68,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
             "X-API-Key",
             "Authorization",
             "X-Workspace-ID",
+            "X-Upload-Token",
             "Idempotency-Key",
             "If-Match",
         ],
@@ -115,6 +117,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     app.include_router(studio_profile.router, tags=["profile"])
     app.include_router(studio_settings.router, tags=["workspace settings"])
     app.include_router(studio_content.router, tags=["content studio"])
+    app.include_router(studio_audio.router, tags=["licensed Reel audio"])
     return app
 
 

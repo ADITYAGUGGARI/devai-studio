@@ -57,6 +57,7 @@ export function Field({
   secure = false,
   oneTimeCode = false,
   disabled = false,
+  keyboardType,
 }: {
   label: string;
   value: string;
@@ -65,6 +66,7 @@ export function Field({
   secure?: boolean;
   oneTimeCode?: boolean;
   disabled?: boolean;
+  keyboardType?: 'default' | 'decimal-pad' | 'number-pad';
 }) {
   return (
     <View style={styles.field}>
@@ -80,7 +82,7 @@ export function Field({
         secureTextEntry={secure}
         returnKeyType={multiline ? 'default' : 'done'}
         onSubmitEditing={multiline ? undefined : Keyboard.dismiss}
-        keyboardType={oneTimeCode ? 'number-pad' : 'default'}
+        keyboardType={oneTimeCode ? 'number-pad' : keyboardType || 'default'}
         textContentType={oneTimeCode ? 'oneTimeCode' : secure ? 'password' : undefined}
         maxLength={oneTimeCode ? 6 : undefined}
         autoCapitalize="none"

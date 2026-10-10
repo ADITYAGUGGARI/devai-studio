@@ -38,7 +38,11 @@ def document(db, identifier, kind=None, *, lock=False):
 
 def public(value):
     if isinstance(value, dict):
-        return {key: public(item) for key, item in value.items() if key != "privatePath"}
+        return {
+            key: public(item)
+            for key, item in value.items()
+            if key not in {"privatePath", "privateTokenHash"}
+        }
     if isinstance(value, list):
         return [public(item) for item in value]
     return value
@@ -219,7 +223,10 @@ def asset_bytes(db, identifier, *, output_id=None):
     if output_id and row.parent_id != output_id:
         raise HTTPException(404, "Asset not found")
     data = json.loads(row.data_json)
-    path = Path(data["privatePath"])
+    path = Path(data["privatePath"]).resolve()
+    root = Path(os.getenv("STUDIO_MEDIA_DIR", ".local-data/studio-media")).resolve()
+    if not path.is_relative_to(root):
+        raise HTTPException(409, "Saved asset has an invalid storage location")
     if not path.is_file():
         raise HTTPException(409, "Saved asset is unavailable; regenerate this unit")
     raw = path.read_bytes()
@@ -251,6 +258,8 @@ def current_assets(db, output):
         }
     if not data.get("grounding", {}).get("supported"):
         raise HTTPException(409, "Current script and caption need source grounding")
+    if data.get("voiceId") and "AI-generated" not in data.get("caption", ""):
+        raise HTTPException(409, "Add the AI-generated narration disclosure before review")
     render_id = data.get("renderId")
     if not render_id or data.get("renderHash") != timeline_hash(data):
         raise HTTPException(409, "Render and validate the current timeline before review")
@@ -261,9 +270,20 @@ def current_assets(db, output):
 
 
 def timeline_hash(data):
-    return digest(
-        {
-            key: data.get(key)
-            for key in ("scenes", "caption", "voiceId", "subtitles", "music", "source")
+    payload = {
+        key: data.get(key)
+        for key in ("scenes", "caption", "voiceId", "subtitles", "music", "source")
+    }
+    # Preserve existing validated hashes when subtitles still follow the script.
+    if data.get("subtitleCues") is not None:
+        payload["subtitleCues"] = data["subtitleCues"]
+    if data.get("subtitleStyle") is not None:
+        payload["subtitleStyle"] = data["subtitleStyle"]
+    if data.get("musicAssetId") or data.get("voiceGainDb", 0) != 0:
+        payload["audioMix"] = {
+            "musicAssetId": data.get("musicAssetId"),
+            "voiceGainDb": data.get("voiceGainDb", 0),
+            "musicGainDb": data.get("musicGainDb", -18),
+            "ducking": data.get("ducking", True),
         }
-    )
+    return digest(payload)

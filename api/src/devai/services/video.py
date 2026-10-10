@@ -3,7 +3,6 @@
 import json
 import os
 import platform
-import re
 import shutil
 import subprocess
 import time
@@ -125,20 +124,20 @@ def validate_mp4(path, *, require_audio=True, checkpoint=None):
 
 
 def subtitle_file(cues, directory):
-    """SRT is render input, never artwork composition. Escape markup in editable text."""
+    """ASS is video subtitle input, never carousel artwork composition. Preserve code operators."""
 
     def timestamp(value):
-        milliseconds = round(value * 1000)
-        seconds, milliseconds = divmod(milliseconds, 1000)
+        centiseconds = round(value * 100)
+        seconds, centiseconds = divmod(centiseconds, 100)
         minutes, seconds = divmod(seconds, 60)
         hours, minutes = divmod(minutes, 60)
-        return f"{hours:02}:{minutes:02}:{seconds:02},{milliseconds:03}"
+        return f"{hours}:{minutes:02}:{seconds:02}.{centiseconds:02}"
 
     rows, previous = [], 0
     for index, cue in enumerate(cues, 1):
         if not 0 <= cue["start"] < cue["end"] <= 40 or cue["start"] < previous:
             raise ValueError("Subtitles must be ordered and fit the 30–40 second timeline")
-        text = re.sub(r"[<>\r]", "", str(cue["text"])).replace("\n", " ").strip()
+        text = str(cue["text"]).replace("\r", " ").replace("\n", " ").strip()
         if not text or len(text) > 1000:
             raise ValueError("Each subtitle needs readable text of1–1000characters")
         words, lines, line = text.split(), [], ""
@@ -153,14 +152,23 @@ def subtitle_file(cues, directory):
         chunks = [lines[position : position + 2] for position in range(0, len(lines), 2)]
         duration = (cue["end"] - cue["start"]) / len(chunks)
         for position, chunk in enumerate(chunks):
+            literal = r"\N".join(chunk).replace("{", r"\{").replace("}", r"\}")
             rows.append(
-                f"{len(rows) + 1}\n{timestamp(cue['start'] + position * duration)} --> {timestamp(cue['start'] + (position + 1) * duration)}\n"
-                + "\n".join(chunk)
-                + "\n"
+                f"Dialogue: 0,{timestamp(cue['start'] + position * duration)},{timestamp(cue['start'] + (position + 1) * duration)},Default,,0,0,0,,{literal}"
             )
         previous = cue["end"]
-    target = Path(directory) / "subtitles.srt"
-    target.write_text("\n".join(rows), encoding="utf-8")
+    target = Path(directory) / "subtitles.ass"
+    header = """[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,DejaVu Sans,52,&H00FFFFFF,&H00FFFFFF,&H00172A23,&H00172A23,0,0,0,0,100,100,0,0,1,3,0,2,80,80,280,1
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+    target.write_text(header + "\n".join(rows) + "\n", encoding="utf-8")
     return target
 
 
@@ -227,7 +235,9 @@ def assemble_audio(scenes, output_directory, *, checkpoint=None):
     return target
 
 
-def render_video(scenes, *, audio_path, output_directory, progress, subtitle_cues=None):
+def render_video(
+    scenes, *, audio_path, output_directory, progress, subtitle_cues=None, subtitle_style=None
+):
     if not scenes or not 30 <= sum(scene["duration"] for scene in scenes) <= 40:
         raise ValueError("Scene durations must total 30–40 seconds")
     directory = Path(output_directory) / str(uuid.uuid4())
@@ -311,12 +321,21 @@ def render_video(scenes, *, audio_path, output_directory, progress, subtitle_cue
                 "This FFmpeg build lacks libass subtitle support; install the documented worker image"
             )
         subtitles = subtitle_file(subtitle_cues, directory)
+        from devai.schemas.studio_content import SubtitleStyle
+
+        style = SubtitleStyle.model_validate(subtitle_style or {}).model_dump()
+        formatting = (
+            f"FontName=DejaVu Sans,FontSize={style['fontSize']},PrimaryColour=&H00FFFFFF,"
+            f"OutlineColour=&H00172A23,BackColour=&H00172A23,BorderStyle={3 if style['background'] else 1},"
+            f"Bold={-1 if style['bold'] else 0},Outline=3,MarginL=80,MarginR=80,MarginV=280,"
+            f"Alignment={5 if style['position'] == 'middle' else 2}"
+        )
         # Paths are generated internally; reject characters with filtergraph meaning.
         if any(character in str(subtitles.resolve()) for character in "':[],;"):
             raise ValueError("Worker media directory contains unsupported subtitle-path characters")
         command += [
             "-vf",
-            f"subtitles='{subtitles.resolve()}':force_style='FontName=DejaVu Sans,FontSize=18,PrimaryColour=&H00FFFFFF,OutlineColour=&H00172A23,BorderStyle=1,Outline=2,MarginL=23,MarginR=23,MarginV=90,Alignment=2'",
+            f"subtitles='{subtitles.resolve()}':force_style='{formatting}'",
             "-c:v",
             codec,
             "-b:v",

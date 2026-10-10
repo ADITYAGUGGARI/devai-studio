@@ -206,6 +206,10 @@ def dispatch(session_factory, claim: dict, progress) -> dict:
     from devai.services.topics import create_from_topic, research_queue
 
     kind, payload = claim["kind"], claim["payload"]
+    if kind == "studio_audio_upload":
+        from devai.services.studio_audio import run_upload
+
+        return run_upload(session_factory, claim, progress)
     if kind == "studio_output":
         from devai.services.studio_generation import run_output
 

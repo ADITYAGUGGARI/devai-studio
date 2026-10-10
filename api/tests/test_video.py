@@ -119,3 +119,16 @@ def test_invalid_timeline_fails_before_creating_assets(tmp_path):
             progress=lambda *args: None,
         )
     assert list(tmp_path.iterdir()) == []
+
+
+def test_edited_subtitle_code_operators_survive_actual_ass_decode(tmp_path):
+    from devai.services.video import subtitle_file
+
+    path = subtitle_file([{"start": 0, "end": 7, "text": "if x < 0 && y > 1: use <T>"}], tmp_path)
+    encoded = path.read_text()
+    assert "x < 0 && y > 1" in encoded
+    decoded = execute(
+        [binary("ffmpeg"), "-nostdin", "-v", "error", "-i", str(path), "-f", "ass", "-"]
+    ).decode()
+    assert "x < 0 && y > 1" in decoded
+    assert "<T>" in decoded

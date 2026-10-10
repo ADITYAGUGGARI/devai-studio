@@ -2,7 +2,7 @@
 
 Revision 4 is still being implemented. The current verified subsets are recorded in `IMPLEMENTATION_STATUS.md`; the screen checklist is `ux/V4_IMPLEMENTATION_COVERAGE.csv`. This document does not certify all A–O workflows.
 
-The implementation worktree is `/Users/aditya/Desktop/local/devai-studio-ux-v4`, branch `feat/devai-studio-ux-v4`. The original worktree and database were preserved. The preview uses a separate database named `devai_v4_local`, backend port8125 and web port5185.
+The implementation worktree is `/Users/aditya/Desktop/local/devai-studio-ux-v4`, branch `feat/devai-studio-ux-v4`. The original worktree and database were preserved. The preview uses a separate database named `devai_v4_local`, backend port8125 and web port5187 (5185 remains an optional alternate).
 
 ## Dependencies and migrations
 
@@ -28,11 +28,11 @@ With server environment values loaded, run:
 
 ```sh
 CORS_ORIGINS=http://127.0.0.1:5185,http://127.0.0.1:5187 PYTHONPATH=api/src .venv/bin/python -m uvicorn devai.main:app --host 127.0.0.1 --port 8125
-VITE_API_URL=http://127.0.0.1:8125 npm --prefix web run dev -- --port 5185 --strictPort
+VITE_API_URL=http://127.0.0.1:8125 npm --prefix web run dev -- --port 5187 --strictPort
 EXPO_PUBLIC_API_URL=http://127.0.0.1:8125 npm --prefix mobile start
 ```
 
-Web: `http://127.0.0.1:5185`; Swagger: `http://127.0.0.1:8125/docs`. The iOS simulator can use loopback; a physical device needs the Mac's reachable private address and suitable development networking. No public deployment is required for local review.
+Web: `http://127.0.0.1:5187`; Swagger: `http://127.0.0.1:8125/docs`. The iOS simulator can use loopback; a physical device needs the Mac's reachable private address and suitable development networking. No public deployment is required for local review.
 
 The API processes durable jobs when `BACKGROUND_WORKER_ENABLED=true`. For separate workers, set it false in the API and start `make worker` with the same database/provider environment. Start `make scheduler` with the same database configuration: it now checks per-workspace revision4 research schedules as well as the preserved legacy daily workflow. Revision4 schedules default off. Configure them at `/settings/research` or the native Settings → Research schedule screen. Saving enables the next future daily run; it does not start a past time immediately. Daily reservations survive restarts, use each studio's timezone, choose the first fall-back occurrence and the next valid spring-forward time, and retain a frozen previous24hourwindow and category choices. Automatic revision4 drafting remains unavailable; no schedule publishes content.
 
