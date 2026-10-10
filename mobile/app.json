@@ -8,6 +8,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.devai.studio"
     },
-    "plugins": ["expo-secure-store", "@react-native-community/datetimepicker"]
+    "plugins": ["expo-secure-store", "@react-native-community/datetimepicker", "expo-video"]
   }
 }

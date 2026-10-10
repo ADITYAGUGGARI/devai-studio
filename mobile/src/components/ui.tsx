@@ -56,6 +56,7 @@ export function Field({
   multiline = false,
   secure = false,
   oneTimeCode = false,
+  disabled = false,
 }: {
   label: string;
   value: string;
@@ -63,12 +64,15 @@ export function Field({
   multiline?: boolean;
   secure?: boolean;
   oneTimeCode?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <View style={styles.field}>
       <Text style={styles.muted}>{label}</Text>
       <TextInput
         accessibilityLabel={label}
+        accessibilityState={{ disabled }}
+        editable={!disabled}
         testID={`field-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
         value={value}
         onChangeText={onChange}

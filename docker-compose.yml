@@ -45,6 +45,8 @@ services:
       PUBLISH_MEDIA_DIR: /app/.local-data/publishing-media
       OPENAI_IMAGE_MODEL: ${OPENAI_IMAGE_MODEL:-gpt-image-2}
       CAROUSEL_ARTWORK_DIR: /app/.local-data/carousel-artwork
+      STUDIO_MEDIA_DIR: /app/.local-data/studio-media
+      OPENAI_SPEECH_MODEL: ${OPENAI_SPEECH_MODEL:-gpt-4o-mini-tts}
       INSTAGRAM_ACCESS_TOKEN: ${INSTAGRAM_ACCESS_TOKEN:-}
       INSTAGRAM_ACCOUNT_ID: ${INSTAGRAM_ACCOUNT_ID:-}
       META_GRAPH_VERSION: ${META_GRAPH_VERSION:-v24.0}
@@ -54,6 +56,7 @@ services:
       - '127.0.0.1:8000:8000'
     volumes:
       - carousel_artwork:/app/.local-data/carousel-artwork
+      - studio_media:/app/.local-data/studio-media
       - publishing_media:/app/.local-data/publishing-media
     depends_on:
       postgres:
@@ -95,6 +98,7 @@ services:
     environment: *api-environment
     volumes:
       - carousel_artwork:/app/.local-data/carousel-artwork
+      - studio_media:/app/.local-data/studio-media
       - publishing_media:/app/.local-data/publishing-media
     depends_on:
       api:
@@ -104,3 +108,4 @@ volumes:
   publishing_media:
   pgdata:
   carousel_artwork:
+  studio_media:

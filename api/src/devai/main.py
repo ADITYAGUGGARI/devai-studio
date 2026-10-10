@@ -23,6 +23,7 @@ from devai.routes import (
     research,
     studio,
     studio_auth,
+    studio_content,
     studio_profile,
     studio_settings,
     workflow,
@@ -113,6 +114,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     app.include_router(studio_auth.router, tags=["authentication"])
     app.include_router(studio_profile.router, tags=["profile"])
     app.include_router(studio_settings.router, tags=["workspace settings"])
+    app.include_router(studio_content.router, tags=["content studio"])
     return app
 
 

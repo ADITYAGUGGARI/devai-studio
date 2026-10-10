@@ -1,5 +1,6 @@
 import { ProfileSettings } from '../features/ProfileSettings';
 import { ResearchSettings } from '../features/ResearchSettings';
+import { ContentProject, CreateContent, StudioProjects } from '../features/ContentStudio';
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Pressable, ScrollView, Image, Switch, Linking, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -69,6 +70,7 @@ function Library() {
         secondary
         onPress={() => navigation.navigate('Publishing')}
       />
+      <StudioProjects />
       <Segments
         items={['All', 'Drafts', 'Review', 'Approved'] as const}
         value={filter}
@@ -831,6 +833,7 @@ export default function App() {
           </View>
         ) : session ? (
           <Stack.Navigator
+            initialRouteName="Workspace"
             screenOptions={{
               headerStyle: { backgroundColor: palette.card },
               headerTintColor: palette.text,
@@ -838,6 +841,16 @@ export default function App() {
               headerTitleStyle: { fontSize: 18 },
             }}
           >
+            <Stack.Screen
+              name="CreateContent"
+              component={CreateContent}
+              options={{ title: 'Create content' }}
+            />
+            <Stack.Screen
+              name="ContentProject"
+              component={ContentProject}
+              options={{ title: 'Content workspace' }}
+            />
             <Stack.Screen
               name="Workspace"
               component={Workspace}

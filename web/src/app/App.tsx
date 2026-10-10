@@ -6,7 +6,6 @@ import { accountAtom } from './state';
 import { useStudioRouting } from './routing';
 import { PublishingWorkspace, OperationsWorkspace } from '../features/Workspace';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { samplePost } from '../data/samplePost';
 import { PostEditor } from '../features/posts/PostEditor';
 import { PostLibrary } from '../features/posts/PostLibrary';
 import { DailyRunPanel } from '../features/research/DailyRunPanel';
@@ -17,6 +16,8 @@ import { TaskDock } from '../features/workflow/TaskDock';
 import { JobPanel } from '../features/workflow/JobPanel';
 import { TopicQueue } from '../features/workflow/TopicQueue';
 import { ResearchSettings } from '../features/ResearchSettings';
+import { CreateWizard } from '../features/content/CreateWizard';
+import { ContentWorkspace, StudioContentLibrary } from '../features/content/ContentWorkspace';
 import { Modal } from '../components/Modal';
 import { WorkspaceShell } from '../components/WorkspaceShell';
 import { StudioOverview } from '../features/StudioOverview';
@@ -31,7 +32,7 @@ import type {
 
 export function App() {
   const queryClient = useQueryClient();
-  const { id, tab, navigateWorkspace: setTab, openPost } = useStudioRouting();
+  const { id, tab, contentId, setupId, navigateWorkspace: setTab, openPost } = useStudioRouting();
   const account = useAtomValue(accountAtom);
   const canWrite = account?.role !== 'viewer';
   const [busy, setBusy] = useState(false);
@@ -116,14 +117,7 @@ export function App() {
     }
   }
 
-  async function openDraft(path: string, payload: unknown) {
-    await run(async () => {
-      const draft = await request<{ id: string }>(path, 'POST', payload);
-      openPost(draft.id);
-    });
-  }
-
-  const create = () => openDraft('/posts', samplePost);
+  const create = () => setTab('Create');
   const generate = (source: SourceInput) =>
     run(async () => {
       await request('/topics', 'POST', source);
@@ -195,17 +189,21 @@ export function App() {
           <div>
             <div className="eyebrow">✳ CONTENT INTELLIGENCE</div>
             <h1>
-              {tab === 'ResearchSettings'
-                ? 'Research schedule'
-                : tab === 'Overview'
-                  ? 'Your studio, today'
-                  : tab === 'Research'
-                    ? 'Discover your next story'
-                    : tab === 'Operations'
-                      ? 'Workspace settings'
-                      : tab === 'Library'
-                        ? 'Content library'
-                        : tab}
+              {tab === 'Create'
+                ? 'Create your next story'
+                : tab === 'ContentWorkspace'
+                  ? 'Your content workspace'
+                  : tab === 'ResearchSettings'
+                    ? 'Research schedule'
+                    : tab === 'Overview'
+                      ? 'Your studio, today'
+                      : tab === 'Research'
+                        ? 'Discover your next story'
+                        : tab === 'Operations'
+                          ? 'Workspace settings'
+                          : tab === 'Library'
+                            ? 'Content library'
+                            : tab}
             </h1>
             <p className="subtitle">
               {active
@@ -250,6 +248,10 @@ export function App() {
             Open content library
           </button>
         </section>
+      ) : tab === 'Create' ? (
+        <CreateWizard key={setupId || 'new'} setupId={setupId} onDirtyChange={setDirty} />
+      ) : tab === 'ContentWorkspace' && contentId ? (
+        <ContentWorkspace key={contentId} contentId={contentId} onDirtyChange={setDirty} />
       ) : active ? (
         <PostEditor
           key={active.id}
@@ -332,15 +334,18 @@ export function App() {
           </details>
         </>
       ) : tab === 'Library' ? (
-        <PostLibrary
-          posts={data}
-          loading={isLoading}
-          busy={busy}
-          onCreate={create}
-          onSelect={(post) => {
-            openPost(post.id);
-          }}
-        />
+        <>
+          <StudioContentLibrary />
+          <PostLibrary
+            posts={data}
+            loading={isLoading}
+            busy={busy}
+            onCreate={create}
+            onSelect={(post) => {
+              openPost(post.id);
+            }}
+          />
+        </>
       ) : null}
       {(leaveAction || blocker.state === 'blocked') && (
         <Modal title="You have unsaved edits" onClose={keepEditing}>

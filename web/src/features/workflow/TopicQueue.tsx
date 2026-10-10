@@ -1,7 +1,7 @@
 import { useAtomValue } from 'jotai';
 import { accountAtom } from '../../app/state';
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Topic } from '../../types/posts';
 import { request } from '../../services/api';
 interface Props {
@@ -24,6 +24,7 @@ export function TopicQueue({
   onViewActivity,
   onAddSource,
 }: Props) {
+  const navigate = useNavigate();
   const account = useAtomValue(accountAtom),
     canReview = ['admin', 'reviewer'].includes(account?.role || '');
   const [params, setParams] = useSearchParams();
@@ -274,6 +275,13 @@ export function TopicQueue({
                     </div>
                     <button
                       className="primary"
+                      disabled={busy || !eligible}
+                      onClick={() => navigate(`/create?topic=${encodeURIComponent(topic.id)}`)}
+                    >
+                      Create carousel or Reel
+                    </button>
+                    <button
+                      className="secondary"
                       disabled={busy || !eligible}
                       onClick={() =>
                         onAction(async () => {

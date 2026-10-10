@@ -18,4 +18,6 @@ export type Routes = {
   Publishing: undefined;
   Profile: undefined;
   ResearchSettings: undefined;
+  CreateContent: { topicId?: string; setupId?: string };
+  ContentProject: { id: string };
 };

@@ -27,6 +27,7 @@ export function WorkspaceShell({
     tab === id ||
     (id === 'Operations' && ['Profile', 'ResearchSettings'].includes(tab)) ||
     (id === 'Research' && tab === 'Queue');
+  const libraryActive = ['Create', 'ContentWorkspace'].includes(tab);
   return (
     <div className="shell desktop-studio">
       <aside className="studio-sidebar">
@@ -40,8 +41,8 @@ export function WorkspaceShell({
           {entries.slice(0, 4).map(([id, label, icon]) => (
             <button
               key={id}
-              aria-current={active(id) ? 'page' : undefined}
-              className={active(id) ? 'nav active' : 'nav'}
+              aria-current={active(id) || (id === 'Library' && libraryActive) ? 'page' : undefined}
+              className={active(id) || (id === 'Library' && libraryActive) ? 'nav active' : 'nav'}
               onClick={() => onNavigate(id)}
             >
               <span aria-hidden="true" className="nav-icon">
@@ -84,7 +85,9 @@ export function WorkspaceShell({
             <strong>
               {tab === 'ResearchSettings'
                 ? 'Research schedule'
-                : entries.find((e) => e[0] === tab)?.[1] || tab}
+                : tab === 'ContentWorkspace'
+                  ? 'Content workspace'
+                  : entries.find((e) => e[0] === tab)?.[1] || tab}
             </strong>
           </span>
           <div className="account-strip">

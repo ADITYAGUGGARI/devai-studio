@@ -2,8 +2,27 @@
 
 import os
 import time
+from contextlib import contextmanager
+from contextvars import ContextVar
 
 import httpx
+
+_budget = ContextVar("provider_budget", default=None)
+
+
+@contextmanager
+def provider_budget(debit):
+    token = _budget.set(debit)
+    try:
+        yield
+    finally:
+        _budget.reset(token)
+
+
+def debit_budget():
+    debit = _budget.get()
+    if debit is not None:
+        debit()
 
 
 class ProviderError(RuntimeError):
@@ -38,6 +57,7 @@ def speech_audio(script: str, *, voice: str = "coral") -> bytes:
     if not key:
         raise ProviderError("OPENAI_API_KEY is not configured; set it on the server and restart")
     model = os.getenv("OPENAI_SPEECH_MODEL", "gpt-4o-mini-tts")
+    debit_budget()
     started = time.monotonic()
     status = "failed"
     try:
@@ -85,6 +105,7 @@ def post_json(path: str, payload: dict, *, timeout: int = 180) -> dict:
     key = os.getenv("OPENAI_API_KEY", "").strip()
     if not key:
         raise ProviderError("OPENAI_API_KEY is not configured; set it on the server and restart")
+    debit_budget()
     try:
         response = httpx.post(
             f"https://api.openai.com/v1/{path}",

@@ -36,6 +36,13 @@ app = create_app(
     engine=engine,
 )
 fixture = os.getenv("LIVE_CAROUSEL_FIXTURE")
+reel_fixture = None
+if os.getenv("E2E_REEL_FIXTURE") == "true":
+    from devai.core.database import initialize_database
+    from e2e_reel_fixture import seed_reel
+
+    initialize_database(engine)
+    reel_fixture = seed_reel(app.state.session_factory)
 if fixture:
     # Optional real provider output, copied into an isolated acceptance workspace.
     from devai.core.database import initialize_database
@@ -90,6 +97,8 @@ if fixture:
 try:
     uvicorn.run(app, host="127.0.0.1", port=8124)
 finally:
+    if reel_fixture:
+        reel_fixture.cleanup()
     engine.dispose()
     with admin.begin() as connection:
         connection.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))

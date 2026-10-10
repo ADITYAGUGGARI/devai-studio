@@ -3,6 +3,7 @@
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import time
@@ -123,7 +124,110 @@ def validate_mp4(path, *, require_audio=True, checkpoint=None):
     }
 
 
-def render_video(scenes, *, audio_path, output_directory, progress):
+def subtitle_file(cues, directory):
+    """SRT is render input, never artwork composition. Escape markup in editable text."""
+
+    def timestamp(value):
+        milliseconds = round(value * 1000)
+        seconds, milliseconds = divmod(milliseconds, 1000)
+        minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        return f"{hours:02}:{minutes:02}:{seconds:02},{milliseconds:03}"
+
+    rows, previous = [], 0
+    for index, cue in enumerate(cues, 1):
+        if not 0 <= cue["start"] < cue["end"] <= 40 or cue["start"] < previous:
+            raise ValueError("Subtitles must be ordered and fit the 30–40 second timeline")
+        text = re.sub(r"[<>\r]", "", str(cue["text"])).replace("\n", " ").strip()
+        if not text or len(text) > 1000:
+            raise ValueError("Each subtitle needs readable text of1–1000characters")
+        words, lines, line = text.split(), [], ""
+        for word in words:
+            if len(line + " " + word) > 36 and line:
+                lines.append(line)
+                line = word
+            else:
+                line = (line + " " + word).strip()
+        if line:
+            lines.append(line)
+        chunks = [lines[position : position + 2] for position in range(0, len(lines), 2)]
+        duration = (cue["end"] - cue["start"]) / len(chunks)
+        for position, chunk in enumerate(chunks):
+            rows.append(
+                f"{len(rows) + 1}\n{timestamp(cue['start'] + position * duration)} --> {timestamp(cue['start'] + (position + 1) * duration)}\n"
+                + "\n".join(chunk)
+                + "\n"
+            )
+        previous = cue["end"]
+    target = Path(directory) / "subtitles.srt"
+    target.write_text("\n".join(rows), encoding="utf-8")
+    return target
+
+
+def assemble_audio(scenes, output_directory, *, checkpoint=None):
+    """Align narration to actual scene lengths; never truncate spoken content silently."""
+    directory = Path(output_directory) / uuid.uuid4().hex
+    directory.mkdir(parents=True, exist_ok=False)
+    parts = []
+    ffmpeg = binary("ffmpeg")
+    for index, scene in enumerate(scenes):
+        duration = float(probe(scene["path"]).get("format", {}).get("duration", 0))
+        if not duration > 0 or not 1 <= scene["duration"] <= 15:
+            raise ValueError("Narration and scene duration must be valid")
+        factor = max(1, duration / scene["duration"])
+        if factor > 1.25:
+            raise ValueError(
+                f"Scene {index + 1} narration is too long; shorten its script or extend its duration"
+            )
+        target = directory / f"audio-{index:02}.wav"
+        execute(
+            [
+                ffmpeg,
+                "-nostdin",
+                "-v",
+                "error",
+                "-i",
+                str(scene["path"]),
+                "-af",
+                f"atempo={factor},apad",
+                "-t",
+                str(scene["duration"]),
+                "-ar",
+                "48000",
+                "-ac",
+                "1",
+                str(target),
+            ],
+            checkpoint=checkpoint,
+        )
+        parts.append(target)
+    manifest = directory / "audio.ffconcat"
+    manifest.write_text(
+        "ffconcat version 1.0\n" + "".join(f"file '{part.name}'\n" for part in parts)
+    )
+    target = directory / "narration.wav"
+    execute(
+        [
+            ffmpeg,
+            "-nostdin",
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "1",
+            "-i",
+            str(manifest),
+            "-c:a",
+            "pcm_s16le",
+            str(target),
+        ],
+        checkpoint=checkpoint,
+    )
+    return target
+
+
+def render_video(scenes, *, audio_path, output_directory, progress, subtitle_cues=None):
     if not scenes or not 30 <= sum(scene["duration"] for scene in scenes) <= 40:
         raise ValueError("Scene durations must total 30–40 seconds")
     directory = Path(output_directory) / str(uuid.uuid4())
@@ -200,9 +304,29 @@ def render_video(scenes, *, audio_path, output_directory, progress):
             "-b:a",
             "128k",
         ]
+    if subtitle_cues:
+        filters = execute([ffmpeg, "-hide_banner", "-filters"]).decode()
+        if " subtitles " not in filters:
+            raise ValueError(
+                "This FFmpeg build lacks libass subtitle support; install the documented worker image"
+            )
+        subtitles = subtitle_file(subtitle_cues, directory)
+        # Paths are generated internally; reject characters with filtergraph meaning.
+        if any(character in str(subtitles.resolve()) for character in "':[],;"):
+            raise ValueError("Worker media directory contains unsupported subtitle-path characters")
+        command += [
+            "-vf",
+            f"subtitles='{subtitles.resolve()}':force_style='FontName=DejaVu Sans,FontSize=18,PrimaryColour=&H00FFFFFF,OutlineColour=&H00172A23,BorderStyle=1,Outline=2,MarginL=23,MarginR=23,MarginV=90,Alignment=2'",
+            "-c:v",
+            codec,
+            "-b:v",
+            "6M",
+            "-pix_fmt",
+            "yuv420p",
+        ]
+    else:
+        command += ["-c:v", "copy"]
     command += [
-        "-c:v",
-        "copy",
         "-t",
         str(sum(scene["duration"] for scene in scenes)),
         "-movflags",

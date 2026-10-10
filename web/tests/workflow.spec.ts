@@ -114,6 +114,7 @@ async function mockApi(
       else if (path === '/jobs') result = jobs;
       else if (path === '/research/daily/latest')
         result = { run: null, topic: 'news', timezone: 'America/Chicago' };
+      else if (path === '/v1/content') result = { items: [] };
       else if (path === '/workflow/config')
         result = {
           worker_enabled: true,

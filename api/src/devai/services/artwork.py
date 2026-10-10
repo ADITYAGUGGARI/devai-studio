@@ -52,14 +52,19 @@ def _image_prompt(post_title, slide, position, total, feedback=""):
     )
 
 
-def normalize_image(raw: bytes, *, output_format: str = "PNG") -> bytes:
+def normalize_image(raw: bytes, *, output_format: str = "PNG", dimensions=(WIDTH, HEIGHT)) -> bytes:
     if len(raw) > 25_000_000:
         raise ValueError("Generated image exceeds 25 MB")
     with Image.open(BytesIO(raw)) as image:
-        if image.width < 800 or image.height < 1000 or abs(image.width / image.height - 0.8) > 0.02:
-            raise ValueError("Image must be a high-resolution 4:5 portrait composition")
+        if (
+            image.width < 800
+            or image.height < 1000
+            or abs(image.width / image.height - dimensions[0] / dimensions[1]) > 0.02
+        ):
+            ratio = "4:5" if dimensions == (WIDTH, HEIGHT) else "9:16"
+            raise ValueError(f"Image must be a high-resolution {ratio} portrait composition")
         image.load()
-        image = image.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+        image = image.convert("RGB").resize(dimensions, Image.Resampling.LANCZOS)
         output = BytesIO()
         image.save(
             output, format=output_format, **({"quality": 95} if output_format == "JPEG" else {})
@@ -67,13 +72,13 @@ def normalize_image(raw: bytes, *, output_format: str = "PNG") -> bytes:
         return output.getvalue()
 
 
-def _generate_image(prompt, *, api_key=None, model=None):
+def _generate_image(prompt, *, api_key=None, model=None, size=None, dimensions=(WIDTH, HEIGHT)):
     data = post_json(
         "images/generations",
         {
             "model": model or os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-2"),
             "prompt": prompt,
-            "size": os.getenv("OPENAI_IMAGE_SIZE", "1088x1360"),
+            "size": size or os.getenv("OPENAI_IMAGE_SIZE", "1088x1360"),
             "quality": os.getenv("OPENAI_IMAGE_QUALITY", "medium"),
             "output_format": "png",
             "n": 1,
@@ -83,7 +88,9 @@ def _generate_image(prompt, *, api_key=None, model=None):
     images = data.get("data") or []
     if not images or not images[0].get("b64_json"):
         raise ValueError("Image provider returned no image")
-    return normalize_image(base64.b64decode(images[0]["b64_json"], validate=True))
+    return normalize_image(
+        base64.b64decode(images[0]["b64_json"], validate=True), dimensions=dimensions
+    )
 
 
 def _normal_text(value: str) -> str:

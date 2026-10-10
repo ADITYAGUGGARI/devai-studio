@@ -69,6 +69,7 @@ def generate(
     topic="news",
     prior_angles=(),
     slide_count=8,
+    editorial_options=None,
 ):
     if slide_count not in (6, 7, 8):
         raise ValueError("Choose six, seven or eight slides")
@@ -89,6 +90,7 @@ def generate(
         "source_url": source_url,
         "source_excerpt": source_excerpt[:10000],
         "recent_angles_to_avoid": list(prior_angles)[:12],
+        "editorial_intent": editorial_options or {},
     }
     response = post_json(
         "chat/completions",

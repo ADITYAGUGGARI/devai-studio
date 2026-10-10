@@ -186,7 +186,9 @@ def retry_job(id: str, session_factory: SessionFactory):
             )
         payload = json.loads(job.payload_json)
         key = (
-            f"post:{payload['post_id']}"
+            f"output:{payload['output_id']}"
+            if job.kind == "studio_output" and payload.get("output_id")
+            else f"post:{payload['post_id']}"
             if payload.get("post_id")
             else f"topic:{payload['topic_id']}"
             if payload.get("topic_id")

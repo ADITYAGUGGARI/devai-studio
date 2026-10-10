@@ -335,19 +335,27 @@ export function TopicDetail() {
           onPress={() => void run(() => request(`/topics/${topic.id}/approve`, 'POST'))}
         />
       ) : (
-        <Button
-          title="Generate eight-slide carousel"
-          disabled={locked}
-          onPress={() =>
-            void run(async () => {
-              await request(`/topics/${topic.id}/generate`, 'POST', {
-                slide_count: 8,
-                artwork: true,
-              });
-              navigation.navigate('Activity');
-            })
-          }
-        />
+        <View style={{ gap: 12 }}>
+          <Button
+            title="Create carousel or Reel"
+            disabled={locked}
+            onPress={() => navigation.navigate('CreateContent', { topicId: topic.id })}
+          />
+          <Button
+            title="Generate eight-slide carousel"
+            secondary
+            disabled={locked}
+            onPress={() =>
+              void run(async () => {
+                await request(`/topics/${topic.id}/generate`, 'POST', {
+                  slide_count: 8,
+                  artwork: true,
+                });
+                navigation.navigate('Activity');
+              })
+            }
+          />
+        </View>
       )
     ) : topic.post_id ? (
       <Button

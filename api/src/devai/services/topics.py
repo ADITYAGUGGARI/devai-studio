@@ -135,7 +135,12 @@ def research_queue(session_factory, *, progress=lambda *_: None, discover_fn=Non
 
 
 def create_from_topic(
-    session_factory, topic_id: str, *, slide_count: int = 8, job_id: str | None = None
+    session_factory,
+    topic_id: str,
+    *,
+    slide_count: int = 8,
+    job_id: str | None = None,
+    editorial_options: dict | None = None,
 ) -> dict:
     with session_factory.begin() as db:
         topic = db.query(Topic).filter_by(id=topic_id).with_for_update().first()
@@ -167,6 +172,7 @@ def create_from_topic(
         topic=packet["category"],
         prior_angles=angles,
         slide_count=slide_count,
+        **({"editorial_options": editorial_options} if editorial_options else {}),
     )
     report = verify_copy(packet["excerpt"], content, packet["url"])
     if not report["supported"]:

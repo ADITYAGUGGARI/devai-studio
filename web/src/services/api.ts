@@ -94,3 +94,18 @@ export async function loadSlidePreview(postId: string, slideId: string): Promise
   const response = await fetchApi(`/posts/${postId}/slides/${slideId}/image`);
   return URL.createObjectURL(await response.blob());
 }
+
+export async function loadAsset(assetId: string): Promise<string> {
+  const response = await fetchApi(`/v1/assets/${encodeURIComponent(assetId)}`);
+  return URL.createObjectURL(await response.blob());
+}
+
+export async function downloadOutput(outputId: string): Promise<void> {
+  const response = await fetchApi(`/v1/outputs/${outputId}/export`);
+  const href = URL.createObjectURL(await response.blob());
+  const anchor = document.createElement('a');
+  anchor.href = href;
+  anchor.download = `devai-${outputId}.zip`;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(href), 1000);
+}
