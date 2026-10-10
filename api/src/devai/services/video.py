@@ -5,6 +5,7 @@ import os
 import platform
 import shutil
 import subprocess
+import time
 import uuid
 from fractions import Fraction
 from pathlib import Path
@@ -18,7 +19,37 @@ def binary(name):
     return path
 
 
-def execute(arguments, *, timeout=240):
+def execute(arguments, *, timeout=240, checkpoint=None):
+    if checkpoint is not None:
+        checkpoint()
+        started = time.monotonic()
+        with subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+            try:
+                while True:
+                    remaining = timeout - (time.monotonic() - started)
+                    if remaining <= 0:
+                        raise ValueError(
+                            "Video processing timed out; previous renders are preserved"
+                        )
+                    try:
+                        output, _ = process.communicate(timeout=min(1, remaining))
+                        break
+                    except subprocess.TimeoutExpired:
+                        checkpoint()
+                if process.returncode:
+                    raise ValueError(
+                        "Video processing failed; check worker codec support and media inputs"
+                    )
+                checkpoint()
+                return output
+            finally:
+                if process.poll() is None:
+                    process.terminate()
+                    try:
+                        process.communicate(timeout=3)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.communicate()
     try:
         result = subprocess.run(arguments, capture_output=True, timeout=timeout, check=False)
     except subprocess.TimeoutExpired as exc:
@@ -46,7 +77,7 @@ def probe(path):
     )
 
 
-def validate_mp4(path, *, require_audio=True):
+def validate_mp4(path, *, require_audio=True, checkpoint=None):
     report = probe(path)
     streams = report.get("streams", [])
     videos = [item for item in streams if item.get("codec_type") == "video"]
@@ -79,6 +110,7 @@ def validate_mp4(path, *, require_audio=True):
         execute(
             [binary("ffmpeg"), "-nostdin", "-v", "error", "-i", str(path), "-f", "null", "-"],
             timeout=120,
+            checkpoint=checkpoint,
         )
     return {
         "passed": not issues,
@@ -133,7 +165,8 @@ def render_video(scenes, *, audio_path, output_directory, progress):
                 "yuv420p",
                 "-an",
                 str(target),
-            ]
+            ],
+            checkpoint=lambda: progress(index, len(scenes) + 2, f"Rendering scene {index + 1}"),
         )
         parts.append(target)
     manifest = directory / "scenes.ffconcat"
@@ -176,9 +209,16 @@ def render_video(scenes, *, audio_path, output_directory, progress):
         "+faststart",
         str(target),
     ]
-    execute(command)
+    execute(
+        command,
+        checkpoint=lambda: progress(len(scenes), len(scenes) + 2, "Assembling MP4"),
+    )
     progress(len(scenes) + 1, len(scenes) + 2, "Validating video and audio")
-    report = validate_mp4(target, require_audio=audio_path is not None)
+    report = validate_mp4(
+        target,
+        require_audio=audio_path is not None,
+        checkpoint=lambda: progress(len(scenes) + 1, len(scenes) + 2, "Validating video and audio"),
+    )
     if not report["passed"]:
         raise ValueError("Rendered MP4 failed validation: " + "; ".join(report["issues"]))
     progress(len(scenes) + 2, len(scenes) + 2, "MP4 validated")

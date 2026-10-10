@@ -23,6 +23,8 @@
 
 ## UX design handoff available
 
+Revision4 implementation now includes persisted workspace research schedules across web and native iOS, once-per-local-day reservations with DST handling, frozen research categories, optimistic concurrency recovery and real Run now background jobs. Native session storage is isolated per backend. FFmpeg supports active-process cancellation and preserves previous renders. Full revised Reel orchestration/editing, independent output approvals and the complete screen/control matrix remain implementation work; see the current checkpoint in `IMPLEMENTATION_STATUS.md`.
+
 [Revision 4 desktop and native iOS design handoff](ux/devai-studio-v4/README.md) defines the complete intended product and dependency-aware implementation plan. The package includes ranked rolling-24-hour developer AI research, autonomous varied carousel/Reel artwork, independent approvals, explicitly authorized publication, recovery states, and the remaining workflows. Publication of the design package does not mark proposed backend or client capabilities as implemented or verified. See its [implementation roadmap](ux/devai-studio-v4/handoff/roadmap.md) and [QA limitations](ux/devai-studio-v4/qa/review.md).
 
 Account roles/sessions, PostgreSQL migration/adoption, backups with restore verification, usage/monitoring, publishing schedules, version restore and connected browser tests are implemented. See IMPLEMENTATION_STATUS.md for current evidence.

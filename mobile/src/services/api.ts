@@ -15,10 +15,12 @@ import * as SecureStore from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { sessionAtom, type Session } from '../app/state';
+import { isStoredSession, sessionStorageKey } from '../../../shared/sessionStorage';
 export const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000').replace(
   /\/$/,
   '',
 );
+const SESSION_STORAGE_KEY = sessionStorageKey(API_URL);
 export async function request<T>(
   path: string,
   method = 'GET',
@@ -37,7 +39,12 @@ export async function request<T>(
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
-    if (response.status === 401 && !path.startsWith('/auth/') && !path.startsWith('/v1/auth/'))
+    if (
+      response.status === 401 &&
+      !path.startsWith('/auth/') &&
+      !path.startsWith('/v1/auth/') &&
+      session?.token === getDefaultStore().get(sessionAtom)?.token
+    )
       await saveSession(null);
     throw new ApiError(
       typeof data?.detail === 'string'
@@ -54,17 +61,19 @@ export async function request<T>(
 export async function saveSession(session: Session | null) {
   getDefaultStore().set(sessionAtom, session);
   if (Platform.OS !== 'web') {
-    if (session) await SecureStore.setItemAsync('devai-session', JSON.stringify(session));
-    else await SecureStore.deleteItemAsync('devai-session');
+    if (session) await SecureStore.setItemAsync(SESSION_STORAGE_KEY, JSON.stringify(session));
+    else await SecureStore.deleteItemAsync(SESSION_STORAGE_KEY);
   }
 }
 export async function restoreSession() {
   if (Platform.OS === 'web') return;
-  const raw = await SecureStore.getItemAsync('devai-session');
+  const raw = await SecureStore.getItemAsync(SESSION_STORAGE_KEY);
   if (raw) {
     let session: Session;
     try {
-      session = JSON.parse(raw) as Session;
+      const parsed: unknown = JSON.parse(raw);
+      if (!isStoredSession(parsed)) throw new Error('Invalid stored session');
+      session = parsed;
     } catch {
       await saveSession(null);
       return;

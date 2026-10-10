@@ -2,11 +2,55 @@
 
 import os
 import shutil
+import sys
 
 import pytest
 from PIL import Image
 
-from devai.services.video import binary, render_video, validate_mp4
+from devai.services.jobs import JobCancelled
+from devai.services.video import binary, execute, render_video, validate_mp4
+
+
+def test_cancelled_media_process_is_reaped_and_preserves_previous_output(tmp_path):
+    pid_file = tmp_path / "child.pid"
+    previous = tmp_path / "previous.mp4"
+    previous.write_bytes(b"previous successful asset")
+
+    def checkpoint():
+        if pid_file.exists():
+            raise JobCancelled()
+
+    with pytest.raises(JobCancelled):
+        execute(
+            [
+                sys.executable,
+                "-c",
+                "import os,sys,time; open(sys.argv[1], 'w').write(str(os.getpid())); time.sleep(60)",
+                str(pid_file),
+            ],
+            timeout=5,
+            checkpoint=checkpoint,
+        )
+    with pytest.raises(ProcessLookupError):
+        os.kill(int(pid_file.read_text()), 0)
+    assert previous.read_bytes() == b"previous successful asset"
+
+
+def test_media_timeout_reaps_running_process(tmp_path):
+    pid_file = tmp_path / "child.pid"
+    with pytest.raises(ValueError, match="timed out"):
+        execute(
+            [
+                sys.executable,
+                "-c",
+                "import os,sys,time; open(sys.argv[1], 'w').write(str(os.getpid())); time.sleep(60)",
+                str(pid_file),
+            ],
+            timeout=0.5,
+            checkpoint=lambda: None,
+        )
+    with pytest.raises(ProcessLookupError):
+        os.kill(int(pid_file.read_text()), 0)
 
 
 def test_missing_configured_codec_has_actionable_error(monkeypatch):
