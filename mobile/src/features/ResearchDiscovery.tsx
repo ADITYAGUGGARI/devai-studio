@@ -1,5 +1,5 @@
 import { useCallback, useState, useRef } from 'react';
-import { Text, Linking } from 'react-native';
+import { Text, Linking, View } from 'react-native';
 import { useFocusEffect, useNavigation, type NavigationProp } from '@react-navigation/native';
 import { request } from '../services/api';
 import { Screen, Card, Button, Field, ErrorText, Segments, styles } from '../components/ui';
@@ -12,7 +12,10 @@ interface Run {
   windowStartUTC: string;
   windowEndUTC: string;
   job: { step: string; progress: number; total: number; cancel_requested: boolean };
-  coverage: Record<string, { status: string; error?: string; captured?: number }>;
+  coverage: Record<
+    string,
+    { status: string; error?: string; captured?: number; evidence_warnings?: string[] }
+  >;
 }
 interface Finding {
   id: string;
@@ -241,9 +244,16 @@ export function ResearchDiscovery() {
             />
           ))}
           {Object.entries(run.coverage).map(([name, item]) => (
-            <Text key={name} style={styles.text}>
-              {name}: {item.status} {item.error || `${item.captured ?? 0} captured`}
-            </Text>
+            <View key={name}>
+              <Text style={styles.text}>
+                {name}: {item.status} {item.error || `${item.captured ?? 0} captured`}
+              </Text>
+              {item.evidence_warnings?.map((warning) => (
+                <Text key={warning} style={styles.muted}>
+                  {warning}
+                </Text>
+              ))}
+            </View>
           ))}
           <Text style={styles.muted}>Configured feeds only; not exhaustive internet coverage.</Text>
         </Card>

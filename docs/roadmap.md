@@ -13,6 +13,8 @@
 
 ## Verification and deployment milestones remaining
 
+Revision4 discovery now retrieves eligible short-summary articles using the existing publisher allowlist and retains inaccessible findings/evidence warnings without promoting headlines to grounded topics. Actual web search, topic clustering and the complete source/claim review UX remain outstanding.
+
 1. Review a real generated carousel across all supported image/vision configurations; measure lettering errors and validation false negatives.
 2. Validate public JPEG retrieval, Meta app permissions, container processing and publication with a designated Instagram test account.
 3. Validate sustained daily operation and feed health over multiple days; add ranking quality feedback from reviewed posts. OpenAI article pages currently return HTTP 403 to the local server; short feed summaries remain excluded rather than treated as sufficient evidence.

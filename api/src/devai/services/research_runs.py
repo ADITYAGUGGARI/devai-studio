@@ -12,6 +12,7 @@ from devai.models.studio import Finding, ResearchRun
 from devai.services.research import (
     FEEDS,
     RELEVANT_TITLE,
+    article_evidence,
     classify_topic,
     clean_excerpt,
     fetch_feed,
@@ -71,6 +72,7 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
         try:
             items = fetch(url)
             captured = 0
+            evidence_warnings = []
             seen = set()
             for item in items:
                 try:
@@ -94,6 +96,19 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
                     disposition = "excluded_irrelevant"
                 elif categories and category not in categories:
                     disposition = "excluded_category"
+                evidence_kind = "feed_excerpt"
+                if disposition == "usable" and len(excerpt) < 240:
+                    # Retrieve only the feed publisher's allowed HTTPS article pages.
+                    # A short headline/summary is never promoted to source evidence.
+                    progress(index, len(catalog), f"Reading source evidence from {source}")
+                    retrieved = article_evidence(
+                        {"url": canonical, "source": source, "summary": excerpt},
+                        evidence_warnings,
+                    ).strip()
+                    if len(retrieved) > len(excerpt):
+                        excerpt, evidence_kind = retrieved, "publisher_article"
+                    if len(excerpt) < 240:
+                        disposition = "insufficient_evidence"
                 with factory.begin() as db:
                     existing = (
                         db.query(Finding).filter_by(run_id=run_id, canonical_url=canonical).first()
@@ -138,7 +153,7 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
                             evidence_json=json.dumps(
                                 {
                                     "excerpt": excerpt,
-                                    "kind": "feed_excerpt",
+                                    "kind": evidence_kind,
                                     "claims_verified": False,
                                     "captured_at": datetime.now(UTC).isoformat(),
                                     "reason": disposition,
@@ -147,7 +162,11 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
                         )
                     )
                 captured += 1
-            coverage[source] = {"status": "collected", "captured": captured}
+            coverage[source] = {
+                "status": "collected",
+                "captured": captured,
+                "evidence_warnings": sorted(set(evidence_warnings)),
+            }
         except (httpx.HTTPError, ET.ParseError, ValueError, TimeoutError) as exc:
             coverage[source] = {"status": "unavailable", "error": source_error(exc)}
         with factory.begin() as db:
@@ -166,7 +185,10 @@ def collect_run(factory, run_id, progress, *, feeds=None, fetch=None):
             f"{name}: {item['error']}"
             for name, item in coverage.items()
             if item["status"] == "unavailable"
-        ],
+        ]
+        + sorted(
+            {warning for item in coverage.values() for warning in item.get("evidence_warnings", [])}
+        ),
     }
     if coverage and all(item["status"] == "unavailable" for item in coverage.values()):
         from devai.services.topics import ResearchEvidenceError

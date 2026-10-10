@@ -9,7 +9,10 @@ interface Run {
   status: string;
   windowStartUTC: string;
   windowEndUTC: string;
-  coverage: Record<string, { status: string; captured?: number; error?: string }>;
+  coverage: Record<
+    string,
+    { status: string; captured?: number; error?: string; evidence_warnings?: string[] }
+  >;
   job: { progress: number; total: number; step: string; cancel_requested: boolean };
 }
 interface Finding {
@@ -296,6 +299,13 @@ export function ResearchDiscovery({ canWrite }: { canWrite: boolean }) {
                 <li key={name}>
                   {name}: {item.status}
                   {item.error ? ` · ${item.error}` : ` · ${item.captured ?? 0} captured`}
+                  {!!item.evidence_warnings?.length && (
+                    <ul>
+                      {item.evidence_warnings.map((warning) => (
+                        <li key={warning}>{warning}</li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
               ))}
             </ul>

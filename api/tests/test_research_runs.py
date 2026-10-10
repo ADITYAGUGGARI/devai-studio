@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 
+import httpx
 import pytest
 
 from devai.core.workspaces import scoped_factory
@@ -11,6 +12,49 @@ from devai.services.jobs import work_once
 from devai.services.research_runs import collect_run
 
 HEADERS = {"x-api-key": "test-secret", "Idempotency-Key": "research-one"}
+
+
+def test_short_feed_summaries_retrieve_evidence_and_keep_inaccessible_findings(client, monkeypatch):
+    run = client.post("/v1/research/runs", headers=HEADERS, json={}).json()
+    evidence = "The source describes an available developer API integration. " * 10
+
+    def article(item):
+        if item["url"].endswith("readable"):
+            return evidence
+        raise httpx.HTTPStatusError(
+            "test-only inaccessible source",
+            request=httpx.Request("GET", item["url"]),
+            response=httpx.Response(403),
+        )
+
+    monkeypatch.setattr("devai.services.research.fetch_article", article)
+    records = [
+        {
+            "url": f"https://github.blog/{name}",
+            "title": "Developer AI API release",
+            "summary": "Brief summary",
+            "published": (datetime.now(UTC) - timedelta(hours=1)).isoformat(),
+        }
+        for name in ("readable", "inaccessible")
+    ]
+    result = collect_run(
+        scoped_factory(client.app.state.session_factory, LEGACY_WORKSPACE),
+        run["runId"],
+        lambda *args: None,
+        feeds={"GitHub Blog": "fixture"},
+        fetch=lambda _: records,
+    )
+    assert result["counts"] == {"usable": 1, "insufficient_evidence": 1}
+    assert any("HTTP 403" in warning for warning in result["warnings"])
+    items = client.get(f"/v1/research/runs/{run['runId']}/findings", headers=HEADERS).json()[
+        "items"
+    ]
+    readable = next(item for item in items if item["disposition"] == "usable")
+    blocked = next(item for item in items if item["disposition"] == "insufficient_evidence")
+    assert readable["evidence"]["excerpt"] == evidence.strip()
+    assert readable["evidence"]["kind"] == "publisher_article"
+    assert not readable["evidence"]["claims_verified"]
+    assert blocked["topicId"] is None
 
 
 def test_research_retry_retains_active_resource_lock(client):
