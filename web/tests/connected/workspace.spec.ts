@@ -46,7 +46,12 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   await page.getByRole('button', { name: 'Add source to queue' }).click();
   await page.getByRole('button', { name: 'I reviewed and verified this evidence' }).click();
   await page.getByRole('button', { name: 'Approve topic', exact: true }).click();
-  await page.getByRole('radio').check();
+  await page
+    .getByRole('radio', {
+      name: 'Select Isolated browser test: source retrieval contract',
+      exact: true,
+    })
+    .check();
   await expect(page.getByRole('button', { name: 'Generate selected topic' })).toBeEnabled();
   const login = await request.post('http://127.0.0.1:8124/auth/login', {
     data: { email, password },
@@ -55,7 +60,12 @@ test('real PostgreSQL accounts, editorial queue, version recovery and accessibil
   const token = (await login.json()).token;
   const headers = { Authorization: `Bearer ${token}` };
   const topics = await request.get('http://127.0.0.1:8124/topics', { headers });
-  expect((await topics.json())[0].approved).toBe(true);
+  expect(
+    (await topics.json()).find(
+      (topic: { title: string; approved: boolean }) =>
+        topic.title === 'Isolated browser test: source retrieval contract',
+    ).approved,
+  ).toBe(true);
   const draft = await request.post('http://127.0.0.1:8124/posts', {
     headers,
     data: {

@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAtomValue } from 'jotai';
+import { accountAtom } from '../../app/state';
 import { ApiError, request } from '../../services/api';
 import type { Topic } from '../../types/posts';
 import {
   defaultContentOptions,
+  canEditStudio,
   type SetupData,
   type StudioDocument,
   type ProviderCapabilities,
@@ -18,6 +21,7 @@ export function CreateWizard({
   onDirtyChange: (value: boolean) => void;
 }) {
   const navigate = useNavigate();
+  const canEdit = canEditStudio(useAtomValue(accountAtom));
   const [params] = useSearchParams();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [caps, setCaps] = useState<ProviderCapabilities | null>(null);
@@ -132,6 +136,12 @@ export function CreateWizard({
     (draft.formats.includes('reel') && draft.options.subtitles && !caps?.subtitlesSupported);
   return (
     <section className="creation-workspace" aria-label="Create content">
+      {!canEdit && (
+        <p role="status">
+          Your studio role can inspect content. An owner or editor must save setups and authorize
+          generation.
+        </p>
+      )}
       <nav className="creation-steps" aria-label="Creation steps">
         {['Topic & format', 'Editorial settings', 'Review & generate'].map((label, index) => (
           <span key={label} aria-current={step === index + 1 ? 'step' : undefined}>
@@ -242,7 +252,7 @@ export function CreateWizard({
                 <p>Each output has its own progress, review and approval.</p>
                 <button
                   className="primary"
-                  disabled={busy || !draft.topicId || !draft.formats.length}
+                  disabled={busy || !canEdit || !draft.topicId || !draft.formats.length}
                   onClick={() => void save(2)}
                 >
                   Continue
@@ -258,7 +268,7 @@ export function CreateWizard({
                 void save(3);
               }}
             >
-              <fieldset className="panel" disabled={busy}>
+              <fieldset className="panel" disabled={busy || !canEdit}>
                 <legend>Editorial intent</legend>
                 <label>
                   Audience
@@ -308,7 +318,7 @@ export function CreateWizard({
                   </p>
                 </div>
               </fieldset>
-              <fieldset className="panel" disabled={busy}>
+              <fieldset className="panel" disabled={busy || !canEdit}>
                 <legend>Output settings</legend>
                 {draft.formats.includes('carousel') && (
                   <label>
@@ -432,7 +442,7 @@ export function CreateWizard({
                 </button>
                 <button
                   className="primary"
-                  disabled={busy || unavailable || dirty}
+                  disabled={busy || !canEdit || unavailable || dirty}
                   onClick={() => void generate()}
                 >
                   {busy ? 'Starting…' : 'Confirm & generate'}

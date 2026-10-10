@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -34,7 +35,7 @@ class ReelPlan(BaseModel):
     title: str = Field(min_length=5, max_length=110)
     caption: str = Field(min_length=10, max_length=2200)
     hashtags: list[str] = Field(min_length=3, max_length=8)
-    scenes: list[PlannedScene] = Field(min_length=3, max_length=8)
+    scenes: list[PlannedScene] = Field(min_length=5, max_length=7)
 
 
 def scene_hash(scene):
@@ -78,6 +79,13 @@ def write_reel(source, options):
                 raise ValueError("Scene durations must equal the requested 30–40 second timeline")
             if options["voiceId"] and "AI-generated" not in data["caption"]:
                 data["caption"] += "\nVoice: AI-generated narration."
+            if not all(re.fullmatch(r"#[\w]+", tag) for tag in data["hashtags"]):
+                raise ValueError("Hashtags must contain letters/numbers/underscores without spaces")
+            missing_tags = [
+                tag for tag in data["hashtags"] if tag.casefold() not in data["caption"].casefold()
+            ]
+            if missing_tags:
+                data["caption"] += "\n\n" + " ".join(missing_tags)
             if len(data["caption"]) > 2200:
                 raise ValueError("Caption exceeds 2,200 characters")
             return data

@@ -160,4 +160,10 @@ test('actual rendered Reel plays, autosaves, retains old media and recovers a co
   expect(restoredOutput.data.renderCurrent).toBeTruthy();
   expect(restoredOutput.data.approval).toBeUndefined();
   expect(restoredOutput.revision).toBeGreaterThan(output.revision);
+  await page.goto(`/content/${projectId}/reel`);
+  await expect(page.getByLabel('Rendered Reel preview')).toBeVisible();
+  await page.goto(`/content/${projectId}/reel/audio`);
+  await expect(
+    page.getByText('Changing the voice does not generate audio.', { exact: false }),
+  ).toBeVisible();
 });

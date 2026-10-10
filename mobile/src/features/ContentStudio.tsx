@@ -20,6 +20,8 @@ import type { Topic } from '../types/posts';
 import { Button, Card, ErrorText, Field, Screen, Segments, styles } from '../components/ui';
 import {
   contentList,
+  canEditStudio,
+  canReviewStudio,
   defaultContentOptions,
   timelinePayload,
   type OutputFormat,
@@ -33,6 +35,7 @@ import {
 
 export function StudioProjects() {
   const navigation = useNavigation<NavigationProp<Routes>>();
+  const canEdit = canEditStudio(useAtomValue(sessionAtom)?.user || null);
   const [projects, setProjects] = useState<StudioContent[]>([]);
   const [error, setError] = useState('');
   useFocusEffect(
@@ -57,7 +60,11 @@ export function StudioProjects() {
   return (
     <Card>
       <Text style={styles.heading}>Carousel & Reel projects</Text>
-      <Button title="Create content" onPress={() => navigation.navigate('CreateContent', {})} />
+      <Button
+        title="Create content"
+        disabled={!canEdit}
+        onPress={() => navigation.navigate('CreateContent', {})}
+      />
       <ErrorText value={error} />
       {projects.map((project) => (
         <Button
@@ -78,6 +85,7 @@ export function StudioProjects() {
 
 export function CreateContent() {
   const navigation = useNavigation<NavigationProp<Routes>>();
+  const canEdit = canEditStudio(useAtomValue(sessionAtom)?.user || null);
   const route = useRoute<RouteProp<Routes, 'CreateContent'>>();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [caps, setCaps] = useState<ProviderCapabilities | null>(null);
@@ -240,12 +248,24 @@ export function CreateContent() {
                   ? 'Save & review'
                   : 'Continue'
           }
-          disabled={busy || !draft.topicId || !draft.formats.length || (step === 3 && unavailable)}
+          disabled={
+            busy ||
+            !canEdit ||
+            !draft.topicId ||
+            !draft.formats.length ||
+            (step === 3 && unavailable)
+          }
           onPress={() => void (step === 3 ? generate() : save(step + 1))}
         />
       }
     >
       <ErrorText value={error} />
+      {!canEdit && (
+        <Text style={styles.muted}>
+          An owner or editor must save setups and authorize generation. Your current role can
+          inspect content.
+        </Text>
+      )}
       {!caps && !error && (
         <Text style={styles.text}>Loading source and provider configuration…</Text>
       )}
@@ -473,6 +493,8 @@ export function ContentProject() {
   const navigation = useNavigation<NavigationProp<Routes>>();
   const route = useRoute<RouteProp<Routes, 'ContentProject'>>();
   const session = useAtomValue(sessionAtom);
+  const canEdit = canEditStudio(session?.user || null);
+  const canReview = canReviewStudio(session?.user || null);
   const [project, setProject] = useState<StudioContent | null>(null);
   const [selected, setSelected] = useState('');
   const [draft, setDraft] = useState<StudioOutput | null>(null);
@@ -707,7 +729,7 @@ export function ContentProject() {
     });
   }
   function reorderScene(id: string, delta: number) {
-    if (active || busy) return;
+    if (active || busy || !canEdit) return;
     setDraft((value) => {
       if (!value) return value;
       const scenes = [...value.data.scenes];
@@ -754,7 +776,7 @@ export function ContentProject() {
           </Text>
           <Button
             title="Review this output"
-            disabled={dirty || active || busy}
+            disabled={dirty || active || busy || !canEdit}
             onPress={() => setTool('Review')}
           />
         </View>
@@ -785,7 +807,7 @@ export function ContentProject() {
             <Button
               title="Cancel at safe checkpoint"
               secondary
-              disabled={busy || output.job.cancel_requested}
+              disabled={busy || !canEdit || output.job.cancel_requested}
               onPress={() => void run(() => request(`/v1/jobs/${output.job!.id}/cancel`, 'POST'))}
             />
           )}{' '}
@@ -814,7 +836,7 @@ export function ContentProject() {
           <Button
             title="Synchronize current carousel"
             secondary
-            disabled={active || busy}
+            disabled={active || busy || !canEdit}
             onPress={() =>
               void run(() =>
                 mutate(`/v1/outputs/${output.id}/sync`, {
@@ -862,7 +884,7 @@ export function ContentProject() {
             </Text>
             <Button
               title="Render current timeline"
-              disabled={busy || active || dirty || !draft.data.scenes.length}
+              disabled={busy || active || dirty || !canEdit || !draft.data.scenes.length}
               onPress={() =>
                 void run(() =>
                   mutate(`/v1/outputs/${output.id}/render`, {
@@ -995,7 +1017,9 @@ export function ContentProject() {
                   <Button
                     title={`Restore version ${version.revision}`}
                     secondary
-                    disabled={busy || active || dirty || version.revision === output.revision}
+                    disabled={
+                      busy || active || dirty || !canEdit || version.revision === output.revision
+                    }
                     onPress={() =>
                       Alert.alert(
                         'Restore as a new draft?',
@@ -1025,7 +1049,7 @@ export function ContentProject() {
             <Button
               title="Add a scene"
               secondary
-              disabled={active || busy || draft.data.scenes.length >= 12}
+              disabled={active || busy || !canEdit || draft.data.scenes.length >= 12}
               onPress={() => {
                 const id = `scene-${Date.now()}-${Math.random().toString(36).slice(2)}`;
                 setDraft({
@@ -1053,19 +1077,19 @@ export function ContentProject() {
               <Button
                 title="Move scene earlier"
                 secondary
-                disabled={active || busy || draft.data.scenes[0].id === scene.id}
+                disabled={active || busy || !canEdit || draft.data.scenes[0].id === scene.id}
                 onPress={() => reorderScene(scene.id, -1)}
               />
               <Button
                 title="Move scene later"
                 secondary
-                disabled={active || busy || draft.data.scenes.at(-1)?.id === scene.id}
+                disabled={active || busy || !canEdit || draft.data.scenes.at(-1)?.id === scene.id}
                 onPress={() => reorderScene(scene.id, 1)}
               />
               <Button
                 title="Remove this scene"
                 secondary
-                disabled={active || busy || draft.data.scenes.length <= 3}
+                disabled={active || busy || !canEdit || draft.data.scenes.length <= 3}
                 onPress={() =>
                   Alert.alert(
                     'Remove this scene?',
@@ -1089,7 +1113,7 @@ export function ContentProject() {
                 }
               />
               <Field
-                disabled={active || busy}
+                disabled={active || busy || !canEdit}
                 label="Scene headline"
                 value={scene.headline}
                 onChange={(value) => editScene(scene.id, { headline: value })}
@@ -1107,21 +1131,21 @@ export function ContentProject() {
                 </Text>
               ))}
               <Field
-                disabled={active || busy}
+                disabled={active || busy || !canEdit}
                 label="Visible scene body"
                 value={scene.body}
                 multiline
                 onChange={(value) => editScene(scene.id, { body: value })}
               />
               <Field
-                disabled={active || busy}
+                disabled={active || busy || !canEdit}
                 label="Narration & subtitles"
                 value={scene.script}
                 multiline
                 onChange={(value) => editScene(scene.id, { script: value })}
               />
               <Field
-                disabled={active || busy}
+                disabled={active || busy || !canEdit}
                 label="Scene duration in seconds"
                 value={String(scene.durationSec)}
                 onChange={(value) => editScene(scene.id, { durationSec: Number(value) })}
@@ -1129,11 +1153,11 @@ export function ContentProject() {
               <Button
                 title="Regenerate this scene"
                 secondary
-                disabled={dirty || active || busy}
+                disabled={dirty || active || busy || !canEdit}
                 onPress={() => paid('scene', scene.id)}
               />
               <Field
-                disabled={active || busy}
+                disabled={active || busy || !canEdit}
                 label="Caption"
                 value={draft.data.caption}
                 multiline
@@ -1156,7 +1180,7 @@ export function ContentProject() {
                       : 'None'
                 }
                 onChange={(value) => {
-                  if (active || busy) return;
+                  if (active || busy || !canEdit) return;
                   setDraft({
                     ...draft,
                     data: { ...draft.data, voiceId: value === 'None' ? null : value },
@@ -1165,7 +1189,7 @@ export function ContentProject() {
               />
               <Button
                 title="Generate current voiceover"
-                disabled={dirty || active || busy || !draft.data.voiceId}
+                disabled={dirty || active || busy || !canEdit || !draft.data.voiceId}
                 onPress={() => paid('voiceover')}
               />
               <View
@@ -1179,7 +1203,7 @@ export function ContentProject() {
                 <Text style={styles.text}>Burned-in subtitles</Text>
                 <Switch
                   accessibilityLabel="Burned-in subtitles"
-                  disabled={active || busy}
+                  disabled={active || busy || !canEdit}
                   value={draft.data.subtitles}
                   onValueChange={(value) =>
                     setDraft({ ...draft, data: { ...draft.data, subtitles: value } })
@@ -1228,6 +1252,7 @@ export function ContentProject() {
                   disabled={
                     busy ||
                     active ||
+                    !canEdit ||
                     !['sources', 'claims', 'assets', 'caption'].every((name) => checks[name])
                   }
                   onPress={() => void run(() => review('submit'))}
@@ -1237,6 +1262,7 @@ export function ContentProject() {
                   disabled={
                     busy ||
                     active ||
+                    !canReview ||
                     output.state !== 'pending_review' ||
                     !['sources', 'claims', 'assets', 'caption'].every((name) => checks[name]) ||
                     (output.data.format === 'reel' && !watched)
@@ -1247,7 +1273,7 @@ export function ContentProject() {
                 <Button
                   title="Request changes"
                   secondary
-                  disabled={busy || notes.trim().length < 3}
+                  disabled={busy || active || !canReview || notes.trim().length < 3}
                   onPress={() =>
                     void run(() =>
                       mutate(`/v1/outputs/${output.id}/changes`, {

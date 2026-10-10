@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAtomValue } from 'jotai';
+import { accountAtom } from '../../app/state';
 import { ApiError, downloadOutput, loadAsset, request } from '../../services/api';
 import { Modal } from '../../components/Modal';
 import {
   contentList,
+  canEditStudio,
+  canReviewStudio,
   timelinePayload,
   type StudioContent,
   type StudioOutput,
@@ -74,12 +78,21 @@ export function StudioAsset({
 
 export function ContentWorkspace({
   contentId,
+  outputFormat,
+  editorTool,
+  initialSceneId,
   onDirtyChange,
 }: {
   contentId: string;
+  outputFormat?: 'reel';
+  editorTool?: string;
+  initialSceneId?: string;
   onDirtyChange: (value: boolean) => void;
 }) {
   const cache = useQueryClient();
+  const account = useAtomValue(accountAtom);
+  const canEdit = canEditStudio(account);
+  const canReview = canReviewStudio(account);
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const {
@@ -93,16 +106,37 @@ export function ContentWorkspace({
     refetchInterval: 2000,
   });
   const output =
-    content?.outputs.find((item) => item.id === params.get('output')) || content?.outputs[0];
+    content?.outputs.find(
+      (item) =>
+        item.id === params.get('output') && (!outputFormat || item.data.format === outputFormat),
+    ) ||
+    (outputFormat
+      ? content?.outputs.find((item) => item.data.format === outputFormat)
+      : content?.outputs[0]);
   const [draft, setDraft] = useState<StudioOutput | null>(null);
   const [base, setBase] = useState<StudioOutput | null>(null);
   const baseRef = useRef<StudioOutput | null>(null);
   const draftRef = useRef<StudioOutput | null>(null);
   draftRef.current = draft;
-  const [selectedScene, setSelectedScene] = useState('');
+  const [selectedScene, setSelectedScene] = useState(initialSceneId || '');
   const [section, setSection] = useState<'Scenes' | 'Script' | 'Audio' | 'Review' | 'Versions'>(
-    'Scenes',
+    editorTool === 'script'
+      ? 'Script'
+      : ['audio', 'subtitles'].includes(editorTool || '')
+        ? 'Audio'
+        : 'Scenes',
   );
+  useEffect(() => {
+    if (outputFormat)
+      setSection(
+        editorTool === 'script'
+          ? 'Script'
+          : ['audio', 'subtitles'].includes(editorTool || '')
+            ? 'Audio'
+            : 'Scenes',
+      );
+    if (initialSceneId) setSelectedScene(initialSceneId);
+  }, [outputFormat, editorTool, initialSceneId]);
   const [error, setError] = useState('');
   const [saveStatus, setSaveStatus] = useState('Saved');
   const [busy, setBusy] = useState(false);
@@ -281,10 +315,12 @@ export function ContentWorkspace({
         </button>
       </div>
     );
-  const scene = draft.data.scenes.find((item) => item.id === selectedScene) || draft.data.scenes[0];
+  const scene =
+    draft.data.scenes.find((item) => item.id === selectedScene) ||
+    (!selectedScene ? draft.data.scenes[0] : undefined);
   const totalDuration = draft.data.scenes.reduce((total, item) => total + item.durationSec, 0);
   const changed = draft.data.format === 'reel' && (!output.data.renderCurrent || dirty);
-  const readOnly = active || busy;
+  const readOnly = active || busy || !canEdit;
   return (
     <section className="content-workspace" aria-label="Content editing workspace">
       <header className="editor-heading">
@@ -303,7 +339,11 @@ export function ContentWorkspace({
             role="tab"
             aria-selected={item.id === output.id}
             disabled={dirty}
-            onClick={() => setParams({ output: item.id })}
+            onClick={() =>
+              outputFormat && item.data.format !== outputFormat
+                ? navigate(`/studio-content/${contentId}?output=${item.id}`)
+                : setParams({ output: item.id })
+            }
           >
             {item.data.format} · {item.state.replaceAll('_', ' ')}
           </button>
@@ -324,6 +364,12 @@ export function ContentWorkspace({
           requests remaining
         </span>
       </div>
+      {selectedScene && !scene && (
+        <p role="alert">
+          This scene is unavailable in the current revision. Select an available scene in the
+          timeline.
+        </p>
+      )}
       {output.job && (
         <div className="output-job panel">
           <strong>{output.job.step}</strong>
@@ -790,7 +836,9 @@ export function ContentWorkspace({
             <button
               className="primary"
               disabled={
-                readOnly ||
+                active ||
+                busy ||
+                !canReview ||
                 dirty ||
                 output.state !== 'pending_review' ||
                 !['sources', 'claims', 'assets', 'caption'].every((name) => checks[name]) ||
@@ -811,7 +859,7 @@ export function ContentWorkspace({
           </label>
           <button
             className="secondary"
-            disabled={readOnly || notes.trim().length < 3}
+            disabled={active || busy || !canReview || notes.trim().length < 3}
             onClick={() =>
               void run(() =>
                 mutate(`/v1/outputs/${output.id}/changes`, {
@@ -908,6 +956,7 @@ export function ContentWorkspace({
 
 export function StudioContentLibrary() {
   const navigate = useNavigate();
+  const canEdit = canEditStudio(useAtomValue(accountAtom));
   const [query, setQuery] = useState('');
   const { data, isPending, error, refetch } = useQuery({
     queryKey: ['studio-content-list', query],
@@ -921,7 +970,7 @@ export function StudioContentLibrary() {
     <section className="studio-content-library" aria-label="Carousel and Reel projects">
       <div className="library-toolbar">
         <h2>Content projects</h2>
-        <button className="primary" onClick={() => navigate('/create')}>
+        <button className="primary" disabled={!canEdit} onClick={() => navigate('/create')}>
           Create carousel or Reel
         </button>
       </div>

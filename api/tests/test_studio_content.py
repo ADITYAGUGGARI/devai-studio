@@ -111,6 +111,46 @@ def test_missing_credentials_block_paid_jobs_without_fake_success(client, monkey
     assert client.get("/v1/content", headers=HEADERS).json()["items"] == []
 
 
+def test_output_permissions_distinguish_editor_reviewer_and_viewer(client, monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only-configuration-not-a-real-key")
+    topic = approved_source(client)
+    saved = setup(client, topic, ["carousel"])
+    created = generate(client, saved, ["carousel"])
+    output_id = created["outputIds"][0]
+    for role in ("editor", "reviewer", "viewer"):
+        email, password = f"{role}@studio.test", "Isolated-permission-test-12345"
+        user = client.post(
+            "/auth/users",
+            headers=HEADERS,
+            json={"email": email, "password": password, "role": role},
+        )
+        assert user.status_code == 201, user.text
+        login = client.post("/auth/login", json={"email": email, "password": password})
+        assert login.status_code == 200
+        headers = {
+            "Authorization": f"Bearer {login.json()['token']}",
+            "Idempotency-Key": f"{role}-action",
+        }
+        output = client.get(f"/v1/outputs/{output_id}", headers=headers)
+        assert output.status_code == 200
+        rejected = client.post(
+            f"/v1/outputs/{output_id}/review/approve",
+            headers=headers,
+            json={
+                "expectedRevision": output.json()["revision"],
+                "confirmed": True,
+                "reviewedAssetIds": ["no-generated-asset"],
+                "checklist": {name: True for name in ("sources", "claims", "assets", "caption")},
+            },
+        )
+        assert rejected.status_code == (409 if role == "reviewer" else 403), rejected.text
+        setup_response = client.post(
+            "/v1/setups", headers=headers, json={"topicId": topic, "formats": ["carousel"]}
+        )
+        assert setup_response.status_code == (201 if role == "editor" else 403), setup_response.text
+    assert len(client.get("/jobs", headers=HEADERS).json()) == 1
+
+
 def provider_fixture(monkeypatch, *, fail_scene=None):
     images = []
     counters = {"image": 0}
@@ -191,6 +231,7 @@ def test_actual_reel_pipeline_review_export_and_material_edit_invalidation(
     assert output["data"]["renderValidation"]["decoded"]
     assert output["data"]["renderCurrent"]
     assert len(images) == 5
+    assert all(tag in output["data"]["caption"] for tag in output["data"]["hashtags"])
     assert all(item["size"] == "1152x2048" for item in images)
     assert "privatePath" not in json.dumps(output)
     render_id = output["data"]["renderId"]

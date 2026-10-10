@@ -1,6 +1,6 @@
 import { ProfileSettings } from '../features/ProfileSettings';
 import { useState, useEffect } from 'react';
-import { useBlocker } from 'react-router-dom';
+import { useBlocker, useNavigate } from 'react-router-dom';
 import { useAtomValue } from 'jotai';
 import { accountAtom } from './state';
 import { useStudioRouting } from './routing';
@@ -32,7 +32,18 @@ import type {
 
 export function App() {
   const queryClient = useQueryClient();
-  const { id, tab, contentId, setupId, navigateWorkspace: setTab, openPost } = useStudioRouting();
+  const routerNavigate = useNavigate();
+  const {
+    id,
+    tab,
+    contentId,
+    setupId,
+    outputFormat,
+    editorTool,
+    sceneId,
+    navigateWorkspace: setTab,
+    openPost,
+  } = useStudioRouting();
   const account = useAtomValue(accountAtom);
   const canWrite = account?.role !== 'viewer';
   const [busy, setBusy] = useState(false);
@@ -120,8 +131,9 @@ export function App() {
   const create = () => setTab('Create');
   const generate = (source: SourceInput) =>
     run(async () => {
-      await request('/topics', 'POST', source);
+      const created = await request<{ id: string }>('/topics', 'POST', source);
       setManualSource(false);
+      routerNavigate(`/discover/queue?topic=${encodeURIComponent(created.id)}`);
     });
   const runDaily = () => run(() => request('/research/daily/run', 'POST'));
   const regenerateResearch = () =>
@@ -251,7 +263,14 @@ export function App() {
       ) : tab === 'Create' ? (
         <CreateWizard key={setupId || 'new'} setupId={setupId} onDirtyChange={setDirty} />
       ) : tab === 'ContentWorkspace' && contentId ? (
-        <ContentWorkspace key={contentId} contentId={contentId} onDirtyChange={setDirty} />
+        <ContentWorkspace
+          key={contentId}
+          contentId={contentId}
+          outputFormat={outputFormat}
+          editorTool={editorTool}
+          initialSceneId={sceneId}
+          onDirtyChange={setDirty}
+        />
       ) : active ? (
         <PostEditor
           key={active.id}

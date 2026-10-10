@@ -1,4 +1,13 @@
 export type OutputFormat = 'carousel' | 'reel';
+export function studioRole(account: { role: string; workspace_role?: string } | null) {
+  return account?.workspace_role || (account?.role === 'admin' ? 'owner' : account?.role);
+}
+export function canEditStudio(account: { role: string; workspace_role?: string } | null) {
+  return ['owner', 'editor'].includes(studioRole(account) || '');
+}
+export function canReviewStudio(account: { role: string; workspace_role?: string } | null) {
+  return ['owner', 'reviewer'].includes(studioRole(account) || '');
+}
 export interface ContentOptions {
   audience: string;
   tone: 'Clear' | 'Analytical' | 'Conversational' | 'Editorial';
